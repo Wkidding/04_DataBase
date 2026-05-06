@@ -155,7 +155,6 @@ jobTitle VARCHAR(50),
 birth DATE,
 note VARCHAR(255),
 sex VARCHAR(5)
-
 );
 
 DESC employees;
