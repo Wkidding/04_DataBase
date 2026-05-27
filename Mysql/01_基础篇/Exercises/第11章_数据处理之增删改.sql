@@ -19,14 +19,18 @@ SELECT * FROM emp1;
 #方式1：一条一条的添加数据
 
 # ① 没有指明添加的字段
+#注意：一定要按照声明的字段的先后顺序添加
+
 #正确的
-INSERT INTO emp1 VALUES (1,'Tom','2000-12-21',3400); #注意：一定要按照声明的字段的先后顺序添加
+INSERT INTO emp1 VALUES (1,'Tom','2000-12-21',3400); 
+
 #错误的
 INSERT INTO emp1 VALUES (2,3400,'2000-12-21','Jerry');
 
 # ② 指明要添加的字段 （推荐）
 INSERT INTO emp1(id,hire_date,salary,`name`)
 VALUES(2,'1999-09-09',4000,'Jerry');
+
 # 说明：没有进行赋值的hire_date 的值为 null
 INSERT INTO emp1(id,salary,`name`)
 VALUES(3,4500,'shk');
@@ -41,11 +45,8 @@ VALUES
 
 SELECT * FROM emp1;
 
-INSERT INTO emp1(id,NAME,salary,hire_date)
-#查询语句
-SELECT employee_id,last_name,salary,hire_date  
-# 查询的字段一定要与添加到的表的字段一一对应
-FROM employees WHERE department_id IN (70,60);
+#查询语句:查询的字段一定要与添加到的表的字段一一对应
+INSERT INTO emp1(id,NAME,salary,hire_date) SELECT employee_id,last_name,salary,hire_date FROM employees WHERE department_id IN (70,60);
 
 DESC emp1;
 DESC employees;
@@ -55,7 +56,7 @@ DESC employees;
 
 #2. 更新数据 （或修改数据）
 # UPDATE .... SET .... WHERE ...
-# 可以实现批量修改数据的。
+# 可以实现批量修改数据
 
 UPDATE emp1 SET hire_date = CURDATE() WHERE id = 5;
 
@@ -74,15 +75,16 @@ WHERE employee_id = 102;
 
 #3. 删除数据 DELETE FROM .... WHERE....
 
-DELETE FROM emp1
-WHERE id = 1;
+DELETE FROM emp1 WHERE id = 1;
 
 #在删除数据时，也有可能因为约束的影响，导致删除失败
-DELETE FROM departments
-WHERE department_id = 50;
+DELETE FROM departments WHERE department_id = 50;
 
-#小结：DML操作默认情况下，执行完以后都会自动提交数据。
+# 小结：DML操作默认情况下，执行完以后都会自动提交数据。
 # 如果希望执行完以后不自动提交数据，则需要使用 SET autocommit = FALSE.
+
+
+
 
 #4. MySQL8的新特性：计算列
 USE atguigudb;
@@ -90,16 +92,14 @@ USE atguigudb;
 CREATE TABLE test1(
 a INT,
 b INT,
-c INT GENERATED ALWAYS AS (a + b) VIRTUAL  #字段c即为计算列
+c INT GENERATED ALWAYS AS (a + b) VIRTUAL  #列c即为计算列
 );
 
-INSERT INTO test1(a,b)
-VALUES(10,20);
+INSERT INTO test1(a,b) VALUES(10,20);
 
 SELECT * FROM test1;
 
-UPDATE test1
-SET a = 100;
+UPDATE test1 SET a = 100;
 
 #5.综合案例
 # 1、创建数据库test01_library
