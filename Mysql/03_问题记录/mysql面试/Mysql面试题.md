@@ -554,27 +554,49 @@ SELECT age FROM user WHERE name='张三';
 
 为了控制非聚簇索引的大小
 
+
+
 ### 027	如果把一个 InnoDB 表的主键删掉，是不是就没有主键，就没办法进行回表查询了？
 
 不是，InnoDB会生成rowid辅助回表查询
 
-### 028 什么是联合索引，组合索引，复合索引？
-
-`为c2和c3列建立联合索引，`如下所示：
-
-c2，c3 - > index
-
-c3,c2 -> index
-
-where c3=? 
-
-全职匹配
-
-最左前缀
-
-![image-20220712002627554](../images/image-20220712002627554.png)
 
 
+### 028  什么是联合索引，组合索引，复合索引？
+
+这三个名词（**联合索引、组合索引、复合索引**）指的是**同一个东西**
+
+**定义：** 将一个SQL查询中的**多个列**（字段）组合起来，共同创建一个B+树索引。
+
+```sql
+## 假设有一张用户表 user：
+CREATE TABLE user (
+    id INT,
+    last_name VARCHAR(50),
+    first_name VARCHAR(50),
+    age INT
+);
+## 创建一个联合索引：
+CREATE INDEX idx_name ON user (last_name, first_name, age);
+-- 这里按照 last_name -> first_name -> age 的顺序
+
+## 底层数据结构（B+树）的排序规则：
+## 首先按照 last_name 排序。
+## 如果 last_name 相同，再按照 first_name 排序。
+## 如果 last_name 和 first_name 都相同，再按照 age 排序。
+```
+
+**联合索引的核心原则：最左前缀匹配**
+
+> **只要查询的条件中，用到了索引最左边的一个或多个列，索引就能生效。跳过左边的列，索引就无效。**
+
+| SQL 查询                                                    | 索引是否生效？ | 原因                                                         |
+| :---------------------------------------------------------- | :------------- | :----------------------------------------------------------- |
+| `WHERE last_name = '张'`                                    | ✅ **生效**     | 用到了最左列 `last_name`                                     |
+| `WHERE last_name = '张' AND first_name = '三'`              | ✅ **生效**     | 用到了 `last_name` 和 `first_name`，顺序正确                 |
+| `WHERE last_name = '张' AND first_name = '三' AND age = 30` | ✅ **生效**     | 用到了全部三列（完美命中）                                   |
+| `WHERE first_name = '三'`                                   | ❌ **不生效**   | 跳过了最左边的 `last_name`（无法定位）                       |
+| `WHERE last_name = '张' AND age = 30`                       | ⚠️ **部分生效** | 只用到了 `last_name` 过滤，`age` 用不上（因为跳过了 `first_name`） |
 
 
 
