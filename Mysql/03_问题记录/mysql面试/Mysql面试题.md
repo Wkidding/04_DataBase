@@ -682,120 +682,95 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 ### 034 什么是索引下推？
 
-5.6之前的版本是没有索引下推这个优化的
+索引下推（Index Condition Pushdown，简称ICP）是MySQL 5.6引入的一种**优化查询的执行方式**。
 
-**Using index condition：**叫作  `Index Condition Pushdown Optimization （索引下推优化）`
+把本该在**Server层**做的WHERE条件判断，**下推**到**存储引擎层**，让存储引擎在读取索引时就利用WHERE条件提前过滤掉不符合的行，从而减少回表次数。
 
-- `如果没有索引下推（ICP）`，那么MySQL在存储引擎层找到满足`content1 > 'z'`条件的第一条二级索引记录。`主键值进行回表`，返回完整的记录给server层，server层再判断其他的搜索条件是否成立。如果成立则保留该记录，否则跳过该记录，然后向存储引擎层要下一条记录。
-- `如果使用了索引下推（ICP`），那么MySQL在存储引擎层找到满足`content1 > 'z'`条件的第一条二级索引记录。`不着急执行回表`，而是在这条记录上先判断一下所有关于`idx_content1`索引中包含的条件是否成立，也就是`content1 > 'z' AND content1 LIKE '%a'`是否成立。如果这些条件不成立，则直接跳过该二级索引记录，去找下一条二级索引记录；如果这些条件成立，则执行回表操作，返回完整的记录给server层。
-
-
-
-总结：
-
-未开启索引下推：
-
-- 根据筛选条件在索引树中筛选第一个条件
-- 获得结果集后回表操作
-- 进行其他条件筛选
-- 再次回表查询
-
-开启索引下推：在条件查询时，当前索引树如果满足全部筛选条件，可以在当前树中完成全部筛选过滤，得到比较小的结果集再进行回表操作
-
-### 035 有哪些情况会导致索引失效？
-
-- 计算、函数导致索引失效
-
-```
--- 显示查询分析
-EXPLAIN SELECT * FROM emp WHERE emp.name  LIKE 'abc%';
-EXPLAIN SELECT * FROM emp WHERE LEFT(emp.name,3) = 'abc'; --索引失效
-```
-
-
-
-- LIKE以%，_ 开头索引失效
-
-> **拓展：Alibaba《Java开发手册》**
->
-> 【强制】页面搜索严禁左模糊或者全模糊，如果需要请走搜索引擎来解决。
-
-```
-EXPLAIN SELECT * FROM emp WHERE name LIKE '%ab%'; --索引失效
-```
-
-
-
-
-- 不等于(!= 或者<>)索引失效
-
-```
-EXPLAIN SELECT SQL_NO_CACHE * FROM emp WHERE emp.name = 'abc' ;
-EXPLAIN SELECT SQL_NO_CACHE * FROM emp WHERE emp.name <> 'abc' ; --索引失效
-```
-
-
-
-
-- IS NOT NULL 失效 和 IS NULL
-
-```
-EXPLAIN SELECT * FROM emp WHERE emp.name IS NULL;
-EXPLAIN SELECT * FROM emp WHERE emp.name IS NOT NULL; --索引失效
-```
-
-**注意：**当数据库中的数据的索引列的`NULL值达到比较高的比例的时候`，即使在IS NOT NULL 的情况下 MySQL的查询优化器会选择使用索引，`此时type的值是range（范围查询）`
+- `如果没有索引下推，那么MySQL在存储引擎层找到满足`content1 > 'z'`条件的第一条二级索引记录。`主键值进行回表`，返回完整的记录给server层，server层再判断其他的搜索条件是否成立。如果成立则保留该记录，否则跳过该记录，然后向存储引擎层要下一条记录。
+- `如果使用了索引下推，那么MySQL在存储引擎层找到满足`content1 > 'z'`条件的第一条二级索引记录。`不着急执行回表`，而是在这条记录上先判断一下所有关于`idx_content1`索引中包含的条件是否成立，也就是`content1 > 'z' AND content1 LIKE '%a'`是否成立。如果这些条件不成立，则直接跳过该二级索引记录，去找下一条二级索引记录；如果这些条件成立，则执行回表操作，返回完整的记录给server层。
 
 ```sql
--- 将 id>20000 的数据的 name 值改为 NULL
-UPDATE emp SET `name` = NULL WHERE `id` > 20000;
-
--- 执行查询分析，可以发现 IS NOT NULL 使用了索引
--- 具体多少条记录的值为NULL可以使索引在IS NOT NULL的情况下生效，由查询优化器的算法决定
-EXPLAIN SELECT * FROM emp WHERE emp.name IS NOT NULL
+## 表user有一个联合索引(last_name, first_name)
+SELECT * FROM user 
+WHERE last_name = '张' AND first_name LIKE '%三%';   -- 注意：%在左边
 ```
 
-- 类型转换导致索引失效
+**1、执行过程（没有ICP）：**
+
+1.  **存储引擎**：通过索引找到所有`last_name='张'`的索引条目（比如有100条）。
+2.  **存储引擎**：根据这100条索引里记录的主键ID，**回表**（随机I/O）读取100次，拿到完整的100行数据给Server层。
+3.  **Server层**：对这100行数据，逐一判断`first_name LIKE '%三%'`，过滤掉不符合的。
+4.  **结果**：假设只有10条符合，Server层浪费了90次回表（这90次回表拿到数据后发现其实不符合）。
+
+**问题：** 索引`(last_name, first_name)`明明包含了`first_name`的值，但因为`LIKE '%三%'`（%在左边）导致无法用索引精准定位，这些被读出来的索引条目中包含的`first_name`值在存储引擎层被白白浪费了——存储引擎没有用这个条件过滤，反而盲目地回表。
+
+**2、执行过程（启用ICP）：**
+
+1.  **Server层**：把`first_name LIKE '%三%'`这个条件也下推给存储引擎。
+2.  **存储引擎**：通过索引找到`last_name='张'`的索引条目时，**在索引页内部**就直接判断当前行的`first_name`是否符合`LIKE '%三%'`。
+3.  **存储引擎**：**只有符合条件**的索引条目，才去回表获取完整行数据。
+4.  **结果**：假设100个`last_name='张'`中只有10个`first_name`符合`LIKE '%三%'`，则只回表10次。
+
+**节省了90次随机I/O回表操作**，性能显著提升。
+
+**3、ICP生效条件：**
+
+1.  只能用于**二级索引**（非聚簇索引）。
+2.  查询必须是**部分使用索引**的场景（即WHERE条件不能完全覆盖索引列，需要回表）。
+3.  索引中包含的列可以用于提前过滤。
+
+**4、ICP不生效的情况：**
+
+1.  聚簇索引（主键索引）——回表本身就是数据页，不需要ICP。
+2.  WHERE条件中的列**不在索引中**（无法下推，因为索引里没有这个值）。
+3.  使用了**分区表**且查询跨越多个分区（某些版本限制）。
+4.  查询使用了**`select *`但SELECT列全在索引中**（此时本身就是覆盖索引，无需回表，也就无所谓ICP）。
+
+**5、如何确认ICP是否启用？**
 
 ```sql
-EXPLAIN SELECT * FROM emp WHERE name='123'; 
-EXPLAIN SELECT * FROM emp WHERE name= 123; --索引失效
+-- 查看ICP状态（默认开启）
+SHOW VARIABLES LIKE 'optimizer_switch';
+-- 找到 index_condition_pushdown=on
+
+-- 查看执行计划
+EXPLAIN SELECT * FROM user WHERE last_name='张' AND first_name LIKE '%三%';
+
+## 执行计划输出中，`Extra`列会显示：
+--   有ICP：`Using index condition`
+--  无ICP：`Using where`（在Server层过滤）
 ```
 
-- 复合索引未用左列字段失效
-- 如果mysql觉得全表扫描更快时（数据少）;
+
+
+### 035  有哪些情况会导致索引失效？
+
+| 失效分类                           | 具体写法（❌ 错误示例）                                       | 原因与说明                                                 |
+| :--------------------------------- | :----------------------------------------------------------- | :--------------------------------------------------------- |
+| 违反最左前缀                       | 联合索引 `(a,b,c)`，查询 `where b=2` 或 `where a=1 and c=3`  | 必须从索引的最左列开始匹配，不能跳过中间列                 |
+| 索引列计算                         | `where id + 1 = 10`                                          | 索引列参与算术运算后，值已变，无法直接查找原值             |
+| 使用函数                           | `where DATE(create_time) = '2024-01-01'`                     | 对索引列使用函数会破坏其原始值的排序                       |
+| 隐式类型转换                       | `phone` 字段是 `varchar`，但查询 `where phone = 13800000000` | 数据库会将索引列转换为数字，导致无法使用索引               |
+| 错误的模糊查询                     | `where name like '%张三'` 或 `'%张三%'`                      | `%` 通配符在开头时，无法利用B+树的前缀匹配                 |
+| OR 连接条件                        | `where name = '张三' or age = 20`（假设 `age` 无索引）       | `OR` 两侧必须都有索引，否则会全表扫描                      |
+| 使用反向查询                       | `where status != 1` 或 `where id not in (1,2,3)` 或 `where age is not null` | 负向查询通常不走索引（除非结果集极小，优化器可能改变策略） |
+| 范围查询过大                       | 联合索引 `(a,b,c)`，查询 `where a=1 and b>10 and c=2`        | 范围查询（`>`, `<`, `between`）会导致后续索引列失效        |
+| 优化器误判                         | 某列 `status` 90% 都是1，查询 `where status = 1`             | 优化器认为全表扫描（顺序IO）比随机回表更高效               |
+| ORDER BY 顺序错误                  | 联合索引 `(a,b)`，查询 `order by b, a`                       | 索引默认按 `(a,b)` 排序，`(b,a)` 与之不一致                |
+| 使用 `select *` 且需要回表很多数据 | 同“优化器误判”原理                                           | 回表成本太高，优化器可能放弃索引                           |
+
+**执行 `EXPLAIN` 查看执行计划：**
+
+-   `type` = `ALL`：最差，全表扫描 → **索引失效**
+-   `type` = `index`：全索引扫描，比全表好一点，但也不是最优
+-   `type` = `range` / `ref`：正常使用索引
+-   `key` = `NULL`：**没用上索引**
+
+
 
 ### 036  为什么LIKE以%开头索引会失效？
 
-
-
-id,name,age
-
-name 创建索引
-
-select *  from user where  name like '%明'
-
-type=all
-
-select name,id  from user where  name like '%明'
-
-type=index
-
-
-
-张明
-
-(name,age)
-
-其实并不会完全失效，覆盖索引下会出现type=index，表示遍历了索引树，再回表查询，
-
-覆盖索引没有生效的时会直接type=all
-
-
-
 没有高效使用索引是因为字符串索引会逐个转换成accii码，生成b+树时按首个字符串顺序排序，类似复合索引未用左列字段失效一样，跳过开始部分也就无法使用生成的b+树了
-
-
 
 
 
@@ -803,9 +778,11 @@ type=index
 
 不可用手动直接干预，只能通过mysql优化器自动选择
 
+
+
 ### 038  	如何查看一个表的索引？
 
-```
+```sql
 show index from t_emp; // 显示表上的索引
 explain select * from t_emp where id=1; // 显示可能会用到的索引及最终使用的索引
 ```
