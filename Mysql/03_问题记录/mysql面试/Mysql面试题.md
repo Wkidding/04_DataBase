@@ -609,31 +609,24 @@ CREATE INDEX idx_name ON user (last_name, first_name, age);
 - B+树叶子节点处的记录由`c2列、c3列和主键c1列组成`
 - 本质上也是二级索引
 
-`create index idx_c2_c3 on user (c2,c3); `
+
 
 ### 030 什么是唯一索引？
 
-- 随表一起创建索引：
-
 ```sql
+## 随表一起创建索引
 CREATE TABLE customer (
-    
   id INT UNSIGNED AUTO_INCREMENT,
   customer_no VARCHAR(200),
   customer_name VARCHAR(200),
-    
+  
   PRIMARY KEY(id), -- 主键索引：列设定为主键后会自动建立索引，唯一且不能为空。
   UNIQUE INDEX uk_no (customer_no), -- 唯一索引：索引列值必须唯一，允许有NULL值，且NULL可能会出现多次。
   KEY idx_name (customer_name), -- 普通索引：既不是主键，列值也不需要唯一，单纯的为了提高查询速度而创建。
   KEY idx_no_name (customer_no,customer_name) -- 复合索引：即一个索引包含多个列。
 );
-```
 
-
-
-- 单独建创索引：
-
-```sql
+## 单独建创索引
 CREATE TABLE customer1 (
   id INT UNSIGNED,
   customer_no VARCHAR(200),
@@ -650,7 +643,9 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 ### 	031 唯一索引是否影响性能？
 
-是
+是, 它在某些场景下能提升查询性能，但在写入（插入、更新）时一定会带来额外开销。
+
+
 
 ### 	032 什么时候使用唯一索引？
 
@@ -662,7 +657,7 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 ### 033 什么时候适合创建索引，什么时候不适合创建索引？
 
-适合创建索引
+**适合创建索引**
 
 - 频繁作为where条件语句查询字段
 
@@ -673,7 +668,7 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 - 统计字段可以建立索引（如.count(),max()）
 
-不适合创建索引
+**不适合创建索引**
 
 - 频繁更新的字段不适合建立索引
 
@@ -683,13 +678,7 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 - 参与mysql函数计算的列不适合建索引
 
-创建索引时避免有如下极端误解：
 
- 1）宁滥勿缺。认为一个查询就需要建一个索引。 
-
-2）宁缺勿滥。认为索引会消耗空间、严重拖慢更新和新增速度。 
-
-3）抵制惟一索引。认为业务的惟一性一律需要在应用层通过“先查后插”方式解决。
 
 ### 034 什么是索引下推？
 
