@@ -780,27 +780,29 @@ EXPLAIN SELECT * FROM user WHERE last_name='张' AND first_name LIKE '%三%';
 
 
 
-### 038  	如何查看一个表的索引？
+### 038 如何查看一个表的索引？
 
 ```sql
-show index from t_emp; // 显示表上的索引
-explain select * from t_emp where id=1; // 显示可能会用到的索引及最终使用的索引
+show index from t_emp; -- 显示表上的索引
+explain select * from t_emp where id=1; -- 显示可能会用到的索引及最终使用的索引
 ```
 
 
 
-### 039  	能否查看到索引选择的逻辑？是否使用过optimizer_trace？
+### 039 能否查看到索引选择的逻辑？是否使用过optimizer_trace？
 
-```
+```sql
 set session optimizer_trace="enabled=on",end_markers_in_json=on;
+-- 执行SQL
+-- sql text...
+-- 查看
 SELECT * FROM information_schema.OPTIMIZER_TRACE;
 set session optimizer_trace="enabled=off";
-
 ```
 
 
 
-### 040  	多个索引优先级是如何匹配的？
+### 040  多个索引优先级是如何匹配的？
 
 1. 主键（唯一索引）匹配
 2. 全值匹配（单值匹配）
@@ -823,15 +825,27 @@ set session optimizer_trace="enabled=off";
 
 Ø 尽量避免造成索引失效的情况
 
-### 041  	使用Order By时能否通过索引排序？
 
-没有过滤条件不走索引
 
-### 042  		通过索引排序内部流程是什么？
+### 041  使用Order By时能否通过索引排序？
 
-select name,id  from user where  name like '%明' order by name；
+没有过滤条件不走索引（比如where，limit等过滤条件），添加过滤条件后可以走到索引（通过执行计划查看）
 
-select name,id，age  from user where  name like '%明'
+
+
+### 042  通过索引排序内部流程是什么？
+
+通过索引排序（即 `ORDER BY` 使用索引来避免 `filesort`）的内部流程，核心是**利用 B+树索引本身的有序性**，直接按索引顺序读取数据，省去额外的排序步骤。
+
+步骤：
+
+1. **SQL 解析与优化**：MySQL 分析 `ORDER BY` 子句，检查是否能用索引（字段顺序、方向一致，不跳列，不涉及函数等）。
+2. **索引选择**：如果可行，优化器选择该索引用于查询和排序。
+3. **执行器调用存储引擎**：通过索引扫描，直接按有序顺序获取数据。
+4. **返回结果**：无需额外排序（`filesort`），直接返回。（核心是：**索引的叶子节点已经是排好序的，执行器只需沿链表顺序遍历即可**。）
+5. 如果第2步中，无法用索引，则计算select的字段是否超过max_length_for_sort_data限制，如果超过，启动双路排序，否则使用单路
+
+
 
 关键配置：
 
@@ -845,9 +859,7 @@ select name,id，age  from user where  name like '%明'
 
 
 
-
-
-### 043  		什么是双路排序和单路排序
+### 043  什么是双路排序和单路排序
 
 单路排序：一次取出所有字段进行排序，内存不够用的时候会使用磁盘
 
@@ -855,13 +867,9 @@ select name,id，age  from user where  name like '%明'
 
 
 
-
-
 如果不在索引列上，filesort有两种算法： mysql就要启动双路排序和单路排序
 
  **双路排序（慢）**
-
-Select id,age,name from stu order by name;
 
 Ø MySQL 4.1之前是使用双路排序，字面意思就是两次扫描磁盘，最终得到数据， 读取行指针和order by列，对他们进行排序，然后扫描已经排序好的列表，按照列表中的值重新从列表中读取对应的数据输出
 
@@ -875,9 +883,7 @@ Select id,age,name from stu order by name;
 
 **结论及引申出的问题**
 
- 但是用单路有问题
-
-在sort_buffer中，单路比多路要多占用很多空间，因为单路是把所有字段都取出, 所以有可能取出的数据的总大小超出了sort_buffer的容量，导致每次只能取sort_buffer容量大小的数据，进行排序（创建tmp文件，多路合并），排完再取sort_buffer容量大小，再排……从而多次I/O。
+ 但是用单路有问题：在sort_buffer中，单路比多路要多占用很多空间，因为单路是把所有字段都取出, 所以有可能取出的数据的总大小超出了sort_buffer的容量，导致每次只能取sort_buffer容量大小的数据，进行排序（创建tmp文件，多路合并），排完再取sort_buffer容量大小，再排……从而多次I/O。
 
 单路本来想省一次I/O操作，反而导致了大量的I/O操作，反而得不偿失。
 
@@ -891,48 +897,51 @@ Select id,age,name from stu order by name;
 
 **提高Order By的速度** 
 
-\1. Order by时select * 是一个大忌。只Query需要的字段， 这点非常重要。在这里的影响是：
+1. Order by时 select * 是一个大忌。只Query需要的字段， 这点非常重要。在这里的影响是：
 
-l 当Query的字段大小总和小于max_length_for_sort_data 而且排序字段不是 TEXT|BLOB 类型时，会用改进后的算法——单路排序， 否则用老算法——多路排序。
+当Query的字段大小总和小于max_length_for_sort_data 而且排序字段不是 TEXT|BLOB 类型时，会用改进后的算法——单路排序， 否则用老算法——多路排序。
 
-l 两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次I/O，但是用单路排序算法的风险会更大一些，所以要提高sort_buffer_size。 
+两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次I/O，但是用单路排序算法的风险会更大一些，所以要提高sort_buffer_size。 
 
-\2. 尝试提高 sort_buffer_size
+2. 尝试提高 sort_buffer_size
 
-l 不管用哪种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程（connection）的 1M-8M之间调整。 MySQL5.7和8.0，InnoDB存储引擎默认值是1048576字节，1MB。
+不管用哪种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程（connection）的 1M-8M之间调整。 MySQL5.7和8.0，InnoDB存储引擎默认值是1048576字节，1MB。
 
-SHOW VARIABLES LIKE '%sort_buffer_size%';
+```sql
+SHOW VARIABLES LIKE '%sort_buffer_size%';                   
+```
 
-​                               
+3. 尝试提高 max_length_for_sort_data
 
-\3. 尝试提高 max_length_for_sort_data
+提高这个参数， 会增加用改进算法的概率。
 
-l 提高这个参数， 会增加用改进算法的概率。
-
+```sql
 SHOW VARIABLES LIKE '%max_length_for_sort_data%'; 
 
-\#5.7默认1024字节
+## 5.7默认1024字节
+## 8.0默认4096字节
+```
 
-\#8.0默认4096字节
+但是如果设的太高，数据总容量超出sort_buffer_size的概率就增大，明显症状是高的磁盘I/O活动和低的处理器使用率。如果需要返回的列的总长度大于max_length_for_sort_data，使用双路算法，否则使用单路算法。1024-8192字节之间调整
 
-l 但是如果设的太高，数据总容量超出sort_buffer_size的概率就增大，明显症状是高的磁盘I/O活动和低的处理器使用率。如果需要返回的列的总长度大于max_length_for_sort_data，使用双路算法，否则使用单路算法。1024-8192字节之间调整
 
-#### 
 
-### 044  		group by 分组和order by在索引使用上有什么区别？
+### 044 group by 分组和order by在索引使用上有什么区别？
 
 group by 使用索引的原则几乎跟order by一致 ，唯一区别：
 
 - group by 先排序再分组，遵照索引建的最佳左前缀法则
 - group by没有过滤条件，也可以用上索引。Order By 必须有过滤条件才能使用上索引。
 
-### 045  	如果表中有字段为null，又被经常查询该不该给这个字段创建索引？
+
+
+### 045  如果表中有字段为null，又被经常查询该不该给这个字段创建索引？
 
 应该创建索引，使用的时候尽量使用is null判断。
 
 - IS NOT NULL 失效 和 IS NULL
 
-```
+```sql
 EXPLAIN SELECT * FROM emp WHERE emp.name IS NULL;
 EXPLAIN SELECT * FROM emp WHERE emp.name IS NOT NULL; --索引失效
 ```
@@ -950,15 +959,11 @@ EXPLAIN SELECT * FROM emp WHERE emp.name IS NOT NULL
 
 
 
-### 046  		有字段为null索引是否会失效？
+### 046  有字段为null索引是否会失效？
 
 不一定会失效，每一条sql具体有没有使用索引 可以通过trace追踪一下
 
-最好还是给上默认值
 
-数字类型的给0，字符串给个空串“”，
-
-参考上一题
 
 ## 二、MySQL 内部技术架构
 
