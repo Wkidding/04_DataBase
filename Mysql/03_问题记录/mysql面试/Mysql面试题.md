@@ -969,13 +969,15 @@ EXPLAIN SELECT * FROM emp WHERE emp.name IS NOT NULL
 
 ![image-20221028155608009](../images/image-20221028155608009.png)
 
-### ![img](../images/29f7e85dea17e100b38b450d9949a330.png)047 Mysql内部支持缓存查询吗？
+![img](../images/29f7e85dea17e100b38b450d9949a330.png)
+
+### 047 Mysql内部支持缓存查询吗？
 
 当MySQL接收到客户端的查询SQL之后，仅仅只需要对其进行相应的权限验证之后，就会通过Query Cache来查找结果，甚至都不需要经过Optimizer模块进行执行计划的分析优化，更不需要发生任何存储引擎的交互
 
-mysql5.7支持内部缓存，8.0之后就废弃掉了
+**mysql5.7支持内部缓存，8.0之后就废弃掉了**
 
-#### 048 	mysql8为何废弃掉查询缓存？
+### 048 mysql8为何废弃掉查询缓存？
 
 缓存的意义在于快速查询提升系统性能，可以灵活控制缓存的一致性
 
@@ -983,16 +985,14 @@ mysql缓存的限制
 
 1. mysql基本没有手段灵活的管理缓存失效和生效，尤其对于频繁更新的表
 2. SQL必须完全一致才会导致cache命中
-3. 为了节省内存空间，太大的result set不会被cache (< query_cache_limit)；
+3. 为了节省内存空间，太大的result set不会被cache (query_cache_limit参数控制查询缓存区大小)；
 4. MySQL缓存在分库分表环境下是不起作用的；
 5. 执行SQL里有触发器,自定义函数时，MySQL缓存也是不起作用的；
 6. 在表的结构或数据发生改变时，基于该表相关cache立即全部失效。
 
-#### 049 	替代方案是什么？
+### 049 MySQL无缓存后，替代方案是什么？
 
 应用层组织缓存，最简单的是使用redis，ehcached等
-
-
 
 
 
@@ -2249,7 +2249,7 @@ a)   mysqldumpslow --help
 
 #### 132	EXPLAIN关键字中的重要指标有哪些？
 
-## 
+
 
 ### EXPLAIN是什么
 
