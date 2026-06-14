@@ -1815,31 +1815,128 @@ xa事务可以跨库或跨服务器，属于分布式事务，同时xa事务还�
 
 两阶段提交协议与3阶段提交协议，额外增加了参与的角色保证分布式事务完成更完善
 
+
+
 ### 090 是否使用过select for update？会产生哪些操作？
 
-```
-
-查询库存 = 100  0 扣减库存  = -1 99
-记录日志 = log
-提交  commit
-```
-
-
-
 select本身是一个查询语句，查询语句是不会产生冲突的一种行为，一般情况下是没有锁的，用select for update 会让select语句产生一个排它锁(X), 这个锁和update的效果一样，会使两个事务无法同时更新一条记录。
+
+`SELECT ... FOR UPDATE` 的核心是**加 X 锁（行锁/间隙锁/Next-Key Lock）**，用于实现悲观锁，防止并发修改。它会阻塞其他写操作，应尽量在**短事务**中使用，避免死锁和性能问题。在 RR 隔离级别下还能防止幻读，但代价是可能锁住更多范围。
 
 https://dev.mysql.com/doc/refman/8.0/en/innodb-locks-set.html
 
 https://dev.mysql.com/doc/refman/8.0/en/select.html
 
-- for update仅适用于InnoDB，且必须在事务块(BEGIN/COMMIT)中才能生效。
+#### 一、加锁操作（核心）
 
-- 在进行事务操作时，通过“for update”语句，MySQL会对查询结果集中每行数据都添加排他锁，其他线程对该记录的更新与删除操作都会阻塞。排他锁包含行锁、表锁。
-- **InnoDB默认是行级别的锁，在筛选条件中当有明确指定主键或唯一索引列的时候，是行级锁。否则是表级别。**
+`FOR UPDATE` 会对查询返回的**所有行**加上**排他锁（X锁，独占锁）**。
 
-示例
+**1. 不同索引情况下的锁范围：**
 
+| 查询类型                                | 加锁范围                           | 说明                           |
+| :-------------------------------------- | :--------------------------------- | :----------------------------- |
+| **主键/唯一索引等值查询**（记录存在）   | **行锁**（Record Lock）            | 只锁那一行，效率最高           |
+| **主键/唯一索引等值查询**（记录不存在） | **间隙锁**（Gap Lock）             | 锁住"应该存在"的间隙，防止幻读 |
+| **普通索引等值查询**                    | **行锁 + 间隙锁**（Next-Key Lock） | 锁住索引记录及其前后的间隙     |
+| **范围查询**（如 `WHERE id > 10`）      | **多个 Next-Key Lock**             | 锁住整个范围，直到边界         |
+| **无索引/索引失效**                     | **表锁**（实际是锁所有行+间隙）    | 整个表被锁住，严重影响并发     |
+
+**2. 锁的兼容性：**
+-   **X 锁与 X 锁**：互斥。另一个事务的 `FOR UPDATE` 或 `UPDATE/DELETE` 会被阻塞，直到锁释放。
+-   **X 锁与 S 锁（共享锁）**：互斥。普通的 `SELECT`（快照读）不受影响，但 `SELECT ... LOCK IN SHARE MODE` 会被阻塞。
+
+#### 二、事务隔离级别的影响
+
+-   **RC（读已提交）**：只加**行锁**，不加间隙锁。**无法防止幻读**，但并发性能更好。
+-   **RR（可重复读，默认）**：加 **Next-Key Lock**（行锁+间隙锁）。**可以防止幻读**，但可能产生更多锁等待。
+
+#### 三、底层执行流程
+
+当你执行 `BEGIN; SELECT * FROM user WHERE id = 1 FOR UPDATE;` 时：
+
+1.  **定位记录**：通过聚簇索引（主键）或辅助索引找到 `id=1` 的记录。
+2.  **加锁判断**：
+    -   如果该行已被其他事务加了 X 锁 → **阻塞等待**（可设置超时时间 `innodb_lock_wait_timeout`）。
+    -   如果没有锁 → 对该行（以及可能的间隙）加上 X 锁。
+3.  **返回数据**：将数据返回给客户端。
+4.  **锁释放时机**：
+    -   `COMMIT` 或 `ROLLBACK` 时**一次性释放所有锁**（不是逐行释放）。
+    -   如果事务不结束，锁会一直持有，可能造成锁等待或死锁。
+
+#### 四、产生的其他影响
+
+1.  **阻塞其他写操作**：其他事务的 `UPDATE`、`DELETE`、`INSERT`（可能被间隙锁阻塞）、`SELECT ... FOR UPDATE`、`SELECT ... LOCK IN SHARE MODE` 都会被阻塞。
+
+2.  **可能产生死锁**：两个事务互相持有对方需要的锁。InnoDB 会自动检测并回滚其中一个事务。
+
+    ```sql
+    -- 事务1
+    SELECT * FROM user WHERE id = 1 FOR UPDATE;
+    SELECT * FROM user WHERE id = 2 FOR UPDATE;  -- 等待事务2释放id=2
+    
+    -- 事务2
+    SELECT * FROM user WHERE id = 2 FOR UPDATE;
+    SELECT * FROM user WHERE id = 1 FOR UPDATE;  -- 等待事务1释放id=1
+    
+    -- InnoDB检测到死锁，回滚其中一个
+    ```
+
+3.  **影响主从复制**：在主库执行的 `FOR UPDATE` 锁不会同步到从库。从库是读副本，不需要这种写锁。
+
+4.  **性能开销**：
+    -   需要额外的锁管理内存和CPU开销。
+    -   长时间持有锁会降低并发能力。
+    -   可能升级为表锁（当索引失效时），严重影响性能。
+
+#### 五、使用场景（什么时候该用？）
+
+**需要悲观锁控制并发写入时：**
+
+```sql
+-- 典型场景：扣减库存
+BEGIN;
+-- 1. 锁定要操作的库存记录
+SELECT stock FROM products WHERE id = 123 FOR UPDATE;
+-- 2. 在应用层判断stock是否充足
+-- 3. 执行扣减
+UPDATE products SET stock = stock - 1 WHERE id = 123;
+COMMIT;
 ```
+
+**何时不应该用：**
+-   数据不会被并发修改 → 用普通 `SELECT`
+-   可以接受基于快照读的乐观锁 → 用版本号（`version`字段）+ `UPDATE ... WHERE version = ?`
+-   只是查询，不需要后续更新 → 不要加 `FOR UPDATE`
+
+#### 六、注意事项
+
+1.  **必须配合事务**：不在事务中时，`FOR UPDATE` 会自动提交（自动提交模式下），锁立刻释放，没有意义。
+    ```sql
+    ## ①for update仅适用于InnoDB，且必须在事务块(BEGIN/COMMIT)中才能生效。
+    ## ②在进行事务操作时，通过“for update”语句，MySQL会对查询结果集中每行数据都添加排他锁，其他线程对该记录的更新与删除操作都会阻塞。排他锁包含行锁、表锁。
+    ## ③InnoDB默认是行级别的锁，在筛选条件中当有明确指定主键或唯一索引列的时候，是行级锁。否则是表级别。**
+    
+    -- 错误用法（自动提交模式）
+    SELECT * FROM user WHERE id = 1 FOR UPDATE;  -- 锁立刻释放
+    
+    -- 正确用法
+    BEGIN;  -- 或 START TRANSACTION
+    SELECT * FROM user WHERE id = 1 FOR UPDATE;
+    -- ... 后续操作
+    COMMIT;
+    ```
+    
+2.  **锁等待超时**：默认 `innodb_lock_wait_timeout = 50` 秒，超时后抛出异常。
+
+3.  **跳过锁的行**：使用 `SKIP LOCKED`（MySQL 8.0+）跳过已被锁的行：
+    
+    ```sql
+    SELECT * FROM user WHERE status = 'pending' FOR UPDATE SKIP LOCKED;
+    ```
+
+**示例**
+
+```sql
 SELECT … FOR UPDATE [OF column_list][WAIT n|NOWAIT][SKIP LOCKED];
 select * from t for update 会等待行锁释放之后，返回查询结果。
 select * from t for update nowait 不等待行锁释放，提示锁冲突，不返回结果
