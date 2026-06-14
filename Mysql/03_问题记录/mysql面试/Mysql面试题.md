@@ -1946,30 +1946,12 @@ select * from t for update skip locked 查询返回查询结果，但忽略有�
 
 
 
-### 091说一下mysql死锁的原因和处理方法
+### 091 mysql死锁的原因和处理方法
 
-```
+当多个事务同时持有和请求同一资源上的锁而产生循环依赖的时候就产生了死锁。
 
-事务 a
-
-表 t  id=100 更新  加行锁
-表 t  id=200 更新  已加锁
-
-
-事务 b
-
-表 t  id=200 更新 加行锁
-表 t  id=100 更新 已加锁
-```
-
-
-
-- 死锁与锁等待是两个概念
-  - 如未开启事务，多个客户端执行的insert操作
-- 当多个事务同时持有和请求同一资源上的锁而产生循环依赖的时候就产生了死锁。
-
+```sql
 排查：
-
 - 正在运行的任务
   - show full processlist;  找到卡主的进程
 - 解开死锁
@@ -1982,11 +1964,35 @@ select * from t for update skip locked 查询返回查询结果，但忽略有�
 - 查看InnoDB锁状态
   - `show status like "innodb_row_lock%";`
 
+-- 查看死锁检测状态，默认 ON
+SHOW VARIABLES LIKE 'innodb_deadlock_detect';
+
+
+
+-- 当检测到死锁时，InnoDB会：
+-- ① 选择回滚代价较小的事务（修改行数少的）
+-- ② 返回错误：ERROR 1213 (40001): Deadlock found
+
+-- 查看最近一次死锁的详细信息
+SHOW ENGINE INNODB STATUS\G
+
+-- 重点关注输出中的：
+-- LATEST DETECTED DEADLOCK 部分
+-- 会显示：
+--   - 涉及的事务及SQL
+--   - 各自持有的锁和等待的锁
+--   - 被回滚的事务
+
+
+## 检测参数
 lnnodb_row_lock_current_waits:当前正在等待锁定的数量;
 lnnodb_row_lock_time :从系统启动到现在锁定的总时间长度，单位ms;
 Innodb_row_lock_time_avg :每次等待所花平均时间;
 Innodb_row_lock_time_max:从系统启动到现在等待最长的一次所花的时间;
 lnnodb_row_lock_waits :从系统启动到现在总共等待的次数。
+```
+
+
 
 - kill  id 杀死进程
 
@@ -1997,12 +2003,22 @@ lnnodb_row_lock_waits :从系统启动到现在总共等待的次数。
 
 - 快速失败
   - innodb_lock_wait_timeout 行锁超时时间
+  
+  ```sql
+  -- 查看锁等待超时时间（默认50秒）
+  SHOW VARIABLES LIKE 'innodb_lock_wait_timeout';
+  
+  -- 如果超过这个时间还没获得锁，放弃等待并回滚
+  -- 注意：这是超时，不是死锁检测
+  ```
 - 拆分sql，严禁大事务
 - 充分利用索引，优化索引，尽量把有风险的事务sql使用上覆盖索，优化where条件前缀匹配，提升查询速度，引减少表锁
 - 无法避免时：
   - 操作多张表时，尽量以相同的顺序来访问避免形成等待环路
   - 单张表时先排序再操作
   - 使用排它锁 比如 for update
+  
+  
 
 ### 092 Mysql会产生几种日志？
 
@@ -2012,17 +2028,11 @@ error log主要记录MySQL在启动、关闭或者运行过程中的错误信息
 
 - **慢查询日志（slow query log）**
 
-0.1秒
-
-
-
 Ø MySQL的慢查询日志是MySQL提供的一种日志记录，它用来记录在MySQL中响应时间超过阀值的语句，具体指运行时间超过long_query_time值的SQL，则会被记录到慢查询日志中。 
 
 Ø long_query_time的默认值为10，意思是运行10秒以上的语句。 
 
 Ø 由他来查看哪些SQL超出了我们的最大忍耐时间值，比如一条sql执行超过5秒钟，我们就算慢SQL，希望能收集超过5秒的sql，结合之前explain进行全面分析。
-
-
 
 Ø 默认情况下，MySQL数据库没有开启慢查询日志，需要我们手动来设置这个参数。
 
@@ -2040,7 +2050,9 @@ general log 记录了客户端连接信息以及执行的SQL语句信息，通�
 
 - **二进制日志（bin log）**
 
-#### 093 	bin log作用是什么？
+
+
+### 093 bin log作用是什么？
 
 MySQL的bin log日志是用来记录MySQL中增删改时的记录日志。
 
@@ -2048,7 +2060,9 @@ MySQL的bin log日志是用来记录MySQL中增删改时的记录日志。
 
 bin log最大的用处就是进行**主从复制，以及数据库的恢复。**
 
-#### 094	redo log作用是什么？
+
+
+### 094 redo log作用是什么？
 
 redo log是一种基于磁盘的数据结构，用来在MySQL宕机情况下将不完整的事务执行数据纠正，redo日志记录事务执行后的状态。
 
@@ -2056,7 +2070,9 @@ redo log是一种基于磁盘的数据结构，用来在MySQL宕机情况下将�
 
 redo log就是为了恢复更新了内存但是由于宕机等原因没有刷入磁盘中的那部分数据。
 
-#### 095 	undo log作用是什么？
+
+
+### 095 undo log作用是什么？
 
 undo log主要用来回滚到某一个版本，是一种逻辑日志。
 
@@ -2065,9 +2081,14 @@ undo log记录的是修改之前的数据，比如：当delete一条记录时，
 undo log还可以提供多版本并发控制下的读取（MVCC）。
 
 
-### 096 	Mysql日志是否实时写入磁盘？ 097 		bin log刷盘机制是如何实现的？098 		redo log刷盘机制是如何实现的？  099 		undo log刷盘机制是如何实现的？
+
+### 096 Mysql日志是否实时写入磁盘？ 
 
 磁盘写入固然是比较慢的。
+
+
+
+### 097 bin log刷盘机制是如何实现的？
 
 参数：sync_binlog
 
@@ -2079,13 +2100,17 @@ binlog 写入策略：
 
 **3、sync_binlog的值大于1** 的时候，表示每次提交事务都 先写到page cach，只有等到积累了N个事务之后才fsync 写入到磁盘，同样在此设置下Mysql 崩溃的时候会有丢失N个事务日志的风险。
 
-
-
 很显然三种模式下，sync_binlog=1 是强一致的选择，选择0或者N的情况下在极端情况下就会有丢失日志的风险，具体选择什么模式还是得看系统对于一致性的要求。
 
 
 
+### 098 redo log刷盘机制是如何实现的？  
 
+
+
+
+
+### 099 undo log刷盘机制是如何实现的？
 
 ![img](../images/16701032-f8547d110ba34135.png)
 
@@ -2137,7 +2162,7 @@ logbin格式：
 
 - binlog_format=STATEMENT（默认）：数据操作的时间，同步时不一致 每一条会修改数据的sql语句会记录到binlog中。优点是并不需要记录每一 条sql语句和每一行的 数据变化，减少了binlog日志量，节约IO，提高性能。缺点是在某些情况下会导致 master-slave 中的数据不一致( 如sleep()函数， last_insert_id()，以及user-defined functions(udf)等会 出	现 问题)
 - binlog_format=ROW：批量数据操作时，效率低   不记录每条sql语句的上下文信息，仅需记录哪条数据被修改了，修改成什么样 了。而且不会出 现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的 问题。缺 点是会产生大量的日志，尤其是alter table的时候会让日志暴涨。
-- binlog_format=MIXED：是以上两种level的混合使用，有函数用ROW，没函数用STATEMENT，但是无法识别系统变量
+- binlog_format=MIXED：是以上两种level的混合使用，有函数用ROW，没函数用STATEMENT，但是无法识别系统变量.
 
 ### 101 Mysql集群同步时为什么使用binlog？优缺点是什么？
 
