@@ -2114,15 +2114,14 @@ binlog 写入策略：
 
 ![img](../images/16701032-f8547d110ba34135.png)
 
-**innodb_flush_log_at_trx_commit**
+
 
 ```
-取值0：每秒（一秒钟内提交的事务）写入磁盘  每秒触发一次缓存日志回写磁盘操作，并调用操作系统fsync刷新IO缓存。
-取值1：有事务提交就立即刷盘     每次提交事务都立即调用操作系统fsync刷新IO缓存。
-取值2：每次事务提交 都写给操作系统 由系统接管什么时候写入磁盘   每次都把redo log写到系统的page cache中，由系统接管什么时候写入磁盘
+innodb_flush_log_at_trx_commit
+取值0：每秒（一秒钟内提交的事务）写入磁盘，每秒触发一次缓存日志回写磁盘操作，并调用操作系统fsync刷新IO缓存。
+取值1：有事务提交就立即刷盘 。 每次提交事务都立即调用操作系统fsync刷新IO缓存。
+取值2：每次事务提交都写给操作系统，由系统接管什么时候写入磁盘。每次都把redo log写到系统的page cache中，由系统接管什么时候写入磁盘
 ```
-
-
 
 时机顺序： 
 
@@ -2144,8 +2143,6 @@ binlog 写入策略：
 
   
 
-  
-
   **redo log 与 binlog 的两阶段提交**
 
 redo log 的写入拆成了两个步骤：prepare 和 commit
@@ -2156,13 +2153,17 @@ redo log 的写入拆成了两个步骤：prepare 和 commit
 
 ![img](../images/v2-a48d01fd3478ba4d68207fc7ce757658_r.jpg)
 
+
+
 ### 100 MySQL的binlog有有几种录入格式？分别有什么区别？
 
 logbin格式：
 
 - binlog_format=STATEMENT（默认）：数据操作的时间，同步时不一致 每一条会修改数据的sql语句会记录到binlog中。优点是并不需要记录每一 条sql语句和每一行的 数据变化，减少了binlog日志量，节约IO，提高性能。缺点是在某些情况下会导致 master-slave 中的数据不一致( 如sleep()函数， last_insert_id()，以及user-defined functions(udf)等会 出	现 问题)
 - binlog_format=ROW：批量数据操作时，效率低   不记录每条sql语句的上下文信息，仅需记录哪条数据被修改了，修改成什么样 了。而且不会出 现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的 问题。缺 点是会产生大量的日志，尤其是alter table的时候会让日志暴涨。
-- binlog_format=MIXED：是以上两种level的混合使用，有函数用ROW，没函数用STATEMENT，但是无法识别系统变量.
+- binlog_format=MIXED：是以上两种level的混合使用，有函数用ROW，没函数用STATEMENT，但是无法识别系统变量
+
+
 
 ### 101 Mysql集群同步时为什么使用binlog？优缺点是什么？
 
