@@ -3378,7 +3378,6 @@ EXPLAIN SELECT * FROM t_emp, t_dept WHERE t_dept.id = t_emp.deptId;
 
 4. 定位到具体sql
 
-   
 
 **2 pidstat** 
 
@@ -3386,8 +3385,6 @@ EXPLAIN SELECT * FROM t_emp, t_dept WHERE t_dept.id = t_emp.deptId;
 2. 在PERFORMANCE_SCHEMA.THREADS中记录了thread_os_id 找到线程执行的sql
 3. 根据操作系统id可以到processlist表找到对应的会话
 4. 在会话中即可定位到问题sql
-
-
 
 **3 使用show profile观察sql各个阶段耗时**
 
