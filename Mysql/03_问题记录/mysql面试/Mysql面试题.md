@@ -1161,7 +1161,7 @@ SHOW VARIABLES LIKE '%default_storage_engine%';
 
 
 
-### 056 MySQL 存储引擎架构
+### 056 介绍一下Innodb存储引擎
 
 https://dev.mysql.com/doc/refman/5.7/en/innodb-architecture.html
 
@@ -1169,17 +1169,77 @@ https://dev.mysql.com/doc/refman/5.7/en/innodb-architecture.html
 
 ![img](../images/16701032-f8547d110ba34135.png)
 
+共分为四个部分：
 
+①Buffer Pool：缓冲池。作用：**用来缓存表数据和索引**数据，为了减少磁盘I/O操作，提升效率
+
+②Change Buffer：写缓冲区。作用：**针对二级索引页（辅助索引）的更新优化措施**
+
+③Log Buffer：日志缓冲区。作用：**（1）用来保存写入磁盘上的log文件（redo、undo）的数据；（2）用来优化每次更新操作都要写入redo Log 产生的磁盘I/O**。日志缓冲区内容会定期刷新到磁盘Log文件中
+
+④Adaptive Hash Index：自适应Hash索引。作用：InnoDB不智齿手动创建Hash索引，但是它会进行自调优。判断如果建立了自适应Hash索引能够提升查询效率，则会在内存中建立相关的Hash索引，不需要人工干预。Innodb会根据自己的需求去创建Hash索引。
 
 #### 1、内存区域
 
-**Buffer Pool**:在InnoDB访问表记录和索引时会在Buffer Pool的页中缓存，以后使用可以减少磁盘IO操作，提升效率。主要用来缓存热的数据页和索引页。
+##### **Buffer Pool**
 
-**Log Buffer**：用来缓存redolog
+在InnoDB访问表记录和索引时会在Buffer Pool的页中缓存，以后使用可以减少磁盘IO操作，提升效率。主要用来缓存热的数据页和索引页。
 
-**Adaptive Hash Index**：自适应哈希索引
+Buffe Pool 有**缓存数据页（Page）**和对缓存数据页进行描述的**控制块**组成。
 
-**Change Buffer**:它是一种应用在非唯一普通索引页（non-unique secondary index page）不在缓冲池中，对页进行了写操作，并不会立刻将磁盘页加载到缓冲池，而仅仅记录缓冲变更（Buffer Changes），等未来数据被读取时，再将数据合并（Merge）恢复到缓冲池中的技术。写缓冲的目的是降低写操作的磁盘IO，提升数据库性能。
+（1）缓存数据页（Page）：Innodb 存储引擎以 页 为单位对数据进行划分，以页作为磁盘和内存监护的基本单位。默认页大小（16KB）。
+
+Buffe Pool 除了缓存了索引页和数据页，还有undo页，自适应哈希索引、插入缓存页、锁信息等。
+
+（2）控制块：控制块中存储着对应的缓存页所属的表空间信息，数据页编号，控制块所对应的缓存页在Buffe Pool 中的地址信息。
+
+（3）Buffe Pool 默认大小为128M，以Page（16KB）为单位，控制块一般为Page的5%大小大约800字节。
+
+###### 发散1、**如何判断一个数据页是否在Buffe Pool 中？**
+
+​	MySQL中有一个Hash表结构，在该结构中以“**表空间号+数据页编号**” 作为KEY值；以“**缓存页对应的控制块**”作为VALUE值。当需要访问某个页的数据时，先从Hash表中根据 表空间号+数据页编号 查看是否存在对应的缓存页，如果有，则直接使用；如果没有，则从free链表里面拿出来一个空闲缓存页，把磁盘中对应的页加载到该缓存页的位置
+
+###### 发散2、在Buffe Pool 中如何管理Page页？
+
+Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分为三种类型：
+
+1）free Page：空闲Page，未被使用的；
+
+2）clean Page：被使用的Page，但是数据没有被修改过；
+
+3）dirty Page：脏页，被使用过的Page，并且数据被更改过，缓存也中的数据和磁盘数据不一致，需要后期写入磁盘中；
+
+上面三种Page类型，Innodb采用三种不同的链表结构进行维护和管理。
+
+1）==free list（双向链表）==：把所有的空闲缓存页对应的控制块作为节点放在==free list（双向链表）==中。
+
+磁盘加载页的流程：
+
+> ①从free list中取出一个空闲的控制块（对应缓存页）
+>
+> ②把该缓存页对应的控制块信息填上
+>
+> ③把缓存页对应的free 链表节点从链表中删除。
+
+2）==flush list（双向链表）== ：该链表表示需要刷新到磁盘缓冲区，**==管理脏页==**。内部Page按照修改时间排序。
+
+由后台线程负责每隔一段时间把脏页刷新到磁盘中。
+
+3）==lru list==。表示正在使用的缓冲区，**管理 clean Page和dirty Page**，该缓冲区以 midpoint为基点，前面的链表称为 new 列表区，存放经常使用的数据（站63%）；后面的链表称为 old 列表区，存放不经常访问的数据（占37%）
+
+注意：dirty Page在flush list 和 lru list里面都存在，但是两者互不影响。lru list负责管理Page 的可用性和释放；flush list负责管理dirty Page 的刷盘操作
+
+##### **Log Buffer**
+
+用来缓存redolog
+
+##### **Adaptive Hash Index**
+
+自适应哈希索引
+
+##### **Change Buffer**
+
+它是一种应用在非唯一普通索引页（non-unique secondary index page）不在缓冲池中，对页进行了写操作，并不会立刻将磁盘页加载到缓冲池，而仅仅记录缓冲变更（Buffer Changes），等未来数据被读取时，再将数据合并（Merge）恢复到缓冲池中的技术。写缓冲的目的是降低写操作的磁盘IO，提升数据库性能。
 
 #### 2、磁盘区域
 
