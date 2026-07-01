@@ -1231,7 +1231,9 @@ Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分�
 
 ##### **Log Buffer**
 
-用来缓存redolog
+是日志缓冲区。**用来保存要写入磁盘上的log（redo ,undo）文件的数据。**Log Buffer定期进行刷盘
+
+Log Buffer作用：用来优化每次更新操作后都要写入redo log而产生的磁盘I/O过多问题。【Log Buffer满是自动刷盘，当遇到BLOB或者更新语句多的大事务时，增加Log Buffer可以节省磁盘I/O】
 
 
 
