@@ -1233,6 +1233,8 @@ Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分�
 
 用来缓存redolog
 
+
+
 ##### **Adaptive Hash Index**
 
 自适应哈希索引
@@ -1240,6 +1242,8 @@ Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分�
 ##### **Change Buffer**
 
 它是一种应用在非唯一普通索引页（non-unique secondary index page）不在缓冲池中，对页进行了写操作，并不会立刻将磁盘页加载到缓冲池，而仅仅记录缓冲变更（Buffer Changes），等未来数据被读取时，再将数据合并（Merge）恢复到缓冲池中的技术。写缓冲的目的是降低写操作的磁盘IO，提升数据库性能。
+
+
 
 #### 2、磁盘区域
 
