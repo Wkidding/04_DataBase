@@ -1225,6 +1225,8 @@ Buffe Pool 除了缓存了索引页和数据页，还有undo页，自适应哈�
 
 ​	MySQL中有一个Hash表结构，在该结构中以“**表空间号+数据页编号**” 作为KEY值；以“**缓存页对应的控制块**”作为VALUE值。当需要访问某个页的数据时，先从Hash表中根据 表空间号+数据页编号 查看是否存在对应的缓存页，如果有，则直接使用；如果没有，则从free链表里面拿出来一个空闲缓存页，把磁盘中对应的页加载到该缓存页的位置
 
+
+
 ###### 发散2、在Buffe Pool 中如何管理Page页？
 
 Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分为三种类型：
@@ -1255,11 +1257,59 @@ Page页分类：在Buffe Pool底层采用链表管理Page。Page根据状态分�
 
 注意：dirty Page在flush list 和 lru list里面都存在，但是两者互不影响。lru list负责管理Page 的可用性和释放；flush list负责管理dirty Page 的刷盘操作
 
+
+
+###### 发散3 、MySQL中为什么没有采用传统的LRU算法？
+
+**==普通的LRU算法==**：采用**最近最少使用**原则，末位淘汰。新数据需要从链表头部加入，释放空间时从链表末尾释放。
+
+普通的LRU算法缺点：
+
+① **Buffer Pool 污染问题**：当某一个SQL扫描了大量数据时，就有可能把Buffer Pool中的所有页都替换出去，导致大量的人数据被淘汰了，当这些热数据再次被访问时，就会产生大量磁盘I/O，性能会降低。
+
+② 预读失效问题：MySQL中存在预读机制，很多预读的也会被放在LRU链表头部，如果没有使用到预读页，就会导致很多尾部的缓存页被淘汰，这就是预读失效。
+
+
+
+###### 发散4、MySQL中对于LRU算法进行了那些优化？
+
+改进型PRU算法：**链表分为 new & old区，**加入元素时，从midpoint位置插入（即冷数据头部）
+
+冷数据区的数据页什么时候被转到热数据区？
+
+1）如果数据页在PRU链表中存在时间超过1s，就将其移动到链表头部（链表指的是整个PRU链表）；
+
+2）如果数据页在LRU链表中存在时间小于1s，位置不变了；
+
+3）只有同时满足【被访问】和【在old区域停留不超过1s】，才会被插入到热数据区头部；这样就解决了Buffer Pool 污染问题
+
+
+
 ##### **Log Buffer**
 
 是日志缓冲区。**用来保存要写入磁盘上的log（redo ,undo）文件的数据。**Log Buffer定期进行刷盘
 
 Log Buffer作用：用来优化每次更新操作后都要写入redo log而产生的磁盘I/O过多问题。【Log Buffer满是自动刷盘，当遇到BLOB或者更新语句多的大事务时，增加Log Buffer可以节省磁盘I/O】
+
+###### 发散1、 什么是写失效？如何解决的？
+
+写失效：
+
+Linux文件系统页（OS Page）默认大小是4KB，MySQL数据页默认大小是16KB。在写入磁盘是需要分为4次。
+
+如果存储引擎正在写盘时发生了宕机，如果此时只写了一部分页，叫做写失效，会导致数据丢失。并且这种无法靠redo log恢复
+
+解决：**双写缓冲区**
+
+双写缓冲区为Innodb存储引擎提供了数据页的可靠性。
+
+1）内存结构：Doublewrite Buffer，内存结构是由126个页构成的，大小是2MB
+
+2）磁盘结构：Doublewrite Buffer磁盘结构实在系统表空间上的，共128个页，大小为2MB
+
+**==数据双写流程：==**
+
+在Buffer Pool 的Page页刷盘前，会将数据存储在Doublewrite 缓冲区。这样如果出现宕机重启情况，数据页被损坏了，那么就会在应用redo log 之前需要通过该页的副本还原该数据页，然后再进行redo log重做，Double write 实现了Innodb引擎数据页的可靠性。
 
 
 
@@ -2983,14 +3033,27 @@ COMMIT;
 **RR 测试用例 (幻读场景 - 注意快照读 vs 当前读)**：
 
 1.  ```sql
-    1.  Session A: `RR; BEGIN; SELECT COUNT(*) FROM t WHERE id > 10;` (快照读，假设只有1条)
-    2.  Session B: `INSERT INTO t VALUES (20); COMMIT;`
-    3.  Session A: `SELECT COUNT(*) FROM t WHERE id > 10;` (快照读，依然1条) -> **断言：快照读避免了幻读**。
-    4.  Session A: `UPDATE t SET status='x' WHERE id > 10;` (当前读，触发了Gap Lock，或者在更新时重新生成ReadView，这条更新会将id=20也更新掉)
-    5.  Session A: `SELECT COUNT(*) FROM t WHERE id > 10;` (现在返回2条) -> **断言：事务内自己执行了当前写操作后，幻影行出现**。
-    ```
-
+    ## 1.  Session A: RR
+    BEGIN; 
+    SELECT COUNT(*) FROM t WHERE id > 10;
+    (快照读，假设只有1条)
     
+    ## 2.  Session B: 
+    INSERT INTO t VALUES (20); 
+    COMMIT;
+    
+    ## 3.  Session A: 
+    SELECT COUNT(*) FROM t WHERE id > 10;
+    ## (快照读，依然1条) -> **断言：快照读避免了幻读**。
+    
+    ## 4.  Session A: 
+    UPDATE t SET status='x' WHERE id > 10;
+    ## (当前读，触发了Gap Lock，或者在更新时重新生成ReadView，这条更新会将id=20也更新掉)
+    
+    ## 5.  Session A: 
+    SELECT COUNT(*) FROM t WHERE id > 10;
+    ## (现在返回2条) -> **断言：事务内自己执行了当前写操作后，幻影行出现**。
+    ```
 
 **测试重点**：区分 `SELECT` (无锁) 和 `SELECT ... FOR UPDATE` 或 `UPDATE` 的行为差异。
 
