@@ -236,13 +236,6 @@ pytest命令方式运行时，用例查找规则如下：
 `test_00.py`
 
 ```python
-# -*- coding: UTF-8 -*-
-"""===============================================
-@Author ：kidding
-@Date   ：2026/7/5 21:51
-@File   ：test
-@IDE    ：PyCharm
-=================================================="""
 import pytest
 
 def inc (x):
@@ -292,13 +285,21 @@ class TestAdd:
 `test_01.py`
 
 ```python
+import pytest
 
+def test_1():
+    print("---test_1")
+    assert 1 == 1
 ```
 
 `test_02.py`
 
 ```python
+import pytest
 
+def test_2 ( ):
+    print("---test_2")
+    assert 1 == 1
 ```
 
 
