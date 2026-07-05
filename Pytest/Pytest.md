@@ -347,6 +347,94 @@ def test_2 ( ):
 
 ## 03: pytest固件、及用例执行顺序
 
+### 固件分类
+
+固件用于执行前的初始化参数、执行后的清理动作。
+
+| 类型                                          | 规则                                                         |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| setup_module/teardown_module                  | 全局模块级模块运行前/后运行（只运行一次）                    |
+| setup_function/teardown_function              | 函数级每个函数用例运行前/后运行                              |
+| setup_class/teardown_class                    | 类级每个class运行前/后运行(只运行一次)                       |
+| setup_method(setup)/teardown_method(teardown) | 方法级类中每个方法用例执行前/后运行，setup_method和setup、teardown_method和teardown二选一即可 |
+
+
+
+示例（test_03.py）：一个module，两个函数，两个类，每个类两个方法
+
+```python
+## 一个module，两个函数，两个类，每个类两个方法
+
+import pytest
+
+def setup_module ( ):
+    print("初始化：setup_module")
+
+def teardown_module ( ):
+    print("清理：teardown_module")
+
+def setup_function ( ):
+    print("初始化：setup_function")
+
+def teardown_function ( ):
+    print("清理：teardown_function")
+
+
+def test_f ( ):
+    print("--------------test_f")
+
+class Test01:
+    def setup_class (self):
+        print("初始化：setup_class1")
+
+    def teardown_class (self):
+        print("清理：teardown_class1")
+
+    def setup_method (self):
+        print("初始化：setup_method1")
+
+    def teardown_method (self):
+        print("清理：teardown_method1")
+
+    def test_c (self):
+        print("--------------test_c")
+
+    def test_d (self):
+        print("--------------test_d")
+
+
+class Test02:
+    def setup_class (self):
+        print("初始化：setup_class2")
+
+    def teardown_class (self):
+        print("清理：teardown_class2")
+
+    def setup_method (self):
+        print("初始化：setup_method2")
+
+    def teardown_method (self):
+        print("清理：teardown_method2")
+
+    def test_a (self):
+        print("--------------test_a")
+
+    def test_b (self):
+        print("--------------test_b")
+
+
+def test_e ( ):
+    print("--------------test_e")
+```
+
+
+
+运行结果：通过结果可以看到，固件执行规则和我们最开始描述的一致
+
+全集模块级(setup/teardown)  --> 函数级别(setup/teardown)  --> 模块级(setup/teardown)
+
+![image-20260706065643080](images/image-20260706065643080.png)
+
 
 
 
