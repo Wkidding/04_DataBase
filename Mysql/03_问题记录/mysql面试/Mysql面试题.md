@@ -2898,7 +2898,7 @@ datetime所能存储的时间范围为：'1000-01-01 00:00:00.000000' 到 '9999-
 1.  `SHOW ENGINE INNODB STATUS`：查看 `LATEST DETECTED DEADLOCK` 部分，包含死锁SQL和持有的锁信息。
 2.  查询 `information_schema.INNODB_TRX`, `INNODB_LOCKS`, `INNODB_LOCK_WAITS`（MySQL 8.0 使用 `performance_schema` 下的 `data_locks`）。
 
-
+**解开机制**：InnoDB采用**等待图**检测死锁。一旦检测到，会选择**回滚权重最小（undo量最小）的事务**，释放其持有的锁，让另一个事务继续执行。应用侧需要捕获 `Deadlock found when trying to get lock` 异常并重试。
 
 
 
