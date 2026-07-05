@@ -231,35 +231,86 @@ pytest命令方式运行时，用例查找规则如下：
 
 创建My_Pytest工程，添加测试Demo。以测试add函数为例子，创建测试用例
 
-![image-20260705214309728](images/image-20260705214309728.png)
+![image-20260705220155700](images/image-20260705220155700.png)
+
+`test_00.py`
 
 ```python
+# -*- coding: UTF-8 -*-
+"""===============================================
+@Author ：kidding
+@Date   ：2026/7/5 21:51
+@File   ：test
+@IDE    ：PyCharm
+=================================================="""
 import pytest
+
+def inc (x):
+    return x + 1
+
+def test_a ( ):
+    print("---test_a")
+    assert inc(0) == 1
+
+
+class TestDemo1:
+    def test_b (self):
+        print("---test_b")
+        assert "D" in "Demo"
+
+    def test_c (self):
+        print("---test_c")
+        assert "em" in "Demo"
+
+
+class TestDemo2:
+    def test_d (self):
+        print("---test_d")
+        assert "mo" in "Demo"
+
 
 def add(a,b):
     return a + b
 
 class TestAdd:
-    def test_int(self):
+    def test_add_int(self):
+        print("---test_add_int")
         res = add(1,3)
         assert res == 4
 
-    def test_str(self):
+    def test_add_str(self):
+        print("---test_add_str")
         res = add("aaa","bbb")
         assert res == "aaabbb"
 
-    def test_list(self):
+    def test_add_list(self):
+        print("---test_add_list")
         res = add([1],[2,3,4])
         assert res == [1,2,3,4]
-
-#if __name__ == '__main__':
-    # print_hi('PyCharm')
 ```
 
+`test_01.py`
+
+```python
+
+```
+
+`test_02.py`
+
+```python
+
+```
+
+
+
 测试结果：
-![image-20260705214422763](images/image-20260705214422763.png)
+![image-20260705220126576](images/image-20260705220126576.png)
 
 ## 03: pytest固件、及用例执行顺序
+
+
+
+
 
 ## 04: fixture简介及调用
 
