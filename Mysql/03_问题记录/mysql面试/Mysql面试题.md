@@ -2882,6 +2882,32 @@ datetime所能存储的时间范围为：'1000-01-01 00:00:00.000000' 到 '9999-
 2.  **悬空事务的清理**：如果协调者崩溃，事务卡在Prepare状态，会长期持有锁，阻塞业务。测试需要验证监控是否能发现，以及手动清理脚本的有效性。
 3.  **性能损耗**：相比单机事务，XA需要两次网络往返，TPS会显著下降，需要量化测试。
 
+
+
+### 118 在事务测试中，如何模拟死锁？如何定位死锁？数据库如何解开死锁？
+
+**模拟死锁**：两个事务互相持有对方需要的锁。
+
+-   *Session A*：`BEGIN; UPDATE t SET a=1 WHERE id=1;` （持有id=1的锁）
+-   *Session B*：`BEGIN; UPDATE t SET a=2 WHERE id=2;` （持有id=2的锁）
+-   *Session A*：`UPDATE t SET a=1 WHERE id=2;` （等待B释放id=2）
+-   *Session B*：`UPDATE t SET a=2 WHERE id=1;` （等待A释放id=1） -> 死锁发生。
+
+**定位方法**：
+
+1.  `SHOW ENGINE INNODB STATUS`：查看 `LATEST DETECTED DEADLOCK` 部分，包含死锁SQL和持有的锁信息。
+2.  查询 `information_schema.INNODB_TRX`, `INNODB_LOCKS`, `INNODB_LOCK_WAITS`（MySQL 8.0 使用 `performance_schema` 下的 `data_locks`）。
+
+
+
+
+
+
+
+
+
+
+
 #### 117		decimal与float,double的区别是什么？
 
 float：浮点型，4字节，32bit。
