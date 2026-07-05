@@ -1696,7 +1696,7 @@ Checkpoint分为两种:
 
 
 
-### 071 默认的级别是什么？
+### 071 Mysql默认的级别是什么？
 
 `MySQL InnoDB`存储引擎默认的事务隔离级别是**可重复读（REPEATABLE-READ）**
 
@@ -1704,6 +1704,12 @@ Checkpoint分为两种:
 MySQL 5.7 SELECT @@tx_isolation;
 MySQL 8.0 SELECT @@transaction_isolation;
 ```
+
+==MySQL的InnoDB存储引擎默认使用可重复读（REPEATABLE-READ）隔离级别==，而Oracle默认使用RC（读已提交）。
+
+**历史与复制原因**：早期的MySQL（5.0及以前）在进行Statement-Based Replication（基于语句的复制）时，如果使用RC级别，可能会出现主从数据不一致。
+*例如*：主库在RC下执行 `DELETE ... LIMIT` 语句，由于并发插入的顺序不同，可能导致主库删掉的是A记录，从库删掉的是B记录。RR级别通过Next-Key Lock能锁定范围，保证语句执行结果的一致性。
+**注**：随着Row-Based Replication（基于行的复制）成为主流（MySQL 5.7/8.0），这种差异变小，但为了兼容性，RR依然是默认值。
 
 
 
