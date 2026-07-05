@@ -216,16 +216,15 @@ settings中，进入Tools -> Python Intergrated Tools，Default test runner默�
 
 pytest命令方式运行时，用例查找规则如下：
 
-| **命令**                                        | **说明**                        |
-| ----------------------------------------------- | ------------------------------- |
-| pytest（等价于：python -m pytest）              | 运行当前目录及子目录下所有用例  |
-| pytest ./                                       | 运行当前目录及子目录下所有用例  |
-| pytest case\sub_case\                           | 运行指定目录及子目录下所有用例  |
-| pytest case\test_qzcsbj.py                      | 指定模块运行                    |
-| pytest -k test_2                                | 按关键字（函数/方法名）匹配运行 |
-| pytest case\test_qzcsbj.py::test_a              | 指定函数运行                    |
-| pytest case\test_qzcsbj.py::TestQzcsbj1         | 指定类运行                      |
-| pytest case\test_qzcsbj.py::TestQzcsbj1::test_c | 指定类方法运行                  |
+| **命令**                               | **说明**                        |
+| -------------------------------------- | ------------------------------- |
+| pytest（等价于：python -m pytest）     | 运行当前目录及子目录下所有用例  |
+| pytest ./                              | 运行当前目录及子目录下所有用例  |
+| pytest .\test_00.py -vs                | 指定模块运行                    |
+| pytest -k test_2                       | 按关键字（函数/方法名）匹配运行 |
+| pytest .\test_00.py::test_a            | 指定函数运行                    |
+| pytest .\test_00.py::TestDemo1         | 指定类运行                      |
+| pytest .\test_00.py::TestDemo1::test_c | 指定类方法运行                  |
 
 ### 执行演示
 
@@ -304,8 +303,47 @@ def test_2 ( ):
 
 
 
-测试结果：
-![image-20260705220126576](images/image-20260705220126576.png)
+测试结果：下面命令都统一加上了-vs参数
+
+(1) pytest
+
+运行当前目录及子目录下所有用例 ![image-20260705220126576](images/image-20260705220126576.png)
+
+(2) pytest ./ -vs
+
+运行了当前目录及子目录下所有用例
+
+![image-20260705221007995](images/image-20260705221007995.png)
+
+(3) pytest .\test_00.py -vs
+
+指定模块运行 
+
+![image-20260705221041924](images/image-20260705221041924.png)
+
+(4) pytest -k test_2 -vs
+
+按关键字（函数/方法名）匹配运行
+
+![image-20260705221312424](images/image-20260705221312424.png)
+
+(5) pytest .\test_00.py::test_a
+
+指定函数运行
+
+![image-20260705221643093](images/image-20260705221643093.png)
+
+(6) pytest .\test_00.py::TestDemo1
+
+指定类运行
+
+![image-20260705221658898](images/image-20260705221658898.png)
+
+(7) pytest .\test_00.py::TestDemo1::test_c
+
+指定方法运行
+
+![image-20260705221717835](images/image-20260705221717835.png)
 
 ## 03: pytest固件、及用例执行顺序
 
