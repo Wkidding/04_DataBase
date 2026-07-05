@@ -2902,6 +2902,16 @@ datetime所能存储的时间范围为：'1000-01-01 00:00:00.000000' 到 '9999-
 
 
 
+### 119  在测试中，如果发现数据库锁等待超时（Lock wait timeout）从哪些方面去排查？
+
+锁等待超时表示一个事务在等待另一事务释放锁，默认超时时间 `innodb_lock_wait_timeout`（50秒）。
+**排查步骤：**
+
+1.  **找出阻塞源头**：查询 `sys.innodb_lock_waits` 或 `performance_schema.data_lock_waits`，定位哪个事务（blocking_trx_id）持有锁，哪个事务（waiting_trx_id）在等锁。
+2.  **查看长时间未提交的事务**：查 `information_schema.INNODB_TRX`，找出 `trx_state` 为 `RUNNING` 且 `trx_started` 时间很早的事务。可能是应用代码忘记提交或网络中断。
+3.  **分析SQL效率**：检查被阻塞的SQL是否缺少索引。无索引的UPDATE/DELETE会导致**表锁**或**全表间隙锁升级**，加剧锁竞争。
+4.  **业务逻辑分析**：确认是否开发人员在事务中混入了RPC调用、文件处理等非DB操作，导致事务持锁时间过长。
+
 
 
 
