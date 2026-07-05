@@ -535,7 +535,7 @@ fixture是通过yield来区分前后置的，前后置均可以单独存在，fi
 
 fixture装饰器来标记固定的工厂函数，在其他函数、类、模块或整个工程调用它时会被激活并优先执行，通常会被用于完成预置处理和重复操作。
 
-源码：
+==源码==：
 
 ```python
 def fixture(  # noqa: F811
@@ -551,11 +551,21 @@ def fixture(  # noqa: F811
 ) -> Union[FixtureFunctionMarker, FixtureFunction]:
 ```
 
-调用方法：
+==调用方法==：
 
 ```python
 fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 ```
+
+==常用参数==：
+
+- **scope**：被@pytest.fixture标记的方法的作用域，默认是function，还可以是class、module、package、session。（注：下一篇详解）
+- **params**：用于给fixture传参，可实现数据基于fixture的数据驱动，接收一个可以迭代的对象，比如列表[]、元组()、字典列表{[],[],[]}、字典元组{(),(),()}，提供参数数据供调用fixture的用例使用；传进去的参数，可以用request.param调用
+- **autouse**：是否自动运行，是一个布尔值，默认为False不会自动执行，需要手动调用；当它为True时，作用域内的测试用例都会自动调用该fixture
+- **ids**：用例标识id，每个ids和params一一对应，如果没有id，将从params自动产生
+- **name**：给被@pytest.fixture标记的方法取一个别名，如果使用了name，那只能将name传入，函数名不再生效
+
+
 
 ### fixture的调用
 
@@ -563,9 +573,11 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 将fixture名称作为测试用例函数/方法的参数；另外，如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
 
-函数引用：测试类中测试方法形参是测试类外被@pytest.fixture()标记的测试函数，也就是说，fixture标记的函数可以应用于测试类内部
+==函数引用==：测试类中测试方法形参是**测试类外被@pytest.fixture()标记的测试函数**，也就是说，fixture标记的函数可以应用于测试类内部
 
-参数引用：测试类中测试方法形参是当前测试类中被@pytest.fixture()标记的方法
+==参数引用==：测试类中测试方法形参是**当前测试类中被@pytest.fixture()标记的方法**
+
+
 
 
 
