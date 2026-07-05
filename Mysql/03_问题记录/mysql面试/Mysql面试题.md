@@ -1379,9 +1379,67 @@ ALTER TABLE 表名 ENGINE = 存储引擎名称;
 
 
 
-### 060 具体说一下如何做技术选型
+### 060 MySQL中脏页落盘的机制
 
-除非几乎没有写操作全部都是高频的读操作可以选择MyISAM作为表的存储引擎，其他业务可以一律使用InnoDB。
+在修改数据页时，首先修改缓冲池中的页，然后再以一定的频率刷新到磁盘中。脏页从缓冲池刷到从盘的操作并不是在每次更新的时候就触发，而是通过==checkout point 机制==刷新回磁盘。
+
+**redo log可能会出现的问题**
+
+（1）缓冲池不是无限大的，也就是说不能够一直存储数据而不刷盘；
+
+（2）redo log 是循环使用的，满了怎么办？
+
+（3）如果长时间运行了数据库，然后发生宕机，此时重新应用redo log，会非常耗时，回复成本会很高。
+
+### ==checkout point 机制==
+
+#### （1）缓冲池不够用时，将脏页刷到磁盘中
+
+当缓冲池空间不够时，Innodb会采用PRU算法进行页淘汰，如果这个被释放的页是脏页，就需要强制执行checkout point，将脏页刷新到磁盘中。
+
+#### （2）缩短数据库恢复时间
+
+当数据库宕机时，数据库不需要重做所有日志，因为checkout point之前的页都是已经刷新回到磁盘中了，所以就只需要针对checkout point 后的redo log进行重做就行，减少恢复时间。
+
+#### （3）redo log不够用时，将脏页刷盘
+
+Innodb是以环形的方式写入数据到redo log中的：
+
+**write pos** ：表示当前日志记录的位置，当 ib_logfile_4日志写满后，会从 ib_logfile_1 继续写入
+
+**==checkout point==**：表示日志记录的修改写进磁盘，完成数据落盘。落盘后checkout point会将日志上的相关记录擦除。即：
+
+> ​		write pos ---> checkout point之间的部分是redo log 空闲的部分，用于继续记录。
+>
+> ​		checkout point---> write pos之间是redo log 待罗盘的数据修改记录。
+
+### **总结**
+
+checkout point 所做的事情就是将缓冲池中的脏页进行刷盘。每次刷新多少页，从那里取脏页，以及什么时候触发checkout point，均是由checkout point机制决定。
+
+Checkpoint分为两种:
+
+> **（1）sharp checkpoint:强制落盘**。把内存中所有的脏页都执行落盘操作。只有当关闭数据库之前才会执行。
+>
+> **（2）Fuzzy checkpoint:模糊落盘**。把一部分脏页执行落盘操作，又分为四种。
+>
+> ​		1) Master Thrad Checkpoint:==主线程定时将脏页写入磁盘，每秒或每10s执行一次脏页==
+>
+> ​		2) FLUSH_LRU_LIST :==buffer pool有脏页换出，执行落盘==
+>
+> ​		3) Async/Sync Flush checkpoint:当redo log快写满的时候执行落盘。
+>
+> ​				a.当redo log超过75%小于90%会执行异步落盘。
+>
+> ​				b.当redo log超过90%，会执行同步落盘操作。会阻塞写操作。
+>
+> ​		4) Dirty Page too much checkpoint:如果buffer pool中脏页太多，脏页率超过75%执行落盘
+
+
+
+作为一名资深的数据库测试工程师，在面试中考察事务相关的内容，通常不仅关注概念本身，更关注**并发控制、隔离级别的实现原理、异常场景的模拟以及性能损耗**。
+
+
 
 
 
