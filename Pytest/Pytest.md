@@ -513,9 +513,61 @@ def test_e ():
 
 
 
-
-
 ## 04: fixture简介及调用
+
+上一篇我们介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
+
+其实这样很不灵活，比如我们只希望部分测试用例执行某个固件，通过setup和teardown是实现不了的；
+
+但是，通过fixture就可以根据需要自定义测试用例的前置、后置操作；
+
+fixture是通过yield来区分前后置的，前后置均可以单独存在，fixture如果有后置，前置不报错就都会执行，前置报错后置就不会执行。
+
+### fixture的优势
+
+1、与setup、teardown类似，fixture提供了测试执行前和测试执行后的处理，但是又比setup、teardown更灵活好用，比如：fixture命名更加灵活，不局限于setup和teardown
+
+2、conftest.py配置里可以实现数据共享，可以方便管理、修改和查看fixture函数，并且不需要import就能自动找到fixture
+
+3、fixture可用于封装数据，也可用于封逻辑动作，使用范围非常广
+
+### fixture介绍
+
+fixture装饰器来标记固定的工厂函数，在其他函数、类、模块或整个工程调用它时会被激活并优先执行，通常会被用于完成预置处理和重复操作。
+
+源码：
+
+```python
+def fixture(  # noqa: F811
+    fixture_function: Optional[FixtureFunction] = None,
+    *,
+    scope: "Union[_ScopeName, Callable[[str, Config], _ScopeName]]" = "function",
+    params: Optional[Iterable[object]] = None,
+    autouse: bool = False,
+    ids: Optional[
+        Union[Sequence[Optional[object]], Callable[[Any], Optional[object]]]
+    ] = None,
+    name: Optional[str] = None,
+) -> Union[FixtureFunctionMarker, FixtureFunction]:
+```
+
+调用方法：
+
+```python
+fixture(scope="function", params=None, autouse=False, ids=None, name=None)
+```
+
+### fixture的调用
+
+#### 函数引用/参数引用
+
+将fixture名称作为测试用例函数/方法的参数；另外，如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
+
+函数引用：测试类中测试方法形参是测试类外被@pytest.fixture()标记的测试函数，也就是说，fixture标记的函数可以应用于测试类内部
+
+参数引用：测试类中测试方法形参是当前测试类中被@pytest.fixture()标记的方法
+
+
 
 ## 05: fixture实现自定义前置、后置
 
