@@ -229,9 +229,35 @@ pytest命令方式运行时，用例查找规则如下：
 
 ### 执行演示
 
+创建My_Pytest工程，添加测试Demo。以测试add函数为例子，创建测试用例
 
+![image-20260705214309728](images/image-20260705214309728.png)
 
+```python
+import pytest
 
+def add(a,b):
+    return a + b
+
+class TestAdd:
+    def test_int(self):
+        res = add(1,3)
+        assert res == 4
+
+    def test_str(self):
+        res = add("aaa","bbb")
+        assert res == "aaabbb"
+
+    def test_list(self):
+        res = add([1],[2,3,4])
+        assert res == [1,2,3,4]
+
+#if __name__ == '__main__':
+    # print_hi('PyCharm')
+```
+
+测试结果：
+![image-20260705214422763](images/image-20260705214422763.png)
 
 ## 03: pytest固件、及用例执行顺序
 
