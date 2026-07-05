@@ -2936,6 +2936,66 @@ COMMIT;
 
 
 
+### 121 事务测试中，如何构造测试用例来覆盖RC和RR隔离级别下的“不可重复读”和“幻读”差异？
+
+**准备**：创建一个包含id(主键), status的表。设置两个Session，分别设置隔离级别。
+
+**RC 测试用例 (不可重复读)**：
+
+1.  ```sql
+    ## 1.  Session A 
+    SET SESSION tx_isolation='READ-COMMITTED'; 
+    BEGIN; 
+    SELECT status FROM t WHERE id=1; 
+    ## (读到 'old')
+    
+    ## 2.  Session B
+    UPDATE t SET status='new' WHERE id=1;
+    COMMIT;
+    
+    ## 3.  Session A
+    SELECT status FROM t WHERE id=1;
+    ## (读到 'new') -> **断言：两次读不一致，不可重复读发生**。
+    ```
+
+    
+
+**RR 测试用例 (解决不可重复读)**：
+
+1.  ```sql
+    ## 1.  Session A
+    SET SESSION tx_isolation='REPEATABLE-READ'; 
+    BEGIN; 
+    SELECT status FROM t WHERE id=1;
+    ## (读到 'old')
+    
+    ## 2.  Session B
+    UPDATE t SET status='new' WHERE id=1; 
+    COMMIT;
+    
+    ## 3.  Session A
+    SELECT status FROM t WHERE id=1; 
+    ## (依然读到 'old') -> **断言：MVCC快照生效，无不可重复读**。
+    ```
+
+    
+
+**RR 测试用例 (幻读场景 - 注意快照读 vs 当前读)**：
+
+1.  ```sql
+    1.  Session A: `RR; BEGIN; SELECT COUNT(*) FROM t WHERE id > 10;` (快照读，假设只有1条)
+    2.  Session B: `INSERT INTO t VALUES (20); COMMIT;`
+    3.  Session A: `SELECT COUNT(*) FROM t WHERE id > 10;` (快照读，依然1条) -> **断言：快照读避免了幻读**。
+    4.  Session A: `UPDATE t SET status='x' WHERE id > 10;` (当前读，触发了Gap Lock，或者在更新时重新生成ReadView，这条更新会将id=20也更新掉)
+    5.  Session A: `SELECT COUNT(*) FROM t WHERE id > 10;` (现在返回2条) -> **断言：事务内自己执行了当前写操作后，幻影行出现**。
+    ```
+
+    
+
+**测试重点**：区分 `SELECT` (无锁) 和 `SELECT ... FOR UPDATE` 或 `UPDATE` 的行为差异。
+
+
+
 
 
 #### 117		decimal与float,double的区别是什么？
