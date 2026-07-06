@@ -589,6 +589,14 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 可以使用装饰器@pytest.mark.xxx给用例打标签（自定义标记）。
 
+### 自定义标记使用流程
+
+1. 注册自定义标记（通过pytest.ini进行管理）
+
+2. 将模块、函数、类、方法进行业务标记
+
+3. 根据自定义标记运行用例
+
 
 
 
