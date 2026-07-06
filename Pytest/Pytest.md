@@ -579,6 +579,18 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 
 
+## 05: mark标记测试用例
+
+### 前言
+
+通常，我们通过分包或者分模块来对用例进行分类管理，
+
+如果只想执行符合某要求的部分用例，该如何实现呢？
+
+可以使用装饰器@pytest.mark.xxx给用例打标签（自定义标记）。
+
+
+
 
 
 ## 05: fixture实现自定义前置、后置
