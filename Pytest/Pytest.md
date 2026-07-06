@@ -580,9 +580,9 @@ pytest -h
 > （2）再标记：在用例文件中，对用例进行标记
 > （3）后筛选
 
-#### (1) 在pytest.ini文件中，新建标记：
+#### (1) 在pytest.ini文件中，注册自定义标记
 
-```
+```python
 [pytest]
 markers =
     api:接口相关
@@ -600,11 +600,13 @@ markers =
 3.pytest中的markers配置相当于我们对用例的一种归类
 ```
 
-获取现有标记： 包含自定义和内置，前面几个是我们刚刚创建的
+##### 获取现有标记（所有）
 
 ```python
 pytest --markers
 ```
+
+ 包含自定义和内置，前面几个是我们刚刚创建的
 
 ![image-20260707064940544](images/image-20260707064940544.png)
 
@@ -612,7 +614,7 @@ pytest --markers
 
 不开启严格标记，如果标记不在配置文件中，会warning；
 
-```
+```python
 [pytest]
 addopts = --strict-markers
 markers =
@@ -623,7 +625,11 @@ markers =
     modulex: modulex marker
 ```
 
-#### (2) 在测试用例中使用自定义标记
+![image-20260707072114163](images/image-20260707072114163.png)
+
+
+
+#### (2) 在测试用例中，使用自定义标记
 
 ```python
 ## test_04.py
@@ -680,9 +686,13 @@ class TestAdd:
 
 ![image-20260707071253897](images/image-20260707071253897.png)
 
+![image-20260707071742796](images/image-20260707071742796.png)
 
+![image-20260707071752363](images/image-20260707071752363.png)
 
+![image-20260707071830027](images/image-20260707071830027.png)
 
+![image-20260707071844555](images/image-20260707071844555.png)
 
 
 
