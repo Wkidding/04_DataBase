@@ -1304,22 +1304,99 @@ python_functions = test_*，表示配置测试搜索的函数名
 
 ### xfail：标志规则
 
-设置xfail_strict = true，标记为@pytest.mark.xfail且实际是通过（显示XPASS）的测试用例会被报告为失败FAILED
+Testcase/test_05.py
+
+```python
+import pytest
+# 使用pytest框架内置标记
+
+def add(a,b):
+    return a + b
+
+class TestAdd:
+    # 断言相等，用例通过
+    @pytest.mark.xfail
+    def test_add_list_01(self):
+        print("---test_add_list_01")
+        res = add([1],[2,3,4])
+        assert res == [1,2,3,4]
+
+    # 断言不相等，用例失败
+    @pytest.mark.xfail
+    def test_add_list_02(self):
+        print("---test_add_list_02")
+        res = add([1],[2,3,4])
+        assert res != [1,2,3,4]
+```
+
+(1) xfail_strict默认是false，标记为@pytest.mark.xfail的测试用例，如果是通过，显示XPASS
+
+```python
+[pytest]
+xfail_strict = false
+```
+
+![image-20260708071637694](images/image-20260708071637694.png)
+
+![image-20260708071345069](images/image-20260708071345069.png)
+
+(2) 设置xfail_strict = true，标记为@pytest.mark.xfail且实际是通过（显示XPASS）的测试用例会被报告为失败FAILED
 
 ```python
 [pytest]
 xfail_strict = true
 ```
 
-xfail_strict默认是false，标记为@pytest.mark.xfail的测试用例，如果是通过，显示XPASS
+![image-20260708071713935](images/image-20260708071713935.png)
+
+![image-20260708071838059](images/image-20260708071838059.png)
+
+### markers：自定义注册标志
+
+测试用例加了@pytest.mark.xxx修饰器，如果配置文件中没有配置markers就会报warnings **见04节**
+
+### log-cli：控制台实时输出日志
+
+默认是false，log-cli=false，等价于：log_cli=0
+
+```python
+[pytest]
+# 日志开关 true/false、1/0
+log_cli = 1
+# 输出到terminal
+# 日志级别
+log_cli_level = info
+# 打印详细日志，相当于命令行加 -vs
+# 日志格式
+log_cli_format = %(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)
+# 日志时间格式
+log_cli_date_format = %Y-%m-%d %H:%M:%S
+```
+
+![image-20260708074450717](images/image-20260708074450717.png)
 
 
 
+```python
+[pytest]
+# 日志开关 true/false、1/0
+log_cli = 1
+# 输出到terminal
+addopts = --capture=no # 打印详细日志，相当于命令行加 -vs
+# 日志级别
+log_cli_level = info
+# 打印详细日志，相当于命令行加 -vs
+# 日志格式
+log_cli_format = %(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)
+# 日志时间格式
+log_cli_date_format = %Y-%m-%d %H:%M:%S
+```
+
+![image-20260708074701892](images/image-20260708074701892.png)
 
 
 
-
-## 05: fixture简介及调用
+## 06: fixture简介及调用
 
 上一篇我们介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
 
