@@ -1262,7 +1262,56 @@ testpaths = Testcase
 
 ##### (3) norecursedirs 包含 testpaths
 
+norecursedirs包含testpaths，不执行任何用例，并给出警告
 
+结果是：**不执行任何用例**
+
+```python
+norecursedirs = case
+testpaths = sub_case
+```
+
+结果：不执行任何用例
+
+![image-20260708065844834](images/image-20260708065844834.png)
+
+![image-20260708070149786](images/image-20260708070149786.png)
+
+
+
+### 执行规则
+
+```python
+[pytest]
+python_classes = Test*
+python_files = test_*.py *_test.py
+python_functions = test_*
+```
+
+说明：
+
+python_files = test_*.py，表示配置测试搜索的文件名
+
+python_classes = Test*，表示配置测试搜索的类名
+
+python_functions = test_*，表示配置测试搜索的函数名
+
+我们可以修改规则，比如function除了 test_ 开头，还可以 ceshi_ 开头，不过，不建议修改。
+
+另外，如果不加通配符，表示执行指定内容，比如python_files = test_qzcsbj.py，表示执行test_qzcsbj.py文件。
+
+
+
+### xfail：标志规则
+
+设置xfail_strict = true，标记为@pytest.mark.xfail且实际是通过（显示XPASS）的测试用例会被报告为失败FAILED
+
+```python
+[pytest]
+xfail_strict = true
+```
+
+xfail_strict默认是false，标记为@pytest.mark.xfail的测试用例，如果是通过，显示XPASS
 
 
 
