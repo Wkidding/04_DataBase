@@ -1157,15 +1157,56 @@ if __name__ == "__main__":
     pytest.main(["-vs","--strict-markers"])
 ```
 
+### 目录规则
 
+```python
+norecursedirs = sub_case
+testpaths = case
+```
 
+#### 规则
 
+> norecursedirs：配置测试不搜索路径（也就是不访问哪些目录）
+> testpaths：配置测试搜索路径（也就是要访问的目录）
+> 当两者有冲突时，比如二者配置的一样，testpaths优先，也就是执行testpaths下的所有用例
+> testpaths包含norecursedirs，执行testpaths下除了norecursedirs的用例
+> norecursedirs包含testpaths，不执行任何用例，并给出警告
+> testpaths可以配置多个路径，用空格分隔
 
+#### 验证
 
+pytest.ini配置文件内容：
 
+```python
+[pytest]
+# 命令行执行参数
+addopts = -vs --strict-markers
+# 排除目录
+; norecursedirs = case
+norecursedirs = sub_case
+# 默认执行目录
+testpaths = case
+; testpaths = sub_case
+# 执行规则：class
+python_classes = Test*
+# 执行规则：py文件
+python_files = test_* *_test
+# 执行规则：function
+python_functions = test_*
+```
 
+test_qzcsbj.py
 
-
+```python
+import pytest
+ 
+class Test01:
+    def test_case2(self):
+        print("--------------test_case2")
+ 
+    def test_case1(self):
+        print("--------------test_case1")
+```
 
 
 
