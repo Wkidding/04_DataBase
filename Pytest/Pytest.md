@@ -1195,9 +1195,9 @@ python_files = test_* *_test
 python_functions = test_*
 ```
 
-![image-20260708063705413](images/image-20260708063705413.png)
+![image-20260708064821608](images/image-20260708064821608.png)
 
-test_06.py
+Testcase/test_06.py
 
 ```python
 import pytest
@@ -1210,7 +1210,7 @@ class Test01:
         print("--------------test_case1")
 ```
 
-dir_pytest_rules/test_01.py
+Testcase/sub_dir_rules/test_01.py
 
 ```python
 import pytest
@@ -1222,7 +1222,7 @@ class TestCase:
         print("---test_b")
 ```
 
-dir_pytest_rules/test_02.py
+Testcase/sub_dir_rules/test_02.py
 
 ```python
 def test_c():
@@ -1232,16 +1232,39 @@ def test_c():
 
 
 
-(1)如果配置
+##### (1) testpaths 包含 norecursedirs
 
-结果是：**执行./(当前目录)下除了dir_pytest_rules目录的用例**
+结果是：**执行Testcase下除了sub_dir_rules目录的用例**
 
 ```python
-norecursedirs = dir_pytest_rules
-testpaths = ./
+norecursedirs = sub_dir_rules
+testpaths = Testcase
 ```
 
-![image-20260708064038083](images/image-20260708064038083.png)
+![image-20260708065038204](images/image-20260708065038204.png)
+
+##### (2) testpaths  == norecursedirs
+
+当两者有冲突时，比如二者配置的一样，testpaths优先，也就是执行testpaths下的所有用例.（实际不会这么配置，这里只是为了测试）
+
+结果是：**执行Testcase目录下的用例**
+
+```python
+norecursedirs = Testcase
+testpaths = Testcase
+```
+
+![image-20260708065249709](images/image-20260708065249709.png)
+
+结果：测试所有用例
+
+![image-20260708065318004](images/image-20260708065318004.png)
+
+##### (3) norecursedirs 包含 testpaths
+
+
+
+
 
 
 
