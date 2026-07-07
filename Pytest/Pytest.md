@@ -1234,14 +1234,14 @@ def test_c():
 
 (1)如果配置
 
-结果是：**执行case下除了sub_case的用例**
+结果是：**执行./(当前目录)下除了dir_pytest_rules目录的用例**
 
 ```python
-norecursedirs = sub_case
-testpaths = case
+norecursedirs = dir_pytest_rules
+testpaths = ./
 ```
 
-
+![image-20260708064038083](images/image-20260708064038083.png)
 
 
 
