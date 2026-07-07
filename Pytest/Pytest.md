@@ -523,13 +523,17 @@ def test_e ():
 
 可以使用装饰器@pytest.mark.xxx给用例打标签（自定义标记）。
 
-### 自定义标记使用流程
+### 1、用户自定义标记
 
+**作用**：只能用于实现用例筛选（既类似 -m 参数的的作用）
+
+> **使用流程**：
+>
 > 1、注册自定义标记（通过pytest.ini进行管理）/ 直接在命令参数中使用
 > 2、将模块、函数、类、方法进行业务标记
 > 3、根据自定义标记运行用例
 
-1、命令参数配置
+（1）命令参数配置
 
 ```python
 ## 常用参数
@@ -539,13 +543,13 @@ def test_e ():
 -m : 用例筛选（指定执行哪些用例）
 ```
 
-2、pytest.ini 配置
+（2）pytest.ini 配置
 
 ```python
 pytest
 ```
 
-3、查看配置
+查看配置
 
 ```python
 pytest -h
@@ -568,19 +572,17 @@ pytest -h
 
 
 
-### Demo:注册自定义标记
+#### Demo:注册自定义标记
 
-用户自定义标记
-
-**作用**：只能用于实现用例筛选（既类似 -m 参数的的作用）
-
-步骤：
-
+> **步骤：**
+>
 > （1）先注册：在ini文件中进行声明
 > （2）再标记：在用例文件中，对用例进行标记
 > （3）后筛选
 
-#### (1) 在pytest.ini文件中，注册自定义标记
+##### (1) 注册自定义标记
+
+在pytest.ini文件中注册
 
 ```python
 [pytest]
@@ -600,7 +602,7 @@ markers =
 3.pytest中的markers配置相当于我们对用例的一种归类
 ```
 
-##### 获取现有标记（所有）
+###### 获取现有标记（所有）
 
 ```python
 pytest --markers
@@ -629,7 +631,7 @@ markers =
 
 
 
-#### (2) 在测试用例中，使用自定义标记
+##### (2) 在测试用例中，使用自定义标记
 
 ```python
 ## test_04.py
@@ -672,15 +674,15 @@ class TestAdd:
         assert res == 44
 ```
 
-执行结果：
+##### (3) 执行用例
 
-##### (A) 直接执行，无 `-m`参数
+###### (A) 直接执行，无 `-m`参数
 
 作用： 与pytest直接运行类似，**没有起到筛选功能**
 
 ![image-20260707071527112](images/image-20260707071527112.png)
 
-##### (B) 使用 -m 参数，加上自定义标记，起到筛选功能
+###### (B) 使用 -m 参数，加上自定义标记，起到筛选功能
 
 命令：`pytest -vs test_04.py -m [自定义标记名]`
 
@@ -719,7 +721,49 @@ class TestAdd:
 
 
 
+#### 测试用例
 
+```python
+## test_05.py
+import pytest
+
+# 使用pytest框架内置标记
+
+def add(a,b):
+    return a + b
+
+class TestAdd:
+    @pytest.mark.skip
+    def test_add_int(self):
+        print("---test_add_int")
+        res = add(1,3)
+        assert res == 4
+
+    # 使用满足条件跳过，其中条件为1=2，显然是不满足的，因此该用例仍会执行
+    @pytest.mark.skipif("1==2")
+    def test_add_str(self):
+        print("---test_add_str")
+        res = add("aaa","bbb")
+        assert res == "aaabbb"
+
+    # 断言相等，用例通过
+    @pytest.mark.xfail
+    def test_add_list_01(self):
+        print("---test_add_list_01")
+        res = add([1],[2,3,4])
+        assert res == [1,2,3,4]
+
+    # 断言不相等，用例失败
+    @pytest.mark.xfail
+    def test_add_list_02(self):
+        print("---test_add_list_02")
+        res = add([1],[2,3,4])
+        assert res != [1,2,3,4]
+```
+
+#### 运行结果
+
+![image-20260707075337163](images/image-20260707075337163.png)
 
  
 
