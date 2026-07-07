@@ -719,8 +719,6 @@ class TestAdd:
 | **`@pytest.mark.usefixtures`**    | **自动使用夹具**：为被标记的测试函数或类，自动应用指定的夹具（fixture），即使测试函数本身的参数列表里没有显式声明要用它 。 |
 | **`@pytest.mark.filterwarnings`** | **过滤警告**：在测试函数级别，对执行期间产生的警告进行过滤，可以忽略某些已知的、不重要的警告信息 。 |
 
-
-
 #### 测试用例
 
 ```python
@@ -774,6 +772,408 @@ class TestAdd:
 pytest.ini是pytest的主配置文件，可以添加配置改变pytest的默认行为，这样不用我们每次执行都在命令行中指定很多参数；
 
 此配置文件通常放到项目根目录下。
+
+### 配置项
+
+行`pytest -h`,查看可用于pytest.ini的配置
+
+```python
+PS D:\SoftWare\My_PyCharm_WorkPlace\My_Pytest> pytest -h
+usage: pytest [options] [file_or_dir] [file_or_dir] [...]
+
+positional arguments:
+  file_or_dir
+
+general:
+  -k EXPRESSION         Only run tests which match the given substring expression. An expression is a Python evaluatable expression where all names are substring-matched against test names and their parent classes. Example: -k
+                        'test_method or test_other' matches all test functions and classes whose name contains 'test_method' or 'test_other', while -k 'not test_method' matches those that don't contain 'test_method' in their
+                        names. -k 'not test_method and not test_other' will eliminate the matches. Additionally keywords are matched to classes and functions containing extra names in their 'extra_keyword_matches' set, as well
+                        as functions which have names assigned directly to them. The matching is case-insensitive.
+  -m MARKEXPR           Only run tests matching given mark expression. For example: -m 'mark1 and not mark2'.
+  --markers             show markers (builtin, plugin and per-project ones).
+  -x, --exitfirst       Exit instantly on first error or failed test
+  --fixtures, --funcargs
+                        Show available fixtures, sorted by plugin appearance (fixtures with leading '_' are only shown with '-v')
+  --fixtures-per-test   Show fixtures per test
+  --pdb                 Start the interactive Python debugger on errors or KeyboardInterrupt
+  --pdbcls=modulename:classname
+                        Specify a custom interactive Python debugger for use with --pdb.For example: --pdbcls=IPython.terminal.debugger:TerminalPdb
+  --trace               Immediately break when running each test
+  --capture=method      Per-test capturing method: one of fd|sys|no|tee-sys
+  -s                    Shortcut for --capture=no
+  --runxfail            Report the results of xfail tests as if they were not marked
+  --lf, --last-failed   Rerun only the tests that failed at the last run (or all if none failed)
+  --ff, --failed-first  Run all tests, but run the last failures first. This may re-order tests and thus lead to repeated fixture setup/teardown.
+  --nf, --new-first     Run tests from new files first, then the rest of the tests sorted by file mtime
+  --cache-show=[CACHESHOW]
+                        Show cache contents, don't perform collection or tests. Optional argument: glob (default: '*').
+  --cache-clear         Remove all cache contents at start of test run
+  --lfnf={all,none}, --last-failed-no-failures={all,none}
+                        With ``--lf``, determines whether to execute tests when there are no previously (known) failures or when no cached ``lastfailed`` data was found. ``all`` (the default) runs the full test suite again.
+                        ``none`` just emits a message about no known failures and exits successfully.
+  --sw, --stepwise      Exit on test failure and continue from last failing test next time
+  --sw-skip, --stepwise-skip
+                        Ignore the first failing test but stop on the next failing test. Implicitly enables --stepwise.
+  --allure-severities=SEVERITIES_SET
+                        Comma-separated list of severity names.
+                        Tests only with these severities will be run.
+                        Possible values are: blocker, critical, normal, minor, trivial.
+  --allure-epics=EPICS_SET
+                        Comma-separated list of epic names.
+                        Run tests that have at least one of the specified feature labels.
+  --allure-features=FEATURES_SET
+                        Comma-separated list of feature names.
+                        Run tests that have at least one of the specified feature labels.
+  --allure-stories=STORIES_SET
+                        Comma-separated list of story names.
+                        Run tests that have at least one of the specified story labels.
+  --allure-ids=IDS_SET  Comma-separated list of IDs.
+                        Run tests that have at least one of the specified id labels.
+  --allure-label=LABELS_SET
+                        List of labels to run in format label_name=value1,value2.
+                        "Run tests that have at least one of the specified labels.
+  --allure-link-pattern=LINK_TYPE:LINK_PATTERN
+                        Url pattern for link type. Allows short links in test,
+                        like 'issue-1'. Text will be formatted to full url with python
+                        str.format().
+  --arraydiff           Enable comparison of arrays to reference arrays stored in files
+  --arraydiff-generate-path=ARRAYDIFF_GENERATE_PATH
+                        directory to generate reference files in, relative to location where py.test is run
+  --arraydiff-reference-path=ARRAYDIFF_REFERENCE_PATH
+                        directory containing reference files, relative to location where py.test is run
+  --arraydiff-default-format=ARRAYDIFF_DEFAULT_FORMAT
+                        Default format for the reference arrays (can be 'fits' or 'text' currently)
+
+Reporting:
+  --durations=N         Show N slowest setup/test durations (N=0 for all)
+  --durations-min=N     Minimal duration in seconds for inclusion in slowest list. Default: 0.005.
+  -v, --verbose         Increase verbosity
+  --no-header           Disable header
+  --no-summary          Disable summary
+  -q, --quiet           Decrease verbosity
+  --verbosity=VERBOSE   Set verbosity. Default: 0.
+  -r chars              Show extra test summary info as specified by chars: (f)ailed, (E)rror, (s)kipped, (x)failed, (X)passed, (p)assed, (P)assed with output, (a)ll except passed (p/P), or (A)ll. (w)arnings are enabled by
+                        default (see --disable-warnings), 'N' can be used to reset the list. (default: 'fE').
+  --disable-warnings, --disable-pytest-warnings
+                        Disable warnings summary
+  -l, --showlocals      Show locals in tracebacks (disabled by default)
+  --no-showlocals       Hide locals in tracebacks (negate --showlocals passed through addopts)
+  --tb=style            Traceback print mode (auto/long/short/line/native/no)
+  --show-capture={no,stdout,stderr,log,all}
+                        Controls how captured stdout/stderr/log is shown on failed tests. Default: all.
+  --full-trace          Don't cut any tracebacks (default is to cut)
+  --color=color         Color terminal output (yes/no/auto)
+  --code-highlight={yes,no}
+                        Whether code should be highlighted (only if --color is also enabled). Default: yes.
+  --pastebin=mode       Send failed|all info to bpaste.net pastebin service
+  --junit-xml=path      Create junit-xml style report file at given path
+  --junit-prefix=str    Prepend prefix to classnames in junit-xml output
+
+pytest-warnings:
+  -W PYTHONWARNINGS, --pythonwarnings=PYTHONWARNINGS
+                        Set which warnings to report, see -W option of Python itself
+  --maxfail=num         Exit after first num failures or errors
+  --strict-config       Any warnings encountered while parsing the `pytest` section of the configuration file raise errors
+  --strict-markers      Markers not registered in the `markers` section of the configuration file raise errors
+  --strict              (Deprecated) alias to --strict-markers
+  -c FILE, --config-file=FILE
+                        Load configuration from `FILE` instead of trying to locate one of the implicit configuration files.
+  --continue-on-collection-errors
+                        Force test execution even if collection errors occur
+  --rootdir=ROOTDIR     Define root directory for tests. Can be relative path: 'root_dir', './root_dir', 'root_dir/another_dir/'; absolute path: '/home/user/root_dir'; path with variables: '$HOME/root_dir'.
+
+collection:
+  --collect-only, --co  Only collect tests, don't execute them
+  --pyargs              Try to interpret all arguments as Python packages
+  --ignore=path         Ignore path during collection (multi-allowed)
+  --ignore-glob=path    Ignore path pattern during collection (multi-allowed)
+  --deselect=nodeid_prefix
+                        Deselect item (via node id prefix) during collection (multi-allowed)
+  --confcutdir=dir      Only load conftest.py's relative to specified dir
+  --noconftest          Don't load any conftest.py files
+  --keep-duplicates     Keep duplicate tests
+  --collect-in-virtualenv
+                        Don't ignore tests in a local virtualenv directory
+  --import-mode={prepend,append,importlib}
+                        Prepend/append to sys.path when importing test modules and conftest files. Default: prepend.
+  --doctest-modules     Run doctests in all .py modules
+  --doctest-report={none,cdiff,ndiff,udiff,only_first_failure}
+                        Choose another output format for diffs on doctest failure
+  --doctest-glob=pat    Doctests file matching pattern, default: test*.txt
+  --doctest-ignore-import-errors
+                        Ignore doctest ImportErrors
+  --doctest-continue-on-failure
+                        For a given doctest, continue to run after the first failure
+
+test session debugging and configuration:
+  --basetemp=dir        Base temporary directory for this test run. (Warning: this directory is removed if it exists.)
+  -V, --version         Display pytest version and information about plugins. When given twice, also display information about plugins.
+  -h, --help            Show help message and configuration info
+  -p name               Early-load given plugin module name or entry point (multi-allowed). To avoid loading of plugins, use the `no:` prefix, e.g. `no:doctest`.
+  --trace-config        Trace considerations of conftest.py files
+  --debug=[DEBUG_FILE_NAME]
+                        Store internal tracing debug information in this log file. This file is opened with 'w' and truncated as a result, care advised. Default: pytestdebug.log.
+  -o OVERRIDE_INI, --override-ini=OVERRIDE_INI
+                        Override ini option with "option=value" style, e.g. `-o xfail_strict=True -o cache_dir=cache`.
+  --assert=MODE         Control assertion debugging tools.
+                        'plain' performs no assertion debugging.
+                        'rewrite' (the default) rewrites assert statements in test modules on import to provide assert expression information.
+  --setup-only          Only setup fixtures, do not execute tests
+  --setup-show          Show setup of fixtures while executing tests
+  --setup-plan          Show what fixtures and tests would be executed but don't execute anything
+
+logging:
+  --log-level=LEVEL     Level of messages to catch/display. Not set by default, so it depends on the root/parent log handler's effective level, where it is "WARNING" by default.
+  --log-format=LOG_FORMAT
+                        Log format used by the logging module
+  --log-date-format=LOG_DATE_FORMAT
+                        Log date format used by the logging module
+  --log-cli-level=LOG_CLI_LEVEL
+                        CLI logging level
+  --log-cli-format=LOG_CLI_FORMAT
+                        Log format used by the logging module
+  --log-cli-date-format=LOG_CLI_DATE_FORMAT
+                        Log date format used by the logging module
+  --log-file=LOG_FILE   Path to a file when logging will be written to
+  --log-file-level=LOG_FILE_LEVEL
+                        Log file logging level
+  --log-file-format=LOG_FILE_FORMAT
+                        Log format used by the logging module
+  --log-file-date-format=LOG_FILE_DATE_FORMAT
+                        Log date format used by the logging module
+  --log-auto-indent=LOG_AUTO_INDENT
+                        Auto-indent multiline messages passed to the logging module. Accepts true|on, false|off or an integer.
+  --log-disable=LOGGER_DISABLE
+                        Disable a logger by name. Can be passed multiple times.
+
+reporting:
+  --alluredir=DIR       Generate Allure report in the specified directory (may not exist)
+  --clean-alluredir     Clean alluredir folder if it exists
+  --allure-no-capture   Do not attach pytest captured logging/stdout/stderr to report
+  --inversion=INVERSION
+                        Run tests not in testplan
+
+Hypothesis:
+  --hypothesis-profile=HYPOTHESIS_PROFILE
+                        Load in a registered hypothesis.settings profile
+  --hypothesis-verbosity={quiet,normal,verbose,debug}
+                        Override profile with verbosity setting specified
+  --hypothesis-show-statistics
+                        Configure when statistics are printed
+  --hypothesis-seed=HYPOTHESIS_SEED
+                        Set a seed to use for all Hypothesis tests
+
+astropy header options:
+  --astropy-header      Show the pytest-astropy header
+  --astropy-header-packages=ASTROPY_HEADER_PACKAGES
+                        Comma-separated list of packages to include in the header
+
+coverage reporting with distributed testing support:
+  --cov=[SOURCE]        Path or package name to measure during execution (multi-allowed). Use --cov= to not do any source filtering and record everything.
+  --cov-reset           Reset cov sources accumulated in options so far.
+  --cov-report=TYPE     Type of report to generate: term, term-missing, annotate, html, xml, json, lcov (multi-allowed). term, term-missing may be followed by ":skip-covered". annotate, html, xml, json and lcov may be followed
+                        by ":DEST" where DEST specifies the output location. Use --cov-report= to not generate any output.
+  --cov-config=PATH     Config file for coverage. Default: .coveragerc
+  --no-cov-on-fail      Do not report coverage if test run fails. Default: False
+  --no-cov              Disable coverage report completely (useful for debuggers). Default: False
+  --cov-fail-under=MIN  Fail if the total coverage is less than MIN.
+  --cov-append          Do not delete coverage but append to current. Default: False
+  --cov-branch          Enable branch coverage.
+  --cov-context=CONTEXT
+                        Dynamic contexts to use. "test" for now.
+
+Custom options:
+  --run-slow            run slow tests
+  --run-hugemem         run memory intensive tests
+  -R [{astropy,any,github,none}]
+                        run tests with online data, requires pytest-remotedata
+  --doctest-plus        enable running doctests with additional features not found in the normal doctest plugin
+  --doctest-ufunc       enable running doctests in docstrings of Numpy ufuncs
+  --doctest-rst         Enable running doctests in .rst documentation. This is no longer recommended, use --doctest-glob instead.
+  --text-file-format=TEXT_FILE_FORMAT
+                        Text file format for narrative documentation. Options accepted are 'txt', 'tex', and 'rst'. This is no longer recommended, use --doctest-glob instead.
+  --doctest-plus-atol=DOCTEST_PLUS_ATOL
+                        set the absolute tolerance for float comparison
+  --doctest-plus-rtol=DOCTEST_PLUS_RTOL
+                        set the relative tolerance for float comparison
+  --doctest-only        Test only doctests. Implies usage of doctest-plus.
+  -P PACKAGE, --package=PACKAGE
+                        The name of a specific package to test, e.g. 'io.fits' or 'utils'. Accepts comma separated string to specify multiple packages.
+  --open-files          fail if any test leaves files open
+  --remote-data=[{astropy,any,github,none}]
+                        run tests with online data
+
+[pytest] ini-options in the first pytest.ini|tox.ini|setup.cfg|pyproject.toml file found:
+
+  markers (linelist):   Markers for test functions
+  empty_parameter_set_mark (string):
+                        Default marker for empty parametersets
+  norecursedirs (args): Directory patterns to avoid for recursion
+  testpaths (args):     Directories to search for tests when no files or directories are given on the command line
+  filterwarnings (linelist):
+                        Each line specifies a pattern for warnings.filterwarnings. Processed after -W/--pythonwarnings.
+  usefixtures (args):   List of default fixtures to be used with this project
+  python_files (args):  Glob-style file patterns for Python test module discovery
+  python_classes (args):
+                        Prefixes or glob names for Python test class discovery
+  python_functions (args):
+                        Prefixes or glob names for Python test function and method discovery
+  disable_test_id_escaping_and_forfeit_all_rights_to_community_support (bool):
+                        Disable string escape non-ASCII characters, might cause unwanted side effects(use at your own risk)
+  console_output_style (string):
+                        Console output: "classic", or with additional progress information ("progress" (percentage) | "count" | "progress-even-when-capture-no" (forces progress even when capture=no)
+  xfail_strict (bool):  Default for the strict parameter of xfail markers when not given explicitly (default: False)
+  tmp_path_retention_count (string):
+                        How many sessions should we keep the `tmp_path` directories, according to `tmp_path_retention_policy`.
+  tmp_path_retention_policy (string):
+                        Controls which directories created by the `tmp_path` fixture are kept around, based on test outcome. (all/failed/none)
+  enable_assertion_pass_hook (bool):
+                        Enables the pytest_assertion_pass hook. Make sure to delete any previously generated pyc cache files.
+  junit_suite_name (string):
+                        Test suite name for JUnit report
+  junit_logging (string):
+                        Write captured log messages to JUnit report: one of no|log|system-out|system-err|out-err|all
+  junit_log_passing_tests (bool):
+                        Capture log information for passing tests to JUnit report:
+  junit_duration_report (string):
+                        Duration time to report: one of total|call
+  junit_family (string):
+                        Emit XML for schema: one of legacy|xunit1|xunit2
+  doctest_optionflags (args):
+                        option flags for doctests
+  doctest_encoding (string):
+                        Encoding used for doctest files
+  cache_dir (string):   Cache directory path
+  log_level (string):   Default value for --log-level
+  log_format (string):  Default value for --log-format
+  log_date_format (string):
+                        Default value for --log-date-format
+  log_cli (bool):       Enable log display during test run (also known as "live logging")
+  log_cli_level (string):
+                        Default value for --log-cli-level
+  log_cli_format (string):
+                        Default value for --log-cli-format
+  log_cli_date_format (string):
+                        Default value for --log-cli-date-format
+  log_file (string):    Default value for --log-file
+  log_file_level (string):
+                        Default value for --log-file-level
+  log_file_format (string):
+                        Default value for --log-file-format
+  log_file_date_format (string):
+                        Default value for --log-file-date-format
+  log_auto_indent (string):
+                        Default value for --log-auto-indent
+  pythonpath (paths):   Add paths to sys.path
+  faulthandler_timeout (string):
+                        Dump the traceback of all threads if a test takes more than TIMEOUT seconds to finish
+  addopts (args):       Extra command line options
+  minversion (string):  Minimally required pytest version
+  required_plugins (args):
+                        Plugins that must be present for pytest to run
+  astropy_header (bool):
+                        Show the pytest-astropy header
+  astropy_header_packages (linelist):
+                        Comma-separated list of packages to include in the header
+  text_file_format (string):
+                        Default format for docs. This is no longer recommended, use --doctest-glob instead.
+  doctest_optionflags (args):
+                        option flags for doctests
+  doctest_plus (string):
+                        enable running doctests with additional features not found in the normal doctest plugin
+  doctest_ufunc (string):
+                        enable running doctests in docstrings of Numpy ufuncs
+  doctest_norecursedirs (args):
+                        like the norecursedirs option but applies only to doctest collection
+  doctest_rst (string): Run the doctests in the rst documentation
+  doctest_plus_atol (string):
+                        set the absolute tolerance for float comparison
+  doctest_plus_rtol (string):
+                        set the relative tolerance for float comparison
+  text_file_comment_chars (linelist):
+                        list of pairs in format file_extension=comment_chars, eg: .rst=..
+  doctest_subpackage_requires (linelist):
+                        A list of paths to skip if requirements are not satisfied.Each item in the list should have the syntax path=req1;req2
+  mock_traceback_monkeypatch (string):
+                        Monkeypatch the mock library to improve reporting of the assert_called_... methods
+  mock_use_standalone_module (string):
+                        Use standalone "mock" (from PyPI) instead of builtin "unittest.mock" on Python 3
+  open_files_ignore (args):
+                        when used with the --open-files option, allows specifying names of files that may be ignored when left open between tests--files in this list are matched may be specified by their base name (ignoring
+                        their full path) or by absolute path
+  remote_data_strict (bool):
+                        If 'True', tests will fail if they attempt to access the internet but are not explicitly marked with 'remote_data'
+
+Environment variables:
+  PYTEST_ADDOPTS           Extra command line options
+  PYTEST_PLUGINS           Comma-separated plugins to load during startup
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD Set to disable plugin auto-loading
+  PYTEST_DEBUG             Set to enable debug tracing of pytest's internals
+
+
+to see available markers type: pytest --markers
+to see available fixtures type: pytest --fixtures
+(shown according to specified file_or_dir or current dir if not specified; fixtures with leading '_' are only shown with the '-v' option
+PS D:\SoftWare\My_PyCharm_WorkPlace\My_Pytest> 
+```
+
+### 配置文件样例
+
+```python
+[pytest]
+# 命令行执行参数
+addopts = -vs --strict-markers
+# 排除目录
+norecursedirs = xxx
+# 默认执行目录
+testpaths = case
+# 执行规则：class
+python_classes = Test*
+# 执行规则：py文件
+python_files = test_* *_test
+# 执行规则：function
+python_functions = test_*
+# 自定义注册标记
+markers =
+    user: 用户模块
+    order: 订单模块
+```
+
+### addopts：命令行参数
+
+pytest命令行运行参数可以写入到pytest.ini中的addopts参数值中，addopts参数几乎支持所有参数，这样避免每一次运行的时候都需要输入参数；
+
+多个参数用空格分隔。
+
+```python
+[pytest]
+addopts = -vs --strict-markers
+ 
+## 等价于命令行参数：
+pytest -vs --strict-markers
+ 
+## 等价于main：
+if __name__ == "__main__":
+    pytest.main(["-vs","--strict-markers"])
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 05: fixture简介及调用
 
