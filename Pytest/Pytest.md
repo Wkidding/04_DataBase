@@ -1195,7 +1195,9 @@ python_files = test_* *_test
 python_functions = test_*
 ```
 
-test_qzcsbj.py
+![image-20260708063705413](images/image-20260708063705413.png)
+
+test_06.py
 
 ```python
 import pytest
@@ -1208,7 +1210,36 @@ class Test01:
         print("--------------test_case1")
 ```
 
+dir_pytest_rules/test_01.py
 
+```python
+import pytest
+ 
+class TestCase:
+    def test_a(self):
+        print("---test_a")
+    def test_b(self):
+        print("---test_b")
+```
+
+dir_pytest_rules/test_02.py
+
+```python
+def test_c():
+    print("---test_c")
+    assert 1 == 1
+```
+
+
+
+(1)如果配置
+
+结果是：**执行case下除了sub_case的用例**
+
+```python
+norecursedirs = sub_case
+testpaths = case
+```
 
 
 
