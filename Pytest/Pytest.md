@@ -1355,9 +1355,13 @@ xfail_strict = true
 
 测试用例加了@pytest.mark.xxx修饰器，如果配置文件中没有配置markers就会报warnings **见04节**
 
+
+
 ### log-cli：控制台实时输出日志
 
 默认是false，log-cli=false，等价于：log_cli=0
+
+#### (1) 输出到控制台
 
 ```python
 [pytest]
@@ -1393,6 +1397,29 @@ log_cli_date_format = %Y-%m-%d %H:%M:%S
 ```
 
 ![image-20260708074701892](images/image-20260708074701892.png)
+
+#### (2) 输出到日志文件
+
+```python
+# 输出到文件
+#日志文件位置
+log_file = ./log/test.log
+#日志文件等级
+log_file_level = info
+#日志文件格式
+log_file_format = %(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)
+#日志文件日期格式
+log_file_date_format = %Y-%m-%d %H:%M:%S
+```
+
+说明：
+
+1、日志文件以写入模式打开，每次运行测试都会覆盖上一次日志文件内容
+2、日志输出的时候不要用print，要采用logger进行输出
+
+详情见 026-日志配置
+
+
 
 
 
