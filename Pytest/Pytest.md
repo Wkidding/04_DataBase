@@ -232,7 +232,7 @@ pytest命令方式运行时，用例查找规则如下：
 
 ![image-20260705220155700](images/image-20260705220155700.png)
 
-`test_00.py`
+`Testcase/test_00.py`
 
 ```python
 import pytest
@@ -281,7 +281,7 @@ class TestAdd:
         assert res == [1,2,3,4]
 ```
 
-`test_01.py`
+`Testcase/test_01.py`
 
 ```python
 import pytest
@@ -291,7 +291,7 @@ def test_1():
     assert 1 == 1
 ```
 
-`test_02.py`
+`Testcase/test_02.py`
 
 ```python
 import pytest
@@ -360,7 +360,7 @@ def test_2 ( ):
 
 
 
-示例（test_03.py）：一个module，两个函数，两个类，每个类两个方法
+示例（Testcase/test_03.py）：一个module，两个函数，两个类，每个类两个方法
 
 ```python
 ## 一个module，两个函数，两个类，每个类两个方法
@@ -633,10 +633,10 @@ markers =
 
 ##### (2) 在测试用例中，使用自定义标记
 
-```python
-## test_04.py
-import pytest
+Testcase/test_04.py
 
+```python
+import pytest
 # 使用用户自定义标记
 
 def add(a,b):
@@ -721,8 +721,10 @@ class TestAdd:
 
 #### 测试用例
 
+Testcase/test_05.py
+
 ```python
-## test_05.py
+
 import pytest
 
 # 使用pytest框架内置标记
