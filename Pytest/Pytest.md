@@ -1808,27 +1808,132 @@ def test_case_04():
 
 ### 函数/方法执行过程中预期失败
 
+```python
+def test_case_05():
+    pytest.xfail("代码开发中")
+    print("---xfail")
+    assert 1 == 1
+```
 
+结果：pytest.xfail后面代码没执行
+
+![image-20260709073844677](images/image-20260709073844677.png)
 
 ### 类级预期失败
 
+```python
+@pytest.mark.xfail(reason="当前环境没法测试")
+class Test06:
+    def test_06_b(self):
+        print("---test_b")
+        assert 1==1
+ 
+    def test_06_a(self):
+        print("---test_a")
+        assert 1==2
+```
 
+![image-20260709074023968](images/image-20260709074023968.png)
 
 ### 模块级预期失败
 
+```python
+pytestmark = pytest.mark.xfail(reason="当前环境没法测试")
+class Test07:
+    def test_07_b(self):
+        print("---test_b")
+        assert 1==1
+ 
+    def test_07_a(self):
+        print("---test_a")
+        assert 1==2
+```
 
-
-
+![image-20260709074120739](images/image-20260709074120739.png)
 
 ### xfail方法run参数
 
+默认是True
 
+run=False不会执行方法
+
+```python
+@pytest.mark.xfail()
+def test_09_c():
+    print("---test_c")
+    assert 1==1
+@pytest.mark.xfail(run=True)
+def test_09_b():
+    print("---test_b")
+    assert 1==1
+ 
+@pytest.mark.xfail(run=False)
+def test_09_a():
+    print("---test_a")
+    raise Exception("异常")
+```
+
+![image-20260709074257290](images/image-20260709074257290.png)
 
 ### xfail方法raises参数
+
+raises：抛出某类型异常，和用例中raise的异常类型一样，结果就是FAILED，否则结果是XFAIL
+
+```python
+@pytest.mark.xfail
+def test_d():
+    print("---test_d")
+    raise Exception("异常")
+ 
+@pytest.mark.xfail(reason="异常了")
+def test_c():
+    print("---test_c")
+    raise Exception("异常")<br>
+@pytest.mark.xfail(raises=RuntimeError)
+def test_b():
+    print("---test_b")
+    raise RuntimeError("运行时异常")
+ 
+@pytest.mark.xfail(raises=RuntimeError)
+def test_a():
+    print("---test_a")
+    raise Exception("异常")
+```
 
 
 
 ### xfail方法strict参数
+
+strict默认是False，strict=False，断言成功结果是XPASS，断言失败结果是XFAIL；strict=True，断言成功结果是FAILED，断言失败结果是XFAIL
+
+```python
+@pytest.mark.xfail
+def test_f():
+    print("---test_f")
+    assert 1==1
+@pytest.mark.xfail
+def test_e():
+    print("---test_e")
+    assert 1==2
+ 
+@pytest.mark.xfail(strict=False)
+def test_d():
+    print("---test_d")
+    assert 1==1
+@pytest.mark.xfail(strict=False)
+def test_c():
+    print("---test_c")
+    assert 1==2
+@pytest.mark.xfail(strict=True)
+def test_b():
+    print("---test_b")
+    assert 1==1
+ 
+@pytest.mark.xfail(strict=True)
+def test_a():
+    print("---test_a")
+    assert 1==2
+```
 
 
 
