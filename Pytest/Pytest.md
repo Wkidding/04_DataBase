@@ -1421,6 +1421,88 @@ log_file_date_format = %Y-%m-%d %H:%M:%S
 
 详情见 026-日志配置
 
+## 20: 跳过用例 - skip、skipif
+
+### 应用场景
+
+1、受限环境，某些用例无法运行
+
+2、功能未开发完成，但是用例写了，可以不运行这些用例
+
+### 实现方案
+
+1、加装饰器，被修饰函数/方法中代码不会被执行，也就是说不会进入方法；也可以加在类上，类中所有方法均跳过
+
+```python
+@pytest.mark.skip
+@pytest.mark.skip(reason="")
+@pytest.mark.skipif(condition, reason="")
+```
+
+2、代码中添加跳过（也就是用例执行过程中跳过），会进入被修饰函数/方法，但是函数/方法中pytest.skip后面代码不会被执行
+
+```python
+pytest.skip(reason="")
+pytest.skip(reason="",allow_module_level=False)
+```
+
+### skip
+
+无条件跳过，也就是始终跳过该测试用例
+
+源码：
+
+```python
+class _SkipMarkDecorator(MarkDecorator):
+    @overload  # type: ignore[override,misc,no-overload-impl]
+    def __call__(self, arg: Markable) -> Markable:
+        ...
+ 
+    @overload
+    def __call__(self, reason: str = ...) -> "MarkDecorator":
+        ...
+```
+
+
+
+
+
+## 21: 标记为预期失败 - xfail
+
+
+
+## 22: 定义标记变量
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1523,11 +1605,7 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 ## 19: parametrize中给用例取别名
 
-## 20: 跳过用例 - skip、skipif
-
-## 21: 标记为预期失败 - xfail]
-
-## 22: 定义标记变量
+## 
 
 ## 23: pytest中配置过滤警告
 
