@@ -1491,7 +1491,7 @@ def test_case_02():
 ```python
 import pytest
 import platform
- 
+
 def test_case_03():
     if platform.system() == "Windows":
         pytest.skip("win下跳过")
@@ -1519,9 +1519,14 @@ class TestCase04:
 
 #### 模块级跳过
 
-pytest.skip(msg="原因描述", allow_module_level=False)
+##### 方式1
+
+`pytest.skip(msg="原因描述", allow_module_level=True)`
 
 ```python
+import pytest
+
+# 在条件满足时跳过整个模块
 if sys.platform=="win32":
     pytest.skip('win中该模块跳过', allow_module_level=True)
 class TestCase05:
@@ -1542,13 +1547,19 @@ def test_case_05_4():
 
 结果：**allow_module_level为False时，报错**
 
+🔍 错误原因
+
+pytest 检测到你在模块顶层（全局作用域）调用了 `pytest.skip()`，但**没有设置** `allow_module_level=True` 参数。
+
 ![image-20260709064941050](images/image-20260709064941050.png)
 
 
 
+##### 方式2
+
 ```python
 import pytest
- 
+# 在模块顶层使用 skip
 pytestmark = pytest.mark.skip(reason="win中该模块跳过")
 
 class TestCase:
@@ -1564,6 +1575,41 @@ def test_case_06_4():
 ```
 
 ![image-20260709065345164](images/image-20260709065345164.png)
+
+### skipif
+
+condition条件为True跳过该测试用例
+
+源码：
+
+```python
+class _SkipifMarkDecorator(MarkDecorator):
+    def __call__(  # type: ignore[override]
+        self,
+        condition: Union[str, bool] = ...,
+        *conditions: Union[str, bool],
+        reason: str = ...,
+    ) -> MarkDecorator:
+        ...
+```
+
+
+
+
+
+
+
+### 📝 正确的跳过用法对比
+
+| 使用方式               | 代码示例                                       | 作用范围               |
+| :--------------------- | :--------------------------------------------- | :--------------------- |
+| **函数级 skip 装饰器** | `@pytest.mark.skip("原因")`                    | 只跳过单个测试函数     |
+| **类级 skip 装饰器**   | `@pytest.mark.skip("原因")`                    | 跳过整个测试类         |
+| **模块级 skip 调用**   | `pytest.skip("原因", allow_module_level=True)` | 跳过整个测试文件       |
+| **条件跳过函数**       | `@pytest.mark.skipif(条件, reason="原因")`     | 条件满足时跳过测试函数 |
+| **函数内部 skip**      | `if condition: pytest.skip("原因")`            | 在测试函数内部动态跳过 |
+
+
 
 ## 21: 标记为预期失败 - xfail
 
