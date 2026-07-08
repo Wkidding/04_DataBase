@@ -1507,22 +1507,63 @@ def test_case_03():
 ##### 修饰器加在类上
 
 ```python
-
+@pytest.mark.skip(reason="代码开发中")
+class TestCase04:
+    def test_case_04_1(self):
+        print("test_case1---skip")
+    def test_case_04_2(self):
+        print("test_case2---skip")
 ```
 
+![image-20260709064442766](images/image-20260709064442766.png)
+
+#### 模块级跳过
+
+pytest.skip(msg="原因描述", allow_module_level=False)
+
+```python
+if sys.platform=="win32":
+    pytest.skip('win中该模块跳过', allow_module_level=True)
+class TestCase05:
+    def test_case_05_1(self):
+        print("test_case1---skip")
+    def test_case_05_2(self):
+        print("test_case2---skip")
+ 
+def test_case_05_3():
+    print("test_case3---skip")
+def test_case_05_4():
+    print("test_case4---skip")
+```
+
+结果：**allow_module_level为True时，跳过当前模块**
+
+![image-20260709064823996](images/image-20260709064823996.png)
+
+结果：**allow_module_level为False时，报错**
+
+![image-20260709064941050](images/image-20260709064941050.png)
 
 
 
+```python
+import pytest
+ 
+pytestmark = pytest.mark.skip(reason="win中该模块跳过")
 
+class TestCase:
+    def test_case_06_1(self):
+        print("test_case1---skip")
+    def test_case_06_2(self):
+        print("test_case2---skip")
 
+def test_case_06_3():
+    print("test_case3---skip")
+def test_case_06_4():
+    print("test_case4---skip")
+```
 
-
-
-
-
-
-
-
+![image-20260709065345164](images/image-20260709065345164.png)
 
 ## 21: 标记为预期失败 - xfail
 
