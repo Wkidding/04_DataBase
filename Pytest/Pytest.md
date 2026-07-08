@@ -1648,11 +1648,21 @@ def test_case_09_4():
 
 ![image-20260709071038035](images/image-20260709071038035.png)
 
+#### 模块级跳过
 
+下面只能是pytestmark，不能改为其它的
 
+```python
+import pytest
 
+pytestmark = pytest.mark.skipif(sys.platform=="win32", reason="win中该模块跳过")
+def test_case_10_1():
+    print("test_case1---skip")
+def test_case_10_2():
+    print("test_case2---skip")
+```
 
-
+![image-20260709071721292](images/image-20260709071721292.png)
 
 ### 📝 正确的跳过用法对比
 
@@ -1665,6 +1675,46 @@ def test_case_09_4():
 | **函数内部 skip**      | `if condition: pytest.skip("原因")`            | 在测试函数内部动态跳过 |
 
 
+
+### 补充：importorskip
+
+缺少模块或者版本低于参数值就跳过
+
+参数：
+
+> modname：模块名
+> minversion：要求的最低版本
+> reason：跳过原因
+
+#### modname不满足
+
+```python
+@pytest.importorskip("requestsx", minversion="2.31.0")
+def test_case11():
+    print("---importorskip")
+```
+
+![image-20260709072233363](images/image-20260709072233363.png)
+
+#### minversion不满足
+
+```python
+@pytest.importorskip("requests", minversion="3.31.0")
+def test_case12():
+    print("---importorskip")
+```
+
+![image-20260709072610633](images/image-20260709072610633.png)
+
+#### modname和minversion都满足
+
+```python
+@pytest.importorskip("requests", minversion="2.26.0")
+def test_case13():
+    print("---importorskip")
+```
+
+![image-20260709072339529](images/image-20260709072339529.png)
 
 ## 21: 标记为预期失败 - xfail
 
