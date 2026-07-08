@@ -1464,7 +1464,7 @@ pytest.skip(reason="",allow_module_level=False)
 import pytest
  
 @pytest.mark.skip
-def test_case():
+def test_case_01():
     print("代码开发中")
 ```
 
@@ -1474,7 +1474,7 @@ def test_case():
 
 ```python
 @pytest.mark.skip(reason="代码开发中")
-def test_case():
+def test_case_02():
     print("---skip")
 ```
 
@@ -1482,9 +1482,33 @@ def test_case():
 
 
 
+#### 函数/方法执行过程中跳过
 
+##### 代码中添加跳过
 
+结果：pytest.skip后面代码没执行
 
+```python
+import pytest
+import platform
+ 
+def test_case_03():
+    if platform.system() == "Windows":
+        pytest.skip("win下跳过")
+        print("---skip")
+    else:
+        print("不跳过")
+```
+
+![image-20260709064030847](images/image-20260709064030847.png)
+
+#### 类级跳过
+
+##### 修饰器加在类上
+
+```python
+
+```
 
 
 
