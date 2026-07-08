@@ -1593,6 +1593,61 @@ class _SkipifMarkDecorator(MarkDecorator):
         ...
 ```
 
+#### 函数/方法级跳过
+
+方法：skipif(condition, reason=None)
+参数：
+　　condition：跳过的条件，可选
+　　reason：标注跳过的原因，可选
+使用方法：@pytest.mark.skipif(condition, reason="xxx")
+
+##### condition和reason都不填
+
+```python
+import pytest
+ 
+@pytest.mark.skipif
+def test_case_07():
+    print("---skipif")
+    assert 1==1
+```
+
+![image-20260709070657660](images/image-20260709070657660.png)
+
+##### condition和reason都填
+
+```python
+import pytest
+
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="win环境中跳过")
+def test_case_08_1():
+    pass
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="python3.9以下跳过")
+def test_case_08_2():
+    pass
+```
+
+![image-20260709070843951](images/image-20260709070843951.png)
+
+#### 类级跳过
+
+```python
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="win环境中跳过")
+class TestCase09:
+    def test_case_09_1(self):
+        print("test_case1---skip")
+    def test_case_09_2(self):
+        print("test_case2---skip")
+ 
+def test_case_09_3():
+    print("test_case3---skip")
+def test_case_09_4():
+    print("test_case4---skip")
+```
+
+![image-20260709071038035](images/image-20260709071038035.png)
+
 
 
 
