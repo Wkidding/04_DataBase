@@ -1421,7 +1421,7 @@ log_file_date_format = %Y-%m-%d %H:%M:%S
 
 详情见 026-日志配置
 
-## 20: 跳过用例 - skip、skipif
+## 06: 跳过用例 - skip、skipif
 
 ### 应用场景
 
@@ -1716,7 +1716,119 @@ def test_case13():
 
 ![image-20260709072339529](images/image-20260709072339529.png)
 
-## 21: 标记为预期失败 - xfail
+## 07: 标记为预期失败 - xfail
+
+### 应用场景
+
+功能未开发完成，但是用例写了；
+
+环境限制，已经知道会失败，也可以预期失败。
+
+### 源码
+
+```python
+class _XfailMarkDecorator(MarkDecorator):
+    @overload  # type: ignore[override,misc,no-overload-impl]
+    def __call__(self, arg: Markable) -> Markable:
+        ...
+ 
+    @overload
+    def __call__(
+        self,
+        condition: Union[str, bool] = ...,
+        *conditions: Union[str, bool],
+        reason: str = ...,
+        run: bool = ...,
+        raises: Union[Type[BaseException], Tuple[Type[BaseException], ...]] = ...,
+        strict: bool = ...,
+    ) -> MarkDecorator:
+        ...
+```
+
+方法：`xfail(condition=None, reason=None, raises=None, run=True, strict=False)`
+
+常用参数：
+
+- condition：预期失败的条件
+- reason：失败的原因
+- run：布尔值，是否运行
+- raises：抛出某类型异常，和用例中raise的异常类型一样，结果就是FAILED，否则结果是XFAIL
+- strict，默认是False，strict=False，断言成功结果是XPASS，断言失败结果是XFAIL；strict=True，断言成功结果是FAILED，断言失败结果是XFAIL 
+
+使用方法：
+　　`@pytest.mark.xfail(condition, reason="xxx" )`
+
+### 函数/方法级预期失败
+
+#### assert成功
+
+```python
+import pytest
+ 
+@pytest.mark.xfail
+def test_case_01():
+    print("代码开发中")
+    assert 1==1
+```
+
+![image-20260709073312615](images/image-20260709073312615.png)
+
+#### assert失败
+
+```python
+@pytest.mark.xfail
+def test_case_02():
+    print("代码开发中")
+    assert 1==2
+```
+
+![image-20260709073359286](images/image-20260709073359286.png)
+
+#### condition为true
+
+```python
+@pytest.mark.xfail(1==1, reason="代码开发中")
+def test_case_03():
+    print("---xfail")
+    assert 1==1
+```
+
+![image-20260709073449204](images/image-20260709073449204.png)
+
+#### condition为false
+
+```python
+@pytest.mark.xfail(1==2, reason="代码开发中")
+def test_case_04():
+    print("---xfail")
+    assert 1==1
+```
+
+![image-20260709073607456](images/image-20260709073607456.png)
+
+### 函数/方法执行过程中预期失败
+
+
+
+### 类级预期失败
+
+
+
+### 模块级预期失败
+
+
+
+
+
+### xfail方法run参数
+
+
+
+### xfail方法raises参数
+
+
+
+### xfail方法strict参数
 
 
 
