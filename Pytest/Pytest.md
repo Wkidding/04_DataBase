@@ -1450,18 +1450,51 @@ pytest.skip(reason="",allow_module_level=False)
 
 无条件跳过，也就是始终跳过该测试用例
 
-源码：
+#### 函数/方法级跳过
+
+方法：skip(reason=None)
+参数：可选参数reason，用于标注跳过的原因，会在测试结果中显示
+使用方法：@pytest.mark.skip(reason="xxx")
+
+示例：`test_07.py`
+
+##### 无参数reason
 
 ```python
-class _SkipMarkDecorator(MarkDecorator):
-    @overload  # type: ignore[override,misc,no-overload-impl]
-    def __call__(self, arg: Markable) -> Markable:
-        ...
+import pytest
  
-    @overload
-    def __call__(self, reason: str = ...) -> "MarkDecorator":
-        ...
+@pytest.mark.skip
+def test_case():
+    print("代码开发中")
 ```
+
+![image-20260709063328366](images/image-20260709063328366.png)
+
+##### 有参数reason
+
+```python
+@pytest.mark.skip(reason="代码开发中")
+def test_case():
+    print("---skip")
+```
+
+![image-20260709063531249](images/image-20260709063531249.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
