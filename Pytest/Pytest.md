@@ -1881,26 +1881,26 @@ raises：抛出某类型异常，和用例中raise的异常类型一样，结果
 
 ```python
 @pytest.mark.xfail
-def test_d():
+def test_10_d():
     print("---test_d")
     raise Exception("异常")
  
 @pytest.mark.xfail(reason="异常了")
-def test_c():
+def test_10_c():
     print("---test_c")
     raise Exception("异常")<br>
 @pytest.mark.xfail(raises=RuntimeError)
-def test_b():
+def test_10_b():
     print("---test_b")
     raise RuntimeError("运行时异常")
  
 @pytest.mark.xfail(raises=RuntimeError)
-def test_a():
+def test_10_a():
     print("---test_a")
     raise Exception("异常")
 ```
 
-
+![image-20260709074620417](images/image-20260709074620417.png)
 
 ### xfail方法strict参数
 
@@ -1908,36 +1908,34 @@ strict默认是False，strict=False，断言成功结果是XPASS，断言失败�
 
 ```python
 @pytest.mark.xfail
-def test_f():
+def test_11_f():
     print("---test_f")
     assert 1==1
 @pytest.mark.xfail
-def test_e():
+def test_11_e():
     print("---test_e")
     assert 1==2
  
 @pytest.mark.xfail(strict=False)
-def test_d():
+def test_11_d():
     print("---test_d")
     assert 1==1
 @pytest.mark.xfail(strict=False)
-def test_c():
+def test_11_c():
     print("---test_c")
     assert 1==2
 @pytest.mark.xfail(strict=True)
-def test_b():
+def test_11_b():
     print("---test_b")
     assert 1==1
  
 @pytest.mark.xfail(strict=True)
-def test_a():
+def test_11_a():
     print("---test_a")
     assert 1==2
 ```
 
-
-
-## 22: 定义标记变量
+![image-20260709074757396](images/image-20260709074757396.png)
 
 
 
