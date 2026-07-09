@@ -1937,7 +1937,83 @@ def test_11_a():
 
 ![image-20260709074757396](images/image-20260709074757396.png)
 
+## 08: pytest中配置过滤警告
 
+### 关于警告
+
+如果警告不重要，可以忽略，如果警告很重要，可以提升为异常。
+
+### 实现一：配置过滤警告
+
+1、命令行参数，pytest case\test_qzcsbj.py -vs -W error::UserWarning，表示将UserWarning警告转换为错误
+
+2、pytest.ini配置文件
+
+表示将UserWarning警告转换为错误，其它忽略
+
+```python
+[pytest]
+filterwarnings =
+    ignore
+    error::UserWarning
+```
+
+#### 无参数
+
+`Testcase/test_09.py`
+
+```python
+import warnings
+ 
+def test_01_a():
+    print("---test_a")
+    assert fun()==1
+
+def fun():
+    print("---fun")
+    warnings.warn(UserWarning("自定义warning"))
+    return 1
+```
+
+#### 无-W参数
+
+`pytest Testcase/test_09.py -vs`
+
+![image-20260710063151144](images/image-20260710063151144.png)
+
+#### 有 -W 参数
+
+##### error：将警告转换为错误
+
+`pytest Testcase/test_09.py -vs -W error::UserWarning`
+
+![image-20260710063454716](images/image-20260710063454716.png)
+
+##### ignore：忽略所有警告
+
+`pytest Testcase/test_09.py -vs -W ignore::UserWarning`
+
+![image-20260710063527080](images/image-20260710063527080.png)
+
+
+
+
+
+
+
+## 24: pytest中异常处理
+
+
+
+
+
+## 25: pytest断言
+
+
+
+
+
+## 26: pytest中日志配置
 
 
 
@@ -2069,15 +2145,9 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 ## 19: parametrize中给用例取别名
 
+
+
 ## 
-
-## 23: pytest中配置过滤警告
-
-## 24: pytest中异常处理
-
-## 25: pytest断言
-
-## 26: pytest中日志配置
 
 ## 27: pytest常用插件 - 失败重试pytest-rerunfailures
 
