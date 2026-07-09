@@ -1995,25 +1995,112 @@ def fun():
 
 ![image-20260710063527080](images/image-20260710063527080.png)
 
+##### default：打印每个警告
+
+`pytest Testcase/test_09.py -vs -W default::UserWarning`
+
+```python
+def test_02_b():
+    print("---test_b")
+    warnings.warn(UserWarning("自定义warning"))
+    assert 1==1
+def test_02_a():
+    print("---test_a")
+    assert fun()==1
+ 
+def fun_02():
+    print("---fun")
+    warnings.warn(UserWarning("自定义warning"))
+    warnings.warn(UserWarning("自定义warning"))
+    return 1
+```
+
+![image-20260710064103812](images/image-20260710064103812.png)
+
+##### --disable-warnings：不显示警告摘要
+
+`pytest Testcase/test_09.py -vs -W default::UserWarning --disable-warnings`
+
+![image-20260710064234012](images/image-20260710064234012.png)
+
+### 实现二：装饰器（filterwarnings过滤）
+
+我们可以使用@pytest.mark.filterwarnings向特定测试项添加警告筛选器，这样可以做到更细节的控制警告
+
+#### 函数、方法级过滤
+
+##### 方式1
+
+调用fun会产生警告，但是可以设置忽略警告
+
+```python
+import warnings
+import pytest
+
+@pytest.mark.filterwarnings("ignore:.*自定义.*")
+def test_03_a():
+    print("---test_a")
+    assert fun_03()==1
+ 
+def fun_03():
+    print("---fun_03")
+    warnings.warn(UserWarning("自定义warning"))
+    return 1
+```
+
+![image-20260710064632340](images/image-20260710064632340.png)
+
+##### 方式2
+
+描述警告过滤器的写法
+
+```python
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_04_a():
+    print("---test_04_a")
+    assert fun_04()==1
+ 
+def fun_04():
+    print("---fun_04")
+    warnings.warn(UserWarning("自定义warning"))
+    return 1
+```
+
+![image-20260710064832609](images/image-20260710064832609.png)
+
+#### 类级过滤
+
+```python
+
+```
 
 
 
 
 
+#### 模块级过滤
 
-## 24: pytest中异常处理
+```python
 
-
-
-
-
-## 25: pytest断言
+```
 
 
 
 
 
-## 26: pytest中日志配置
+## 09: pytest中异常处理
+
+
+
+
+
+## 10: pytest断言
+
+
+
+
+
+## 11: pytest中日志配置
 
 
 
