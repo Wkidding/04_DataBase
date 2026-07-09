@@ -2070,21 +2070,43 @@ def fun_04():
 
 #### 类级过滤
 
-```python
+忽略含有“自定义”的
 
+```python
+@pytest.mark.filterwarnings("ignore:自定义")
+class Test05:
+    def test_05_a(self):
+        print("---test_05_a")
+        assert self.fun()==1
+ 
+    def fun_05(self):
+        print("---fun_05")
+        warnings.warn(UserWarning("自定义warning"))
+        return 1
 ```
 
-
+![image-20260710065221058](images/image-20260710065221058.png)
 
 
 
 #### 模块级过滤
 
-```python
+下面只能是pytestmark，不能改为其它的
 
+```python
+pytestmark = pytest.mark.filterwarnings("ignore")
+class Test06:
+    def test_06_a (self):
+        print("---test_06_a")
+        assert self.fun_06() == 1
+
+    def fun_06(self):
+        print("---fun_06")
+        warnings.warn(UserWarning("自定义warning"))
+        return 1
 ```
 
-
+![image-20260710065718898](images/image-20260710065718898.png)
 
 
 
