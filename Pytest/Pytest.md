@@ -2214,13 +2214,101 @@ class Test02():
 
 
 
-
-
-
-
 ## 10: pytest断言
 
+断言是验证软件实际结果是否和预期结果一致，如果不一致，程序会中止执行并给出失败信息
 
+### assert断言
+
+pytest使用的是python自带的assert关键字来进行断言
+
+如果断言失败，assert后面的代码不会执行	
+
+语法
+
+```python
+assert <表达式>
+assert <表达式>,<描述>，如果断言失败，描述作为AssertionError的内容展示
+```
+
+示例一
+
+`Testcase/test_11.py`
+
+```python
+import pytest
+
+def test_01_1_x():
+    assert True
+def test_01_2_x():
+    assert 'fsdkgitndcsdf'
+def test_01_3_in():
+    assert 'cs' in 'fsdkgitndcsdf'
+def test_01_4_not():
+    assert not True
+```
+
+![image-20260710073641958](images/image-20260710073641958.png)
+
+示例二
+
+```python
+def test_02_1_num():
+    assert 1 == 1
+def test_02_2_str():
+    assert "1" == "1"
+def test_02_3_dic():
+    assert {"name": "ren"} == {"name": "qzcsbj"}, "---fail"
+def test_02_4_list():
+    assert [1, 2] == [1, 2], "---fail"
+def test_02_5_tuple():
+    assert (1, 2) == (1, 3)
+```
+
+![image-20260710073815032](images/image-20260710073815032.png)
+
+### 断言装饰器
+
+详见：xfail方法raises参数
+
+raises：抛出某类型异常，和用例中raise的异常类型一样，结果就是FAILED，否则结果是XFAIL
+
+```python
+@pytest.mark.xfail
+def test_03_d():
+    print("---test_d")
+    raise Exception("异常")
+
+@pytest.mark.xfail(reason="异常了")
+def test_03_c():
+    print("---test_c")
+    raise Exception("异常")
+@pytest.mark.xfail(raises=RuntimeError)
+def test_03_b():
+    print("---test_b")
+    raise RuntimeError("运行时异常")
+
+@pytest.mark.xfail(raises=RuntimeError)
+def test_03_a():
+    print("---test_a")
+    raise Exception("异常")
+```
+
+![image-20260710074241984](images/image-20260710074241984.png)
+
+### 预期异常断言
+
+编写引发异常的断言，可以使用pytest.raises()作为上下文管理器
+
+```python
+
+```
+
+
+
+
+
+### 预期警告断言
 
 
 
