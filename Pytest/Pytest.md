@@ -1419,7 +1419,7 @@ log_file_date_format = %Y-%m-%d %H:%M:%S
 1、日志文件以写入模式打开，每次运行测试都会覆盖上一次日志文件内容
 2、日志输出的时候不要用print，要采用logger进行输出
 
-详情见 026-日志配置
+详情见 11-日志配置
 
 ## 06: 跳过用例 - skip、skipif
 
@@ -2301,14 +2301,61 @@ def test_03_a():
 编写引发异常的断言，可以使用pytest.raises()作为上下文管理器
 
 ```python
+def test_04_a():
+    # 捕获特定异常；采用pytest.raises上下文管理预期异常
+    # 哪怕with下面的代码发生了ZeroDivisionError类型的异常，整个用例不会认为是异常用例，认为是正常的
+    with pytest.raises(ZeroDivisionError):
+        1 / 0
 
+def test_04_b():
+    #  可以捕获异常，获取细节（异常类型、异常信息），后面使用
+    #  下面通过ex来访问异常信息
+    with pytest.raises(ZeroDivisionError) as ex:
+        1 / 0
+    print("---ex:",ex.value)
+    # 断言异常value值
+    assert "division" in str(ex.value)
+    # 断言异常类型
+    assert ex.type == ZeroDivisionError
+
+def test_04_c():
+    # 用正则匹配异常信息
+    with pytest.raises(ZeroDivisionError, match=".*division.*") as ex:
+        1 / 0
+    pass
 ```
 
-
+![image-20260710074705322](images/image-20260710074705322.png)
 
 
 
 ### 预期警告断言
+
+警告断言与异常断言比较类似
+
+```python
+import pytest
+import warnings
+ 
+# 下面写法，产生的警告不会打印出来
+def test_warning_assert():
+    with pytest.warns(UserWarning):
+        warnings.warn("自定义警告1", UserWarning)
+ 
+# 可以使用record获取警告信息
+def test_warning_assert2():
+    with pytest.warns(RuntimeWarning) as record:
+        warnings.warn("自定义警告2", RuntimeWarning)
+    assert len(record) == 1
+    assert record[0].message.args[0] == "自定义警告2"
+ 
+# match通过正则匹配异常信息中的关键字
+def test_warning_assert3():
+    with pytest.warns(UserWarning, match=".*自定义.*3"):
+        warnings.warn("自定义警告3", UserWarning)
+```
+
+![image-20260710074918741](images/image-20260710074918741.png)
 
 
 
