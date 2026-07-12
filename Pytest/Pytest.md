@@ -2361,13 +2361,57 @@ def test_warning_assert3():
 
 ## 11: pytest中日志配置
 
+### 日志格式配置
 
+pytest.ini，内容包含terminal和日志文件
 
+```python
+[pytest]
+addopts = --capture=no
 
+# 日志开关 true/false、1/0
+log_cli = 1
 
+# 输出到terminal
+# 日志级别
+log_cli_level = info
+# 打印详细日志，相当于命令行加 -vs
+# addopts = --capture=no
+# 日志格式
+log_cli_format = %(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)
+# 日志时间格式
+log_cli_date_format = %Y-%m-%d %H:%M:%S
 
+# 输出到文件
+# 日志文件位置
+log_file = ./log/test.log
+# 日志文件等级
+log_file_level = info
+# 日志文件格式
+log_file_format = %(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)
+# 日志文件日期格式
+log_file_date_format = %Y-%m-%d %H:%M:%S
+```
 
+说明：
 
+1、日志文件以写入模式打开，每次运行测试都会覆盖上一次日志文件内容
+2、日志输出的时候不要用print，要采用logger进行输出
+
+### 使用
+
+`Tesecase\test_012.py`
+
+```python
+import logging
+logger = logging.getLogger(__name__)
+ 
+def test_case():
+    logger.info("断言1==1")
+    assert 1==1
+```
+
+![image-20260712152816523](images/image-20260712152816523.png)
 
 
 
