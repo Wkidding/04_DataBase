@@ -2417,13 +2417,26 @@ def test_case():
 
 ## 12: fixture简介及调用
 
-上一篇我们介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
+前面介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
 
 其实这样很不灵活，比如我们只希望部分测试用例执行某个固件，通过setup和teardown是实现不了的；
 
-但是，通过fixture就可以根据需要自定义测试用例的前置、后置操作；
+但是，**通过fixture就可以根据需要自定义测试用例的前置、后置操作**；本质上是一个**装饰器函数**（通过 `@pytest.fixture` 标记）
 
-fixture是通过yield来区分前后置的，前后置均可以单独存在，fixture如果有后置，前置不报错就都会执行，前置报错后置就不会执行。
+fixture是**通过yield来区分前后置**的，前后置均可以单独存在，fixture如果有后置，前置不报错就都会执行，前置报错后置就不会执行。
+
+### fixture 的核心作用
+
+| 作用                 | 说明                                                         |
+| :------------------- | :----------------------------------------------------------- |
+| **提供测试前置条件** | 在测试执行前自动准备数据或初始化对象                         |
+| **资源管理与清理**   | 通过 `yield` 实现 teardown（后置清理），避免资源泄露         |
+| **复用测试逻辑**     | 将重复的初始化代码抽离，多个测试函数共享                     |
+| **依赖注入**         | 测试函数通过参数名直接声明所需 fixture，pytest 自动查找并注入 |
+| **灵活的作用域控制** | 可控制 fixture 的生命周期（函数、类、模块、会话级别）        |
+| **参数化支持**       | 同一个 fixture 可返回不同配置，实现多场景测试                |
+
+
 
 ### fixture的优势
 
@@ -2467,11 +2480,22 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 - **ids**：用例标识id，每个ids和params一一对应，如果没有id，将从params自动产生
 - **name**：给被@pytest.fixture标记的方法取一个别名，如果使用了name，那只能将name传入，函数名不再生效
 
+### fixture作用域（scope）控制
+
+| scope 值           | 生命周期                               |
+| :----------------- | :------------------------------------- |
+| `function`（默认） | 每个测试函数执行一次                   |
+| `class`            | 每个测试类执行一次                     |
+| `module`           | 每个模块（.py 文件）执行一次           |
+| `session`          | 整个 pytest 会话执行一次（跨多个文件） |
+
 
 
 ### fixture的调用
 
 #### 函数引用/参数引用
+
+`Testcase/test_13.py`
 
 将fixture名称作为测试用例函数/方法的参数；另外，如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
 
@@ -2479,11 +2503,45 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 ==参数引用==：测试类中测试方法形参是**当前测试类中被@pytest.fixture()标记的方法**
 
+```python
+"""
+fixture 简介&调用
+"""
+import pytest
 
+# 定义 fixture
+@pytest.fixture()
+def fun01():
+    print("--fun01()中fixture")
 
+# 定义 fixture
+@pytest.fixture()
+def fun02 ( ):
+    print("--fun02()中fixture2")
 
+# 测试函数使用 fixture（通过参数名注入）
+def test_a (fun01):
+    print("--------------test_a")
 
+class Test01:
+    def test_b (self, fun02):
+        print("--------------test_b")
 
+    def test_c (self, fun03):
+        print("--------------test_c")
+
+    @pytest.fixture()
+    def fun03 (self):
+        print("--fun03()中fixture3")
+```
+
+通过加过可以看出：
+
+1、被fixture标记的函数，可以作为测试函数/方法入参进行调用
+2、在测试函数/方法 被执行时，首先执行它所引用的fixture（主要是执行被fixture标记的函数的操作）
+3、执行完第2步之后，在执行具体的测试用例中的内容
+
+![image-20260712154608747](images/image-20260712154608747.png)
 
 
 
