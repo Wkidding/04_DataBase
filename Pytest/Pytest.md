@@ -2519,14 +2519,16 @@ def fun01():
 def fun02 ( ):
     print("--fun02()中fixture2")
 
-# 测试函数使用 fixture（通过参数名注入）
+# 测试函数使用 fixture（通过参数名注入），即“函数引用”
 def test_a (fun01):
     print("--------------test_a")
 
 class Test01:
+    # 函数引用：引用的方法是在 本测试类外 被fixture标记的方法。
     def test_b (self, fun02):
         print("--------------test_b")
 
+    # 测参数引用：引用的方法是在 本测试类中 被fixture标记的方法。
     def test_c (self, fun03):
         print("--------------test_c")
 
@@ -2542,6 +2544,14 @@ class Test01:
 3、执行完第2步之后，在执行具体的测试用例中的内容
 
 ![image-20260712154608747](images/image-20260712154608747.png)
+
+
+
+#### 加装饰器
+
+`@pytest.mark.usefixtures(fixture_name, ...)`
+
+
 
 
 
