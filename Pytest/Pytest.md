@@ -2791,13 +2791,80 @@ class Test07:
 
 ### 5、fixture嵌套
 
-不能用@pytest.mark.usefixtures
+不能用`@pytest.mark.usefixtures`
 
-示例：两个fixture，fun依赖login
+示例：两个fixture，fun_08_02依赖fun_08_01
 
 ```python
+@pytest.fixture()
+def fun_08_01():
+    print("---fun_08_01")
+ 
+@pytest.fixture()
+def fun_08_02(fun_08_01):
+    print("---fun_08_02")
+
+# @pytest.mark.usefixtures(fun_08_01)  # 报错
+def test_08_a():
+    print("--------------test_a")
+
+
+def test_08_a(fun_08_01):
+    print("--------------test_a")
+```
+
+![image-20260713072500181](images/image-20260713072500181.png)
+
+
+
+```python
+# 下面写法报错
+"""
+❌  1、错误嵌套：不能使用usefixtures标记来嵌套不同的fixture
+"""
+@pytest.fixture()
+def fun_08_01 ( ):
+    print("---fun_08_01")
+
+@pytest.fixture()
+@pytest.mark.usefixtures(fun_08_01)
+def fun_08_02():
+    print("---fun_08_02")
 
 ```
+
+![image-20260713072635293](images/image-20260713072635293.png)
+
+
+
+```python
+# 错误用法，报错
+"""
+❌ 错误：2、错误用法：@pytest.mark.usefixtures() 接收的是 fixture 的名称（字符串），而不是 fixture 函数本身。
+"""
+@pytest.fixture()
+def fun_08_01():
+    print("---fun_08_01")
+
+@pytest.fixture()
+def fun_08_02(fun_08_01):
+    print("---fun_08_02")
+
+@pytest.mark.usefixtures(fun_08_01)
+def test_08_a():
+    print("--------------test_08_a")
+
+```
+
+![image-20260713073130293](images/image-20260713073130293.png)
+
+
+
+
+
+
+
+
 
 
 
