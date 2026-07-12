@@ -2511,11 +2511,11 @@ def fun():
 
 ### fixture的调用
 
-#### 1、函数引用/参数引用
+#### 1、函数/方法中的参数列表引用
 
 `Testcase/test_13.py`
 
-再用力的参数列表中，将fixture名称作为测试用例函数/方法的参数；
+再函数/方法的参数列表中，将fixture名称作为测试用例函数/方法的参数；
 
 > 注意：如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
 
@@ -2575,11 +2575,11 @@ class Test01:
 
 
 
-#### 2、给用例加`usefixtures`标记
+#### 2、函数/方法加`usefixtures`标记
 
 `@pytest.mark.usefixtures(fixture_name, ...)`
 
-##### (1) 测试用例上加`usefixtures`标记
+##### (1) 函数/方法上加`usefixtures`标记
 
 可以多个fixture参数，放前面的先执行，放后面的后执行，即：**执行顺序和usefixtures后面引用顺序对应**
 
@@ -2676,11 +2676,11 @@ class Test04:
 
 
 
-### 3、给测试类加`usefixtures`标记
+#### 3、测试类加`usefixtures`标记
 
 类中所有测试用例都会调用该fixture
 
-#### (1) 同时有装饰器和引用，装饰器先执行
+##### (1) 同时有`usefixtures`标记和引用，装饰器先执行
 
 ```python
 @pytest.fixture()
@@ -2714,7 +2714,7 @@ class Test05:
 
 
 
-#### (2) 方法和类上都有装饰器，方法上装饰器优先执行
+##### (2) 方法和类上都有装饰器，方法上装饰器优先执行
 
 ```python
 @pytest.fixture()
@@ -2749,13 +2749,43 @@ class Test06:
 
 ![image-20260713070825739](images/image-20260713070825739.png)
 
+### fixture调用总结：
+
+@pytest.mark.usefixtures('fun2')
+@pytest.mark.usefixtures('fun')
+等价于：
+@pytest.mark.usefixtures('fun','fun2')
+
+
+
 ### 4、自动适配：fixture设置autouse=True
 
 影响作用域内所有用例
 
 ```python
+@pytest.fixture()
+def fun_07_01():
+    print("---fixture")
+ 
+@pytest.fixture(autouse=True)
+def fun_07_02():
+    print("---fixture2")
 
+def test_07_a():
+    print("--------------test_a")
+
+class Test07:
+    def test_07_b(self):
+        print("--------------test_b")
+    def test_07_c(self):
+        print("--------------test_c")
 ```
+
+结果：
+
+> 每个测试用例都执行了标记`fun_06_02`，后执行用例
+
+![image-20260713071910993](images/image-20260713071910993.png)
 
 
 
