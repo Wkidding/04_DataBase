@@ -2791,7 +2791,7 @@ class Test07:
 
 ### 5、fixture嵌套
 
-不能用`@pytest.mark.usefixtures`
+#### 嵌套时，只能使用函数/方法参数引用的方式，不能用`@pytest.mark.usefixtures`标记
 
 示例：两个fixture，fun_08_02依赖fun_08_01
 
@@ -2815,7 +2815,9 @@ def test_08_a(fun_08_01):
 
 ![image-20260713072500181](images/image-20260713072500181.png)
 
+#### 两种错误示例
 
+##### 1、错误嵌套定义（混合使用`usefixtures标记`和参数引用）
 
 ```python
 # 下面写法报错
@@ -2835,10 +2837,10 @@ def fun_08_02():
 
 ![image-20260713072635293](images/image-20260713072635293.png)
 
-
+##### 2、错误嵌套使用（混合使用`usefixtures标记`和参数引用）
 
 ```python
-# 错误用法，报错
+# 错误用法
 """
 ❌ 错误：2、错误用法：@pytest.mark.usefixtures() 接收的是 fixture 的名称（字符串），而不是 fixture 函数本身。
 """
@@ -2850,7 +2852,7 @@ def fun_08_01():
 def fun_08_02(fun_08_01):
     print("---fun_08_02")
 
-@pytest.mark.usefixtures(fun_08_01)
+@pytest.mark.usefixtures(fun_08_02)
 def test_08_a():
     print("--------------test_08_a")
 
@@ -2858,7 +2860,17 @@ def test_08_a():
 
 ![image-20260713073130293](images/image-20260713073130293.png)
 
+针对错误原因进行分析
 
+#### 💡 为什么会报"直接调用"错误？
+
+在 pytest 的设计中，`@pytest.fixture` 装饰的函数**不是一个普通的函数**，它是一个被 pytest 框架管理的"资源提供者"。pytest 会在测试运行时自动创建和管理这些资源。
+
+当你显式地写 `fun_08_02()` 时，你是在把它当作普通函数调用，pytest 检测到这种行为后会报错并阻止你，因为：
+
+1. **参数依赖无法解析**：`fun_08_02` 依赖 `fun_08_01`，直接调用无法自动注入依赖
+2. **生命周期管理失效**：fixture 的作用域（scope）和自动清理（teardown）功能无法正常运作
+3. **设计理念违背**：fixture 应该由框架管理，而不是用户手动调用
 
 
 
