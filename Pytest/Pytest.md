@@ -2561,15 +2561,15 @@ class Test01:
 
 1、被fixture标记的函数，可以作为测试函数/方法入参进行调用
 2、在测试函数/方法 被执行时，首先执行它所引用的fixture（主要是执行被fixture标记的函数的操作）
-3、执行完第2步之后，在执行具体的测试用例中的内容
+3、执行完第2步之后，再执行具体的测试用例中的内容
 
 具体来看：
 
-> 1、test_01_a：先执行fun_01_01() 中的 fixture，在执行本测试用例中的内容
+> 1、test_01_a：先执行fun_01_01() 中的 fixture，再执行本测试用例中的内容
 >
-> 2、test_01_b：先执行fun_01_02() 中的 fixture，在执行本测试用例中的内容
+> 2、test_01_b：先执行fun_01_02() 中的 fixture，再执行本测试用例中的内容
 >
-> 3、test_01_c：先执行fun_01_03() 中的 fixture，在执行本测试用例中的内容
+> 3、test_01_c：先执行fun_01_03() 中的 fixture，再执行本测试用例中的内容
 
 ![image-20260712160700788](images/image-20260712160700788.png)
 
@@ -2594,12 +2594,12 @@ def fun_02_01 ( ):
 def fun_02_02 ( ):
     print("--fun_02_02 中的 fixture2")
 
-# 先执行fun_02_01 中的 fixture，在执行本测试用例中的内容
+# 先执行fun_02_01 中的 fixture，再执行本测试用例中的内容
 def test_02_a (fun_02_01):
     print("--------------test_02_a")
 
 class Test02:
-    # 先执行fun_02_01 中的 fixture，在执行本测试用例中的内容
+    # 先执行fun_02_01 中的 fixture，再执行本测试用例中的内容
     def test_02_b (self, fun_02_01):
         print("--------------test_02_b")
 
@@ -2611,9 +2611,9 @@ class Test02:
 
 结果：
 
-> 1、test_02_a：先执行fun_02_01() 中的 fixture，在执行本测试用例中的内容
+> 1、test_02_a：先执行fun_02_01() 中的 fixture，再执行本测试用例中的内容
 >
-> 2、test_02_b：先执行fun_02_01() 中的 fixture，在执行本测试用例中的内容
+> 2、test_02_b：先执行fun_02_01() 中的 fixture，再执行本测试用例中的内容
 >
 > 3、test_02_c：先执行fun_02_02() 中的 fixture，再执行执行fun_02_01() 中的 fixture，最后执行本测试用例中的内容
 
@@ -2708,7 +2708,7 @@ class Test05:
 >
 > 2、test_05_b：先执行函数参数引用列表中的fun_05_02，后执行用例
 >
-> 3、test_05_c：先执行函数参数引用列表中的fun_05_01，在执行标记中的fun_05_02，最后执行用例
+> 3、test_05_c：先执行函数参数引用列表中的fun_05_01，再执行标记中的fun_05_02，最后执行用例
 
 ![image-20260713065723866](images/image-20260713065723866.png)
 
@@ -2717,10 +2717,37 @@ class Test05:
 #### (2) 方法和类上都有装饰器，方法上装饰器优先执行
 
 ```python
+@pytest.fixture()
+def fun_06_01():
+    print("--fun_06_01 fixture")
 
+@pytest.fixture()
+def fun_06_02():
+    print("--fun_06_02 fixture2")
+
+def test_06_a(fun_06_01):
+    print("--------------test_06_a")
+
+@pytest.mark.usefixtures('fun_06_02')
+class Test06:
+    def test_06_b (self):
+        print("--------------test_06_b")
+
+    ## 先执行测试方法`test_06_c`中的标记`fun_06_01`，再执行测试类Test06中的标记`fun_06_02`，最后执行用例
+    @pytest.mark.usefixtures('fun_06_01')
+    def test_06_c (self):
+        print("--------------test_06_c")
 ```
 
+结果：
 
+> 1、test_06_a：先执行函数参数引用列表中的`fun_06_01`，后执行用例
+>
+> 2、test_06_b：先执行测试类Test06中的标记`fun_06_02`，后执行用例
+>
+> 3、test_06_c：先执行测试方法`test_06_c`中的标记`fun_06_01`，再执行测试类Test06中的标记`fun_06_02`，最后执行用例
+
+![image-20260713070825739](images/image-20260713070825739.png)
 
 ### 4、自动适配：fixture设置autouse=True
 
