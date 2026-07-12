@@ -2400,7 +2400,7 @@ log_file_date_format = %Y-%m-%d %H:%M:%S
 
 ### 使用
 
-`Tesecase\test_012.py`
+`Tesecase\test_12.py`
 
 ```python
 import logging
@@ -2415,29 +2415,7 @@ def test_case():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 06: fixture简介及调用
+## 12: fixture简介及调用
 
 上一篇我们介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
 
@@ -2500,6 +2478,18 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 ==函数引用==：测试类中测试方法形参是**测试类外被@pytest.fixture()标记的测试函数**，也就是说，fixture标记的函数可以应用于测试类内部
 
 ==参数引用==：测试类中测试方法形参是**当前测试类中被@pytest.fixture()标记的方法**
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
