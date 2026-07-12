@@ -2579,7 +2579,7 @@ class Test01:
 
 `@pytest.mark.usefixtures(fixture_name, ...)`
 
-##### (1) 测试用例上加装饰器
+##### (1) 测试用例上加`usefixtures`标记
 
 可以多个fixture参数，放前面的先执行，放后面的后执行，即：**执行顺序和usefixtures后面引用顺序对应**
 
@@ -2619,7 +2619,7 @@ class Test02:
 
 ![image-20260712160402943](images/image-20260712160402943.png)
 
-(2) 可以多个装饰器，先执行的放底层，后执行的放上层
+##### (2) 可以多个`usefixtures`标记，先执行的放底层，后执行的放上层
 
 ```python
 import pytest
@@ -2647,7 +2647,9 @@ class Test03:
 
 ![image-20260713064058441](images/image-20260713064058441.png)
 
-(3) 同时在函数参数列表中引用&使用`usefixtures`标记
+##### (3) 同时在函数参数列表中引用&使用`usefixtures`标记
+
+同时有装饰器和引用，装饰器先执行
 
 ```python
 @pytest.fixture()
@@ -2670,7 +2672,75 @@ class Test04:
         print("--------------test_c")
 ```
 
+![image-20260713065030896](images/image-20260713065030896.png)
 
+
+
+### 3、给测试类加`usefixtures`标记
+
+类中所有测试用例都会调用该fixture
+
+#### (1) 同时有装饰器和引用，装饰器先执行
+
+```python
+@pytest.fixture()
+def fun_05_01():
+    print("--fun_05_01 fixture")
+ 
+@pytest.fixture()
+def fun_05_02():
+    print("--fun_05_02 fixture2")
+ 
+def test_05_a(fun_05_01):
+    print("--------------test_05_a")
+ 
+@pytest.mark.usefixtures('fun_05_01')
+class Test05:
+    def test_05_b(self):
+        print("--------------test_05_b")
+    def test_05_c(self, fun_05_01):
+        print("--------------test_05_c")
+```
+
+结果：
+
+> 1、test_05_a：先执行函数参数引用列表中的fun_05_01，后执行用例
+>
+> 2、test_05_b：先执行函数参数引用列表中的fun_05_02，后执行用例
+>
+> 3、test_05_c：先执行函数参数引用列表中的fun_05_01，在执行标记中的fun_05_02，最后执行用例
+
+![image-20260713065723866](images/image-20260713065723866.png)
+
+
+
+#### (2) 方法和类上都有装饰器，方法上装饰器优先执行
+
+```python
+
+```
+
+
+
+### 4、自动适配：fixture设置autouse=True
+
+影响作用域内所有用例
+
+```python
+
+```
+
+
+
+### 5、fixture嵌套
+
+不能用@pytest.mark.usefixtures
+
+示例：两个fixture，fun依赖login
+
+```python
+
+```
 
 
 
