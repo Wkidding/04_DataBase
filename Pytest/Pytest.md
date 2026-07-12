@@ -2491,13 +2491,33 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 
 
+### fixture的创建
+
+1、创建函数
+
+2、天骄装饰器
+
+3、添加yield装饰器
+
+```python
+## 创建fixture
+def fun():
+  ## 前置操作
+  yield
+  ## 后置操作
+```
+
+
+
 ### fixture的调用
 
-#### 函数引用/参数引用
+#### 1、函数引用/参数引用
 
 `Testcase/test_13.py`
 
-将fixture名称作为测试用例函数/方法的参数；另外，如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
+再用力的参数列表中，将fixture名称作为测试用例函数/方法的参数；
+
+> 注意：如果fixture有返回值，必须用这种方式，否则获取不到返回值（比如：@pytest.mark.usefixtures()这种方式就获取不到返回值，详见：https://www.cnblogs.com/uncleyong/p/17957896）
 
 ==函数引用==：测试类中测试方法形参是**测试类外被@pytest.fixture()标记的测试函数**，也就是说，fixture标记的函数可以应用于测试类内部
 
@@ -2505,36 +2525,36 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 ```python
 """
-fixture 简介&调用
+fixture 调用
 """
 import pytest
 
 # 定义 fixture
 @pytest.fixture()
-def fun01():
-    print("--fun01()中fixture")
+def fun_01_01():
+    print("--fun_01_01()中fixture")
 
 # 定义 fixture
 @pytest.fixture()
-def fun02 ( ):
-    print("--fun02()中fixture2")
+def fun_01_02 ( ):
+    print("--fun_01_02()中fixture2")
 
 # 测试函数使用 fixture（通过参数名注入），即“函数引用”
-def test_a (fun01):
-    print("--------------test_a")
+def test_01_a (fun_01_01):
+    print("--------------test_01_a")
 
 class Test01:
     # 函数引用：引用的方法是在 本测试类外 被fixture标记的方法。
-    def test_b (self, fun02):
-        print("--------------test_b")
+    def test_01_b (self, fun_01_02):
+        print("--------------test_01_b")
 
     # 测参数引用：引用的方法是在 本测试类中 被fixture标记的方法。
-    def test_c (self, fun03):
-        print("--------------test_c")
+    def test_01_c (self, fun_01_03):
+        print("--------------test_01_c")
 
     @pytest.fixture()
-    def fun03 (self):
-        print("--fun03()中fixture3")
+    def fun_01_03 (self):
+        print("--fun_01_03()中fixture3")
 ```
 
 通过加过可以看出：
@@ -2543,19 +2563,61 @@ class Test01:
 2、在测试函数/方法 被执行时，首先执行它所引用的fixture（主要是执行被fixture标记的函数的操作）
 3、执行完第2步之后，在执行具体的测试用例中的内容
 
-![image-20260712154608747](images/image-20260712154608747.png)
+具体来看：
+
+> 1、test_01_a：先执行fun_01_01() 中的 fixture，在执行本测试用例中的内容
+>
+> 2、test_01_b：先执行fun_01_02() 中的 fixture，在执行本测试用例中的内容
+>
+> 3、test_01_c：先执行fun_01_03() 中的 fixture，在执行本测试用例中的内容
+
+![image-20260712160700788](images/image-20260712160700788.png)
 
 
 
-#### 加装饰器
+#### 2、给用例加`usefixtures`标记
 
 `@pytest.mark.usefixtures(fixture_name, ...)`
 
+##### 测试用例上加装饰器
 
+可以多个fixture参数，放前面的先执行，放后面的后执行，即：**执行顺序和usefixtures后面引用顺序对应**
 
+```python
+import pytest
+ 
+@pytest.fixture()
+def fun_02_01 ( ):
+    print("--fun_02_01 中的 fixture")
 
+@pytest.fixture()
+def fun_02_02 ( ):
+    print("--fun_02_02 中的 fixture2")
 
+# 先执行fun_02_01 中的 fixture，在执行本测试用例中的内容
+def test_02_a (fun_02_01):
+    print("--------------test_02_a")
 
+class Test02:
+    # 先执行fun_02_01 中的 fixture，在执行本测试用例中的内容
+    def test_02_b (self, fun_02_01):
+        print("--------------test_02_b")
+
+    # 先执行fun_02_02 中的 fixture，再执行执行fun_02_01 中的 fixture，最后执行本测试用例中的内容
+    @pytest.mark.usefixtures('fun_02_02', 'fun_02_01')
+    def test_02_c (self):
+        print("--------------test_02_c")
+```
+
+结果：
+
+> 1、test_02_a：先执行fun_02_01() 中的 fixture，在执行本测试用例中的内容
+>
+> 2、test_02_b：先执行fun_02_01() 中的 fixture，在执行本测试用例中的内容
+>
+> 3、test_02_c：先执行fun_02_02() 中的 fixture，再执行执行fun_02_01() 中的 fixture，最后执行本测试用例中的内容
+
+![image-20260712160402943](images/image-20260712160402943.png)
 
 
 
