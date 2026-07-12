@@ -2503,7 +2503,7 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 ## 创建fixture
 def fun():
   ## 前置操作
-  yield
+  yield ## 开始执行用例
   ## 后置操作
 ```
 
@@ -2579,7 +2579,7 @@ class Test01:
 
 `@pytest.mark.usefixtures(fixture_name, ...)`
 
-##### 测试用例上加装饰器
+##### (1) 测试用例上加装饰器
 
 可以多个fixture参数，放前面的先执行，放后面的后执行，即：**执行顺序和usefixtures后面引用顺序对应**
 
@@ -2619,7 +2619,56 @@ class Test02:
 
 ![image-20260712160402943](images/image-20260712160402943.png)
 
+(2) 可以多个装饰器，先执行的放底层，后执行的放上层
 
+```python
+import pytest
+
+@pytest.fixture()
+def fun_03_1():
+    print("--fun_03_1 fixture")
+ 
+@pytest.fixture()
+def fun_03_2():
+    print("--fun_03_2 fixture2")
+ 
+def test_03_a(fun):
+    print("--------------test_03_a")
+ 
+@pytest.mark.usefixtures('fun_03_1')
+@pytest.mark.usefixtures('fun_03_2')
+class Test03:
+    def test_03_b(self):
+        print("--------------test_03_b")
+ 
+    def test_03_c(self):
+        print("--------------test_03_c")
+```
+
+![image-20260713064058441](images/image-20260713064058441.png)
+
+(3) 同时在函数参数列表中引用&使用`usefixtures`标记
+
+```python
+@pytest.fixture()
+def fun_04_1():
+    print("---fixture")
+ 
+@pytest.fixture()
+def fun_04_2():
+    print("---fixture2")
+ 
+def test_04_a(fun_04_1):
+    print("--------------test_a")
+ 
+class Test04:
+    def test_04_b(self):
+        print("--------------test_b")
+ 
+    @pytest.mark.usefixtures('fun_04_1')
+    def test_04_c(self, fun_04_2):
+        print("--------------test_c")
+```
 
 
 
