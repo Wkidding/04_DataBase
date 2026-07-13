@@ -3177,7 +3177,72 @@ PASSED
 - 因为 `fun_02_2`（class 级别）虽然因 `autouse` 对函数生效了，但它的**生命周期依然是 class 级别**——pytest 会等到整个类的作用域结束时才执行清理。
 - 但 `test_02_a` 是一个独立的函数，没有 class 包裹，pytest 认为 `fun_02_2` 的“class 作用域”在这个函数执行完毕后就应该结束了，所以 `function-后` 执行完紧接着就执行了 `class-后`。
 
+##### 🧪 测试2：`test_02_b`
 
+```
+--fun_02_2 fixture : class-前        ← 1. 
+--fun_02_1 fixture : function-前     ← 2. 
+--------------test_02_b              ← 3. 测试函数执行
+PASSED
+--fun_02_1 fixture : function-后     ← 4. 先清理 function
+--fun_02_2 fixture : class-后        ← 5. 再清理 class
+```
+
+**为什么 `session`、`package`、`module` 没有再次打印？**
+
+- 因为 `fun_02_5`（session）、`fun_02_4`（package）、`fun_02_3`（module）在 `test_02_a` 执行时已经执行过前置，且由于它们的生命周期还没结束（`session` 要到所有测试结束才清理），所以**不会重复执行**。
+
+**为什么 `class` 级别的 fixture 又执行了一次前置？**
+
+- 因为 `test_02_a` 执行完毕后，`fun_02_2` 的 `class` 作用域已经结束并清理了。
+- 现在执行 `test_02_b`，是一个新的独立函数，pytest 认为这是一个新的 `class` 作用域开始，所以 `fun_02_2` 再次执行前置。
+
+##### 🧪 测试3：`Test02Scope::test_02_c`
+
+```
+--fun_02_2 fixture : class-前        ← 1. 类级别前置
+--fun_02_1 fixture : function-前     ← 2. 函数级别前置
+--------------test_02_c              ← 3. 测试方法执行
+PASSED
+--fun_02_1 fixture : function-后     ← 4. 函数清理
+```
+
+**为什么 `class-后` 没有出现？**
+
+- 因为 `scope="class"` 的 `fun_02_2` 的生命周期是整个 `Test02Scope` 类。现在类中还有 `test_02_d` 没有执行，所以 `class` 作用域**还没有结束**，`class-后` 不会执行。
+
+##### 🧪 测试4：`Test02Scope::test_02_d`
+
+```
+--fun_02_1 fixture : function-前     ← 1. 函数级别前置
+--------------test_02_d              ← 2. 测试方法执行
+PASSED
+--fun_02_1 fixture : function-后     ← 3. 函数清理
+--fun_02_2 fixture : class-后        ← 4. 类清理
+--fun_02_3 fixture : module-后       ← 5. 模块清理
+--fun_02_4 fixture : package-后      ← 6. 包清理
+--fun_02_5 fixture : session-后      ← 7. 会话清理
+```
+
+**为什么 `class-前` 没有再次出现？**
+
+- `fun_02_2` 的前置在 `test_02_c` 执行时已经执行过了，`class` 作用域还没结束，所以 `test_02_d` 直接复用了同一个 fixture 实例，不需要再次执行前置。
+
+**为什么最后所有 `-后` 集中出现了？**
+
+- `test_02_d` 是 `Test02Scope` 类中的最后一个测试方法。执行完毕后，`class` 作用域结束，触发 `fun_02_2` 的 `class-后`。
+- 同时，`test_02_d` 也是当前模块 `test_15.py` 的最后一个测试，`module` 作用域结束 → `module-后`。
+- 同理，`package` 和 `session` 作用域也在此刻结束（因为 pytest 运行完所有测试），依次执行 `package-后` 和 `session-后`。
+
+##### 💡 关键结论
+
+1. **`autouse=True` 会让 fixture 穿透作用域边界**，对其作用域的所有子作用域自动生效。
+   - 例如：`scope="class"` 的 autouse fixture 会对独立的测试函数也生效（因为函数是类的子作用域）。
+2. **作用域决定了 fixture 的实例化和清理时机**，即使 `autouse=True`，`scope` 的语义依然保持不变。
+   - `class` 级别的 fixture 只会创建一次，所有类内方法共享。
+   - 独立函数会被视为一个"临时类"，执行完后立即清理。
+3. **清理顺序严格遵循堆栈原则**：后创建的先清理（yield 后的代码先执行低作用域，再执行高作用域）。
+4. **高作用域 fixture 只创建一次**，在其生命周期内被所有子测试共享，不会重复执行前置代码。
 
 
 
