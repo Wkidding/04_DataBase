@@ -3090,8 +3090,94 @@ class Test01:
 #### (2) 执行顺序遵循：sesstion->package->module->class->function
 
 ```python
+import pytest
+ 
+@pytest.fixture(autouse=True, scope="function")
+def fun_02_1():
+    print("--fun_02_1 fixture : function-前")
+    yield
+    print("--fun_02_1 fixture : function-后")
+ 
+@pytest.fixture(autouse=True, scope="class")
+def fun_02_2():
+    print("--fun_02_2 fixture : class-前")
+    yield
+    print("--fun_02_2 fixture : class-后")
+ 
+@pytest.fixture(autouse=True, scope="module")
+def fun_02_3():
+    print("--fun_02_3 fixture : module-前")
+    yield
+    print("--fun_02_3 fixture : module-后")
+ 
+@pytest.fixture(autouse=True, scope="package")
+def fun_02_4():
+    print("--fun_02_4 fixture : package-前")
+    yield
+    print("--fun_02_4 fixture : package-后")
+ 
+@pytest.fixture(autouse=True, scope="session")
+def fun_02_5():
+    print("--fun_02_5 fixture : session-前")
+    yield
+    print("--fun_02_5 fixture : session-后")
+ 
+def test_02_a():
+    print("--------------test_02_a")
+ 
+def test_02_b():
+    print("--------------test_02_b")
+ 
+class Test01Scope:
+    def test_02_c(self):
+        print("--------------test_02_c")
+ 
+    def test_02_d(self):
+        print("--------------test_02_d")
+```
+
+![image-20260714073306317](images/image-20260714073306317.png)
+
+> ## 📌 核心前置知识
+>
+> 1. **`autouse=True`**：表示该 fixture 会自动对**作用域内**的所有测试生效，无需显式声明。
+> 2. **作用域嵌套关系**：`function` ⊂ `class` ⊂ `module` ⊂ `package` ⊂ `session`
+> 3. **执行顺序**：
+>    - **前置（yield 前）**：从**高作用域到低作用域**（session → package → module → class → function）
+>    - **后置（yield 后）**：从**低作用域到高作用域**（function → class → module → package → session），呈**堆栈式**（后进先出）
+> 4. **autouse 的作用范围**：只对其所在作用域及其**子作用域**的测试生效。
+
+#### 结果分析
+
+##### 🧪 测试1：`test_02_a`
 
 ```
+--fun_02_5 fixture : session-前      ← 1. 最外层
+--fun_02_4 fixture : package-前      ← 2. 
+--fun_02_3 fixture : module-前       ← 3. 
+--fun_02_2 fixture : class-前        ← 4. 
+--fun_02_1 fixture : function-前     ← 5. 最内层
+--------------test_02_a              ← 6. 测试函数执行
+PASSED
+--fun_02_1 fixture : function-后     ← 7. 最先清理
+--fun_02_2 fixture : class-后        ← 8. 
+```
+
+**为什么 `class` 级别的 fixture 会执行？**
+
+- `test_02_a` 是一个**独立的函数**，不属于任何类。
+- 理论上 `scope="class"` 的 fixture 只对类生效，但**由于 `autouse=True`**，它会对当前作用域及**所有子作用域**生效。`function` 是 `class` 的子作用域，所以 `fun_02_2` 也对 `test_02_a` 生效。
+
+**为什么 `module`、`package`、`session` 也执行了？**
+
+- 同理，`function` 也是 `module`、`package`、`session` 的子作用域，`autouse=True` 让它们全部自动生效。
+
+**为什么没有 `class-后` 紧接着 `function-后`？**
+
+- 因为 `fun_02_2`（class 级别）虽然因 `autouse` 对函数生效了，但它的**生命周期依然是 class 级别**——pytest 会等到整个类的作用域结束时才执行清理。
+- 但 `test_02_a` 是一个独立的函数，没有 class 包裹，pytest 认为 `fun_02_2` 的“class 作用域”在这个函数执行完毕后就应该结束了，所以 `function-后` 执行完紧接着就执行了 `class-后`。
+
+
 
 
 
