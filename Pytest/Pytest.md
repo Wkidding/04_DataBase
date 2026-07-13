@@ -2968,32 +2968,64 @@ class Test02:
 如果yield前面的代码出异常了，yield后面的代码不会执行
 
 ```python
-
+import pytest
+ 
+@pytest.fixture()
+def fun_03():
+    print("---前置")
+    raise Exception("自定义异常")
+    yield
+    print("---后置")
+ 
+def test_03_a(fun_03):
+    print("--------------test_03_a")
 ```
 
+前置操作异常，则用例异常。后置操作不执行
 
+![image-20260714065649797](images/image-20260714065649797.png)
 
 ### 情况3：测试用例异常
 
 如果是测试用例出异常，yield前后的代码都会执行
 
 ```python
-
+import pytest
+ 
+@pytest.fixture()
+def fun_04():
+    print("---前置")
+    yield
+    print("---后置")
+ 
+def test_04_a(fun_04):
+    print("--------------test_04_a")
+    raise Exception("自定义异常")
 ```
 
 
 
-
-
-
-
-
+![image-20260714065932860](images/image-20260714065932860.png)
 
 
 
 ## 14: fixture作用域(scope)详解
 
+### scope参数
 
+
+
+#### 默认范围是function
+
+#### 执行顺序遵循：sesstion->package->module->class->function
+
+### 每一个函数前后均会执行模块中的class
+
+### 模块中的fixture对函数、方法均有效
+
+### 测试类中的fixture只对方法有效
+
+### 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
 
 
 
