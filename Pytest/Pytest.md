@@ -2882,6 +2882,8 @@ fixture可以实现自定义测试用例的前置、后置，是通过yield来�
 
 如果yield前面的代码出异常了，yield后面的代码不会执行；但是，如果是测试用例出异常，yield前后的代码还是都会执行。
 
+`Testcase/test_14.py`
+
 ```python
 import pytest
 
@@ -2892,17 +2894,61 @@ def fun():
     ## 后置操作
 ```
 
+### 情况1：前置代码控制用例行为
 
+仅test_a和test_b需要前置登录后置退出
 
+```python
+import pytest
+ 
+@pytest.fixture()
+def fun_01():
+    print("---前置：登录")
+    yield
+    print("---后置：退出")
 
+def test_01_a(fun_01):
+    print("--------------test_01_a")
 
+class Test01:
+    def test_01_b (self, fun_01):
+        print("--------------test_01_b")
 
+    def test_01_c (self):
+        print("--------------test_01_c")
+```
 
-示例：仅test_a和test_b需要前置登录后置退出
+结果：
+
+> 1、test_01_a：先执行`fun_01`的前置操作，然后执行`test_01_a`用例，最后执行后置操作
+>
+> 2、test_01_b：先执行`fun_01`的前置操作，然后执行`test_01_b`用例，最后执行后置操作
+>
+> 3、test_01_c：直接执行用例`test_01_c`
+
+![image-20260714064400488](images/image-20260714064400488.png)
+
+### 情况2：前置代码异常
 
 如果yield前面的代码出异常了，yield后面的代码不会执行
 
+```python
+
+```
+
+
+
+### 情况3：测试用例异常
+
 如果是测试用例出异常，yield前后的代码都会执行
+
+```python
+
+```
+
+
+
+
 
 
 
