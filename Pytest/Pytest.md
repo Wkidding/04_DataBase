@@ -2417,6 +2417,8 @@ def test_case():
 
 ## 12: fixture简介及调用
 
+### 1、fixture介绍
+
 前面介绍了固件，通过示例可以看到，一个模块中，固件会对其作用范围内的所有用例起作用；
 
 其实这样很不灵活，比如我们只希望部分测试用例执行某个固件，通过setup和teardown是实现不了的；
@@ -2425,7 +2427,7 @@ def test_case():
 
 fixture是**通过yield来区分前后置**的，前后置均可以单独存在，fixture如果有后置，前置不报错就都会执行，前置报错后置就不会执行。
 
-### fixture 的核心作用
+#### fixture 的核心作用
 
 | 作用                 | 说明                                                         |
 | :------------------- | :----------------------------------------------------------- |
@@ -2438,15 +2440,13 @@ fixture是**通过yield来区分前后置**的，前后置均可以单独存在�
 
 
 
-### fixture的优势
+#### fixture的优势
 
 1、与setup、teardown类似，fixture提供了测试执行前和测试执行后的处理，但是又比setup、teardown更灵活好用，比如：fixture命名更加灵活，不局限于setup和teardown
 
 2、conftest.py配置里可以实现数据共享，可以方便管理、修改和查看fixture函数，并且不需要import就能自动找到fixture
 
 3、fixture可用于封装数据，也可用于封逻辑动作，使用范围非常广
-
-### fixture介绍
 
 fixture装饰器来标记固定的工厂函数，在其他函数、类、模块或整个工程调用它时会被激活并优先执行，通常会被用于完成预置处理和重复操作。
 
@@ -2480,7 +2480,7 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 - **ids**：用例标识id，每个ids和params一一对应，如果没有id，将从params自动产生
 - **name**：给被@pytest.fixture标记的方法取一个别名，如果使用了name，那只能将name传入，函数名不再生效
 
-### fixture作用域（scope）控制
+#### fixture作用域（scope）控制
 
 | scope 值           | 生命周期                               |
 | :----------------- | :------------------------------------- |
@@ -2491,7 +2491,7 @@ fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 
 
 
-### fixture的创建
+### 2、fixture的创建
 
 1、创建函数
 
@@ -2509,7 +2509,7 @@ def fun():
 
 
 
-### fixture的调用
+### 3、fixture的调用
 
 #### 1、函数/方法中的参数列表引用
 
@@ -2832,7 +2832,6 @@ def fun_08_01 ( ):
 @pytest.mark.usefixtures(fun_08_01)
 def fun_08_02():
     print("---fun_08_02")
-
 ```
 
 ![image-20260713072635293](images/image-20260713072635293.png)
@@ -2855,7 +2854,6 @@ def fun_08_02(fun_08_01):
 @pytest.mark.usefixtures(fun_08_02)
 def test_08_a():
     print("--------------test_08_a")
-
 ```
 
 ![image-20260713073130293](images/image-20260713073130293.png)
@@ -2874,15 +2872,51 @@ def test_08_a():
 
 
 
+## 13: fixture实现自定义前置、后置
+
+### 自定义前置(setup)、后置(teardown)
+
+fixture可以实现自定义测试用例的前置、后置，是通过yield来区分前后置的，前后置均可以单独存在；
+
+写在yield前面的就是前置条件，写在后面的就是后置条件；
+
+如果yield前面的代码出异常了，yield后面的代码不会执行；但是，如果是测试用例出异常，yield前后的代码还是都会执行。
+
+```python
+import pytest
+
+@pytest.fixture()
+def fun():
+		## 前置操作
+    yield  ## 在此处执行用例中的具体内容
+    ## 后置操作
+```
 
 
 
 
 
 
-## 05: fixture实现自定义前置、后置
 
-## 06: fixture作用域(scope)详解
+示例：仅test_a和test_b需要前置登录后置退出
+
+如果yield前面的代码出异常了，yield后面的代码不会执行
+
+如果是测试用例出异常，yield前后的代码都会执行
+
+
+
+
+
+
+
+## 14: fixture作用域(scope)详解
+
+
+
+
+
+
 
 ## 07: fixture跨模块共享conftest.py
 
@@ -2892,9 +2926,9 @@ def test_08_a():
 
 ## 10: fixture对用例重命名、给函数取别名
 
-## 
 
-## 
+
+
 
 ## 13: parametrize参数化
 
