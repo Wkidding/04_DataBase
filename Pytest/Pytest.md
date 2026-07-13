@@ -2896,6 +2896,8 @@ def fun():
 
 ### 情况1：前置代码控制用例行为
 
+#### (1) 通过`yield`控制测试用例的前后置操作
+
 仅test_a和test_b需要前置登录后置退出
 
 ```python
@@ -2927,6 +2929,39 @@ class Test01:
 > 3、test_01_c：直接执行用例`test_01_c`
 
 ![image-20260714064400488](images/image-20260714064400488.png)
+
+#### (2) addfinalizer终结函数
+
+```python
+import pytest
+ 
+@pytest.fixture()
+def fun_02(request):
+    print("---前置：登录")
+    def after():
+        print("---后置：退出")
+    request.addfinalizer(after)
+ 
+def test_02_a(login):
+    print("--------------test_a")
+ 
+class Test02:
+    def test_02_b(self, fun_02):
+        print("--------------test_b")
+ 
+    def test_02_c(self):
+        print("--------------test_c")
+```
+
+结果：
+
+> 1、test_02_a：先执行`fun_02`的前置操作，然后执行`test_02_a`用例，最后执行后置操作
+>
+> 2、test_02_b：先执行`fun_02`的前置操作，然后执行`test_02_b`用例，最后执行后置操作
+>
+> 3、test_02_c：直接执行用例`test_02_c`
+
+![image-20260714065245016](images/image-20260714065245016.png)
 
 ### 情况2：前置代码异常
 
