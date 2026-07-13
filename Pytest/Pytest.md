@@ -3013,19 +3013,117 @@ def test_04_a(fun_04):
 
 ### scope参数
 
+#### 📌 基本语法
+
+```python
+@pytest.fixture(scope="function")  # scope 的默认值
+def my_fixture():
+    return some_value
+```
+
+#### 🎯 scope 的 5 种取值
+
+```
+"function"：默认值，作用于每个测试用例（包含函数/方法），每个用例执行前都会运行一次
+"class"：作用于整个类，每个测试类/测试函数执行前都会运行一次
+"module"：作用于整个模块（多个类），每个module（每个py文件）执行前都会运行一次；可以实现多个.py跨文件共享前置
+"package"：每个python包执行前都会运行一次
+"session"：作用于整个session，整个测试前运行一次
+```
+
+| scope 值                     | 生命周期                                        | 适用场景                             |
+| :--------------------------- | :---------------------------------------------- | :----------------------------------- |
+| **`function`**（默认）       | 每个测试函数执行**一次**，函数结束后销毁        | 大部分通用场景，每次测试需要独立数据 |
+| **`class`**                  | 每个测试类执行**一次**，类中所有测试方法共享    | 同一个测试类中需要共享状态           |
+| **`module`**                 | 每个模块(多个类)（.py 文件）执行**一次**        | 模块级别的配置，如加载配置文件       |
+| **`package`**（pytest 7.2+） | 每个包（包含 `__init__.py` 的目录）执行**一次** | 包级别的共享资源                     |
+| **`session`**                | 整个 pytest session执行**一次**（跨多个文件）   | 全局资源，如数据库连接、浏览器驱动   |
+
+------
+
+如果fixture放`conftest.py`中，可以这么说：
+
+```python
+scope参数为function：每一个测试文件中的所有测试用例执行前都会执行一次conftest文件中的fixture
+scope参数为class：每一个测试文件中的测试类执行前都会执行一次conftest文件中的fixture
+scope参数为module：每一个测试文件执行前都会执行一次conftest文件中的fixture
+scope参数为session：所有测试py文件执行前执行一次conftest文件中的fixture
+```
+
+### 用法总结
+
+```python
+(1) 默认范围是function
+(2) 执行顺序遵循：sesstion->package->module->class->function
+(3) 每一个函数前后均会执行模块中的class
+(4) 模块中的fixture对函数、方法均有效
+(5) 测试类中的fixture只对方法有效
+(6) 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
+```
+
+#### (1) 默认范围是function
+
+设置默认运行，未指定scope
+
+```python
+import pytest
+ 
+@pytest.fixture(autouse=True)
+def fun_01():
+    print("---fixture")
+ 
+def test_01_a():
+    print("--------------test_01_a")
+ 
+class Test01:
+    def test_01_b(self):
+        print("--------------test_01_b")
+ 
+    def test_01_c(self):
+        print("--------------test_01_c")
+```
+
+指定`autouse=True`，在默认scope作用域下，每个测试function都会执行
+
+![image-20260714072109220](images/image-20260714072109220.png)
+
+#### (2) 执行顺序遵循：sesstion->package->module->class->function
+
+```python
+
+```
 
 
-#### 默认范围是function
 
-#### 执行顺序遵循：sesstion->package->module->class->function
+#### (3) 每一个函数前后均会执行模块中的class
 
-### 每一个函数前后均会执行模块中的class
+```python
 
-### 模块中的fixture对函数、方法均有效
+```
 
-### 测试类中的fixture只对方法有效
 
-### 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
+
+#### (4) 模块中的fixture对函数、方法均有效
+
+```python
+
+```
+
+
+
+#### (5) 测试类中的fixture只对方法有效
+
+```python
+
+```
+
+
+
+#### (6) 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
+
+```python
+
+```
 
 
 
