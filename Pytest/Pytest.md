@@ -3600,7 +3600,69 @@ class Test04Scope:
 
 ------
 
-## 
+##### 🧪 测试1：`test_04_a`（独立函数，使用全局 fixture）
+
+```
+---fixture : session-前          ← 1. 全局 session
+---fixture : package-前          ← 2. 全局 package
+---fixture : module-前           ← 3. 全局 module
+---fixture : class-前            ← 4. 全局 class
+---fixture : function-前         ← 5. 全局 function
+--------------test_04_a
+PASSED
+---fixture : function-后         ← 6. 全局 function 清理
+---fixture : class-后            ← 7. 全局 class 清理
+```
+
+**为什么执行了全局 fixture？**
+
+- `test_04_a` 是类外部的独立函数
+- 它"看见"的是全局定义的 fixture（`fun_04_01` ~ `fun_04_05`）
+- 类内部的同名 fixture 对它不可见
+
+**为什么 `class-后` 紧接着 `function-后` 就执行了？**
+
+- 独立函数 `test_04_a` 被 pytest 视为一个"临时的 class 作用域"
+- `test_04_a` 执行完毕后，这个"临时 class"结束，所以 `class` 作用域立即清理
+- 但 `module`、`package`、`session` 还没结束（还有其他测试未执行）
+
+##### 🧪 测试2：`test_04_b`（独立函数，使用全局 fixture）
+
+```
+---fixture : class-前            ← 1. 全局 class 重新创建
+---fixture : function-前         ← 2. 全局 function 重新创建
+--------------test_04_b
+PASSED
+---fixture : function-后         ← 3. 全局 function 清理
+---fixture : class-后            ← 4. 全局 class 清理
+```
+
+**为什么 `session`、`package`、`module` 没有再次打印前置？**
+
+- `scope="session"`、`package`、`module` 的 fixture 在 `test_04_a` 时已经创建
+- 生命周期还没结束，所以**复用同一个实例**，不会重复执行前置
+
+**为什么 `class` 又执行了一次前置？**
+
+- `test_04_a` 执行完毕后，`class` 作用域已经清理
+- `test_04_b` 是一个新的独立函数，pytest 认为这是一个新的"临时 class"
+- 所以 `class` 级别 fixture 重新创建
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 07: fixture跨模块共享conftest.py
 
