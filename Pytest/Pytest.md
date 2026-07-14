@@ -3648,11 +3648,188 @@ PASSED
 - `test_04_b` 是一个新的独立函数，pytest 认为这是一个新的"临时 class"
 - 所以 `class` 级别 fixture 重新创建
 
+##### 🧪 测试3：`Test04Scope::test_04_c`（类内部第一个方法，使用类内 fixture）
 
+```
+---fixture : session-前(类中)    ← 1. 类内 session
+---fixture : package-前(类中)    ← 2. 类内 package
+---fixture : module-前(类中)     ← 3. 类内 module
+---fixture : class-前(类中)      ← 4. 类内 class
+---fixture : function-前(类中)   ← 5. 类内 function
+--------------test_04_c
+PASSED
+---fixture : function-后(类中)   ← 6. 类内 function 清理
+```
 
+**为什么切换到类内 fixture？**
 
+- `test_04_c` 在 `Test04Scope` 类内部
+- 类内部定义的同名 fixture **覆盖**了全局的 fixture
+- 所以执行的是带 `(类中)` 标记的版本
 
+**为什么 `class-后(类中)` 没有出现？**
 
+- 因为 `scope="class"` 的生命周期是整个类
+- `test_04_d` 还没有执行，`class` 作用域未结束
+- 所以 `class-后(类中)` 会延迟到 `test_04_d` 执行完后才执行
+
+**为什么 `session`、`package`、`module` 的全局版本没有执行？**
+
+- 因为 `test_04_c` 使用的是类内 fixture
+- 类内 fixture 是**独立的**，与全局 fixture 没有任何关联
+
+##### 🧪 测试4：`Test04Scope::test_04_d`（类内部第二个方法，使用类内 fixture）
+
+```
+---fixture : function-前(类中)   ← 1. 类内 function 重新创建
+--------------test_04_d
+PASSED
+---fixture : function-后(类中)   ← 2. 类内 function 清理
+---fixture : class-后(类中)      ← 3. 类内 class 清理（类结束）
+---fixture : module-后(类中)     ← 4. 类内 module 清理
+---fixture : module-后           ← 5. ⚠️ 全局 module 清理
+---fixture : package-后(类中)    ← 6. 类内 package 清理
+---fixture : session-后(类中)    ← 7. 类内 session 清理
+---fixture : package-后          ← 8. ⚠️ 全局 package 清理
+---fixture : session-后          ← 9. ⚠️ 全局 session 清理
+```
+
+**为什么 `class-前(类中)` 没有再次出现？**
+
+- `class` 作用域的 fixture 在 `test_04_c` 时已经创建
+- 所有类内方法共享同一个实例，不会重新创建
+
+**为什么最后出现了"混合清理"（类内 + 全局）？**
+
+清理顺序是**堆栈式（后进先出）**：
+
+1. `function-后(类中)` — 类内 function 清理（当前方法结束）
+2. `class-后(类中)` — 类内 class 清理（类中所有方法执行完毕）
+3. `module-后(类中)` — 类内 module 清理（类内 module 结束）
+4. **`module-后`** — **⚠️ 全局 module 清理**（整个模块的测试结束）
+5. `package-后(类中)` — 类内 package 清理
+6. `session-后(类中)` — 类内 session 清理
+7. **`package-后`** — **⚠️ 全局 package 清理**（整个包的测试结束）
+8. **`session-后`** — **⚠️ 全局 session 清理**（整个会话结束）
+
+**为什么全局的清理在类内清理之间穿插？**
+
+因为类内 fixture 和全局 fixture 是**完全独立的两个体系**，它们在同一个时间线上运行：
+
+```
+时间线 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+类内 session/package/module/class/function 前置
+  ↓
+test_04_c 执行
+  ↓
+类内 function 清理（test_04_c 结束）
+  ↓
+test_04_d 执行
+  ↓
+类内 function 清理（test_04_d 结束）
+  ↓
+类内 class 清理          ← 类结束
+  ↓
+类内 module 清理         ← 类内 module 结束
+  ↓
+全局 module 清理         ← 全局 module 结束（整个模块测试完）
+  ↓
+类内 package 清理        ← 类内 package 结束
+  ↓
+类内 session 清理        ← 类内 session 结束
+  ↓
+全局 package 清理        ← 全局 package 结束
+  ↓
+全局 session 清理        ← 全局 session 结束（整个会话完）
+```
+
+------
+
+##### 📊两个体系的对比
+
+| 维度                      | 全局 fixture（模块顶层）              | 类内 fixture（Test04Scope 内部）   |
+| :------------------------ | :------------------------------------ | :--------------------------------- |
+| **定义位置**              | 模块顶层                              | 类内部                             |
+| **生效范围**              | 整个模块（包括独立函数和类）          | **仅该类内部**                     |
+| **覆盖关系**              | 被类内同名 fixture 覆盖（对类内方法） | 覆盖全局同名 fixture（对类内方法） |
+| **对 `test_04_a/b` 生效** | ✅ 是                                  | ❌ 否（类外不可见）                 |
+| **对 `test_04_c/d` 生效** | ❌ 否（被覆盖）                        | ✅ 是                               |
+| **生命周期**              | 独立管理                              | 独立管理（与全局无关）             |
+
+------
+
+##### 💡 核心结论
+
+###### 结论1：**同名 fixture 就近覆盖（作用域遮蔽）**
+
+类似于 Python 的**变量作用域规则**：局部变量覆盖全局变量。
+
+```python
+# 全局 fixture（对类外有效）
+@pytest.fixture(autouse=True, scope="class")
+def fun_04_02():
+    print("全局 class")
+
+class TestClass:
+    # 类内 fixture（对类内有效，覆盖全局）
+    @pytest.fixture(autouse=True, scope="class")
+    def fun_04_02(self):
+        print("类内 class")
+    
+    def test_method(self):
+        # 这里使用的是"类内 class"，不是"全局 class"
+        pass
+```
+
+------
+
+###### 结论2：**全局 fixture 和类内 fixture 是独立的两个体系**
+
+它们各自管理自己的生命周期：
+
+> - 全局的 `scope="session"` 和类内的 `scope="session"` 是**两个不同的 fixture 实例**
+> - 它们的创建和销毁是独立的
+> - 清理顺序取决于各自的结束时机
+
+------
+
+###### 结论3：**清理顺序遵循"堆栈式"原则**
+
+在同一时间线上，多个 fixture 体系可以共存：
+
+```
+前置顺序（从外到内）：
+  全局 session → 全局 package → 全局 module → 全局 class → 全局 function
+  → 类内 session → 类内 package → 类内 module → 类内 class → 类内 function
+
+清理顺序（从内到外，反向堆栈）：
+  类内 function → 类内 class → 类内 module → 类内 package → 类内 session
+  → 全局 function → 全局 class → 全局 module → 全局 package → 全局 session
+```
+
+##### 🎯 实际应用建议
+
+| 场景                                           | 建议                                                    |
+| :--------------------------------------------- | :------------------------------------------------------ |
+| **需要在所有测试中自动执行**（如环境变量设置） | 定义**全局** `autouse=True` fixture                     |
+| **需要仅在特定类中自动执行**（如类内共享资源） | 定义**类内** `autouse=True` fixture                     |
+| **需要全局 fixture 对类内方法也生效**          | 不要在类内定义同名 fixture，或者使用不同的名称          |
+| **需要类内 fixture 覆盖全局**                  | 使用相同的名称，类内定义会自动覆盖                      |
+| **需要两者都用**                               | 使用**不同名称**，通过参数注入或 `usefixtures` 显式使用 |
+
+------
+
+##### 🎯 总结
+
+| 关键点       | 代码表现                                                     |
+| :----------- | :----------------------------------------------------------- |
+| **类外函数** | 使用全局定义的 fixture                                       |
+| **类内方法** | 使用类内定义的 fixture（覆盖全局）                           |
+| **同名覆盖** | 类内 fixture 优先级更高                                      |
+| **生命周期** | 全局和类内独立管理，各自按 scope 执行                        |
+| **清理顺序** | 堆栈式：类内 function → class → module → package → session → 全局 module → package → session |
 
 
 
