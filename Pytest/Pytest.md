@@ -3833,15 +3833,51 @@ class TestClass:
 
 
 
+## 15: fixture跨模块共享conftest.py
+
+### 1、关于conftest.py
+
+如果多个模块使用的fixture相同，那么，我们可以将fixture写在conftest.py中（通过conftest.py管理共享的fixture），这样达到跨模块和文件的效果
+
+conftest的特点：
+
+> 1、文件名称默认为conftest.py，是pytest里面固定的名字，不能随意更改，通常在里面写用例执行前的一些初始化操作
+>
+> 2、conftest.py文件可以有多个(全局、局部)，搜索优先级自底而上（从和模块同级目录开始找，一直到项目根目录），遵循就近原则
+>
+> 3、conftest.py中的fixture可以跨文件调用，支持函数引用、通过装饰器调用，也可以自动适配（此时autouse要改为True；如果就近的一个都是False，远的一个都是True，此时还是会自动适配近的，详见文末示例）
+>
+> 4、conftest.py文件作用范围是它同级test文件，或者下面的test文件
+>
+> 5、不需要import导入conftest.py，pytest用例会自动识别该文件，放到项目的根目录下就可以全局目录调用
+>
+> 6、conftest.py文件不能被其他文件导入
+
+### 2、不同作用域的`conftest.py`
+
+#### (1) 仅局部conftest.py
 
 
 
 
 
+#### (2) 全局conftest.py
 
 
 
-## 07: fixture跨模块共享conftest.py
+
+
+#### (3) 全局和局部有同名的fixture
+
+
+
+
+
+### 3、指定引用全局fixture
+
+用例中可以通过`@pytest.mark.usefixtures()`指定引用全局`autouse=False`的fixture
+
+
 
 ## 08: fixture标志传参
 
