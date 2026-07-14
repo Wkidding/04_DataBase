@@ -3357,7 +3357,39 @@ class Test03Scope:
 >
 > **autouse 的生效范围由 fixture 的定义位置决定，而不是由 scope 决定。**
 
+##### 🧪 测试3：`Test03Scope::test_03_c`（类内部第一个方法）
 
+```
+---fixture : session-前          ← 1. 最外层，整个会话级别
+---fixture : package-前          ← 2. 
+---fixture : module-前           ← 3. 
+---fixture : class-前            ← 4. 
+---fixture : function-前         ← 5. 最内层
+--------------test_03_c          ← 6. 测试方法执行
+PASSED
+---fixture : function-后         ← 7. 最先清理（function 作用域结束）
+```
+
+**为什么 `session`、`package`、`module`、`class` 的前置都在这里执行了？**
+
+因为 `test_03_c` 是：
+
+- 整个测试会话的**第一个**测试（前面 `test_03_a` 和 `test_03_b` 因为没触发 fixture，所以不算真正"使用"了这些 fixture）
+- `Test03Scope` 类的**第一个**测试方法
+- 当前模块 `test_15.py` 中**第一个**触发 fixture 的测试
+
+所以：
+
+- `scope="session"`：整个会话第一次使用 fixture → 执行 `session-前`
+- `scope="package"`：整个包第一次使用 fixture → 执行 `package-前`
+- `scope="module"`：当前模块第一次使用 fixture → 执行 `module-前`
+- `scope="class"`：当前类第一次使用 fixture → 执行 `class-前`
+- `scope="function"`：当前方法执行前 → 执行 `function-前`
+
+**为什么 `class-后` 没有在 `test_03_c` 后立即执行？**
+
+- 因为 `scope="class"` 的生命周期是整个类，`test_03_d` 还没有执行，所以 `class` 作用域尚未结束
+- 同理，`module`、`package`、`session` 也还没结束
 
 
 
