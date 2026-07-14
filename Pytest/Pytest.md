@@ -3855,19 +3855,49 @@ conftest的特点：
 
 ### 2、不同作用域的`conftest.py`
 
-#### (1) 仅局部conftest.py
+#### (1) 仅局部`conftest.py`
+
+![image-20260715073315745](images/image-20260715073315745.png)
+
+测试用例文件夹下`Testcase/conftest.py`
+
+```python
+import pytest
+
+@pytest.fixture()
+def fun_login():
+    print("--fun_login 登录")
+
+@pytest.fixture()
+def fun_16_01(fun_login):
+    print("---fun_16_01 ")
+```
+
+`Testcase/test_16.py`
+
+```python
+import pytest
+
+## 1、使用局部的conftest.py
+import pytest
+
+def test_16_a(fun_login):
+    print("--------------test_a")
+```
+
+测试结果
+
+![image-20260715073515650](images/image-20260715073515650.png)
+
+
+
+#### (2) 全局`conftest.py`
 
 
 
 
 
-#### (2) 全局conftest.py
-
-
-
-
-
-#### (3) 全局和局部有同名的fixture
+#### (3) 全局和局部的`conftest.py`有同名fixture
 
 
 
@@ -3875,7 +3905,11 @@ conftest的特点：
 
 ### 3、指定引用全局fixture
 
-用例中可以通过`@pytest.mark.usefixtures()`指定引用全局`autouse=False`的fixture
+在用例中可以通过`@pytest.mark.usefixtures()`指定引用全局`autouse=False`的fixture
+
+
+
+
 
 
 
@@ -3884,10 +3918,6 @@ conftest的特点：
 ## 09: fixture返回值实现参数化
 
 ## 10: fixture对用例重命名、给函数取别名
-
-
-
-
 
 ## 13: parametrize参数化
 
@@ -3902,10 +3932,6 @@ conftest的特点：
 ## 18: parametrize中indirect详解间接参数
 
 ## 19: parametrize中给用例取别名
-
-
-
-## 
 
 ## 27: pytest常用插件 - 失败重试pytest-rerunfailures
 
