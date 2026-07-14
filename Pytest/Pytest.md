@@ -3344,7 +3344,20 @@ class Test03Scope:
 - `test_03_a` 在类外部，无法"看见"这些 fixture
 - 即使 `scope="session"` 的 `fun_03_05` 也没执行，因为它定义在类内部，不会对类外部的测试生效
 
-**结论**：**定义在类内部的 autouse fixture，只对该类的方法生效，对外部函数无效。**
+##### 🧪 测试2：`test_03_b`（独立函数，类外部）
+
+**为什么没有任何 fixture 输出？**
+
+- 原因与 `test_03_a` 完全相同
+- 即使 `fun_03_05` 是 `scope="session"`，但它定义在类内部，autouse 只对类内部生效
+
+##### **结论①**
+
+> **定义在类内部的 autouse fixture，只对该类的方法生效，对外部函数无效。**
+>
+> **autouse 的生效范围由 fixture 的定义位置决定，而不是由 scope 决定。**
+
+
 
 
 
