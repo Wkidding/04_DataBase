@@ -3151,7 +3151,7 @@ class Test01Scope:
 
 ##### 🧪 测试1：`test_02_a`
 
-```
+```python
 --fun_02_5 fixture : session-前      ← 1. 最外层
 --fun_02_4 fixture : package-前      ← 2. 
 --fun_02_3 fixture : module-前       ← 3. 
@@ -3179,7 +3179,7 @@ PASSED
 
 ##### 🧪 测试2：`test_02_b`
 
-```
+```python
 --fun_02_2 fixture : class-前        ← 1. 
 --fun_02_1 fixture : function-前     ← 2. 
 --------------test_02_b              ← 3. 测试函数执行
@@ -3199,7 +3199,7 @@ PASSED
 
 ##### 🧪 测试3：`Test02Scope::test_02_c`
 
-```
+```python
 --fun_02_2 fixture : class-前        ← 1. 类级别前置
 --fun_02_1 fixture : function-前     ← 2. 函数级别前置
 --------------test_02_c              ← 3. 测试方法执行
@@ -3213,7 +3213,7 @@ PASSED
 
 ##### 🧪 测试4：`Test02Scope::test_02_d`
 
-```
+```python
 --fun_02_1 fixture : function-前     ← 1. 函数级别前置
 --------------test_02_d              ← 2. 测试方法执行
 PASSED
@@ -3248,24 +3248,61 @@ PASSED
 
 #### (3) 每一个函数前后均会执行模块中的class
 
-```python
-
-```
-
-
+![image-20260714080048317](images/image-20260714080048317.png)
 
 #### (4) 模块中的fixture对函数、方法均有效
 
-```python
-
-```
+![image-20260714080139840](images/image-20260714080139840.png)
 
 
 
 #### (5) 测试类中的fixture只对方法有效
 
 ```python
+import pytest
 
+def test_03_a():
+    print("--------------test_03_a")
+ 
+def test_03_b():
+    print("--------------test_03_b")
+ 
+class Test03Scope:
+    def test_03_c(self):
+        print("--------------test_c")
+ 
+    def test_03_d(self):
+        print("--------------test_d")
+ 
+    @pytest.fixture(autouse=True, scope="function")
+    def fun_03_01(self):
+        print("---fixture : function-前")
+        yield
+        print("---fixture : function-后")
+ 
+    @pytest.fixture(autouse=True, scope="class")
+    def fun_03_02(self):
+        print("---fixture : class-前")
+        yield
+        print("---fixture : class-后")
+ 
+    @pytest.fixture(autouse=True, scope="module")
+    def fun_03_03(self):
+        print("---fixture : module-前")
+        yield
+        print("---fixture : module-后")
+ 
+    @pytest.fixture(autouse=True, scope="package")
+    def fun_03_04(self):
+        print("---fixture : package-前")
+        yield
+        print("---fixture : package-后")
+ 
+    @pytest.fixture(autouse=True, scope="session")
+    def fun_03_05(self):
+        print("---fixture : session-前")
+        yield
+        print("---fixture : session-后")
 ```
 
 
@@ -3273,7 +3310,85 @@ PASSED
 #### (6) 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
 
 ```python
-
+import pytest
+ 
+def test_a():
+    print("--------------test_a")
+ 
+def test_b():
+    print("--------------test_b")
+ 
+ 
+@pytest.fixture(autouse=True, scope="function")
+def fun():
+    print("---fixture : function-前")
+    yield
+    print("---fixture : function-后")
+ 
+ 
+@pytest.fixture(autouse=True, scope="class")
+def fun2():
+    print("---fixture : class-前")
+    yield
+    print("---fixture : class-后")
+ 
+ 
+@pytest.fixture(autouse=True, scope="module")
+def fun3():
+    print("---fixture : module-前")
+    yield
+    print("---fixture : module-后")
+ 
+ 
+@pytest.fixture(autouse=True, scope="package")
+def fun4():
+    print("---fixture : package-前")
+    yield
+    print("---fixture : package-后")
+ 
+ 
+@pytest.fixture(autouse=True, scope="session")
+def fun5():
+    print("---fixture : session-前")
+    yield
+    print("---fixture : session-后")
+ 
+class Test01Scope:
+    def test_c(self):
+        print("--------------test_c")
+ 
+    def test_d(self):
+        print("--------------test_d")
+ 
+    @pytest.fixture(autouse=True, scope="function")
+    def fun(self):
+        print("---fixture : function-前(类中)")
+        yield
+        print("---fixture : function-后(类中)")
+ 
+    @pytest.fixture(autouse=True, scope="class")
+    def fun2(self):
+        print("---fixture : class-前(类中)")
+        yield
+        print("---fixture : class-后(类中)")
+ 
+    @pytest.fixture(autouse=True, scope="module")
+    def fun3(self):
+        print("---fixture : module-前(类中)")
+        yield
+        print("---fixture : module-后(类中)")
+ 
+    @pytest.fixture(autouse=True, scope="package")
+    def fun4(self):
+        print("---fixture : package-前(类中)")
+        yield
+        print("---fixture : package-后(类中)")
+ 
+    @pytest.fixture(autouse=True, scope="session")
+    def fun5(self):
+        print("---fixture : session-前(类中)")
+        yield
+        print("---fixture : session-后(类中)")
 ```
 
 
