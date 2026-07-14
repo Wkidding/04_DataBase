@@ -3452,7 +3452,43 @@ Test03Scope.test_03_d (类内部 - 第二个方法)
   └─ fun_03_05.session-后   ← session 结束（整个测试会话结束）
 ```
 
+##### 💡 核心结论
 
+###### 结论1：**autouse 的生效范围由 fixture 的定义位置决定**
+
+| fixture 定义位置 | autouse 生效范围          |
+| :--------------- | :------------------------ |
+| 全局（模块顶层） | 整个模块的所有测试        |
+| 类内部           | **仅该类内部的测试方法**  |
+| 函数内部         | ❌ 不允许（pytest 会报错） |
+
+**在上述代码中**：所有 fixture 都在 `Test03Scope` 类内部定义，所以 `autouse=True` 只对 `test_03_c` 和 `test_03_d` 生效，对 `test_03_a` 和 `test_03_b` 无效。
+
+###### 结论2：**高作用域 fixture 在其生命周期内只会创建一次**
+
+- `scope="session"` 的 fixture 在整个测试会话中只执行一次前置
+- `scope="package"` 的 fixture 在整个包中只执行一次前置
+- `scope="module"` 的 fixture 在整个模块中只执行一次前置
+- `scope="class"` 的 fixture 在整个类中只执行一次前置
+- 它们都被**所有子作用域的测试共享**
+
+###### 结论3：**执行顺序固定**
+
+**前置（创建）顺序**：从高作用域到低作用域
+
+```
+session → package → module → class → function
+```
+
+**后置（清理）顺序**：从低作用域到高作用域（堆栈式）
+
+```
+function → class → module → package → session
+```
+
+------
+
+  
 
 #### (6) 在模块和类中有同名的fixture存在时：局部优先，也就是类中fixture优先
 
