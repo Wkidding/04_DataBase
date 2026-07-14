@@ -3893,13 +3893,70 @@ def test_16_a(fun_login):
 
 #### (2) 全局`conftest.py`
 
+![image-20260715074152612](images/image-20260715074152612.png)
 
+```python
+"""
+全局conftest.py,配置管理共享的fixture
+"""
+import pytest
 
+@pytest.fixture(autouse=True, scope="function")
+def f():
+    print("---fixture : function-前")
+    yield
+    print("---fixture : function-后")
 
+@pytest.fixture(autouse=True, scope="class")
+def f2():
+    print("---fixture : class-前")
+    yield
+    print("---fixture : class-后")
+
+@pytest.fixture(autouse=True, scope="module")
+def f3():
+    print("---fixture : module-前")
+    yield
+    print("---fixture : module-后")
+
+@pytest.fixture(autouse=True, scope="package")
+def f4():
+    print("---fixture : package-前")
+    yield
+    print("---fixture : package-后")
+
+@pytest.fixture(autouse=True, scope="session")
+def f5():
+    print("---fixture : session-前")
+    yield
+    print("---fixture : session-后")
+```
+
+继续测试`test_16.py`
+
+![image-20260715074453430](images/image-20260715074453430.png)
 
 #### (3) 全局和局部的`conftest.py`有同名fixture
 
+![image-20260715074636774](images/image-20260715074636774.png)
 
+全局`conftest.py`
+
+```python
+
+```
+
+局部`Testcase/conftest.py`
+
+```python
+
+```
+
+测试用例`Testcase/test_16.py`
+
+```python
+
+```
 
 
 
