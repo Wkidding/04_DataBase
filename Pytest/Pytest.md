@@ -3263,16 +3263,16 @@ import pytest
 
 def test_03_a():
     print("--------------test_03_a")
- 
+    
 def test_03_b():
     print("--------------test_03_b")
- 
+    
 class Test03Scope:
     def test_03_c(self):
-        print("--------------test_c")
+        print("--------------test_03_c")
  
     def test_03_d(self):
-        print("--------------test_d")
+        print("--------------test_03_d")
  
     @pytest.fixture(autouse=True, scope="function")
     def fun_03_01(self):
@@ -3304,6 +3304,49 @@ class Test03Scope:
         yield
         print("---fixture : session-后")
 ```
+
+![image-20260715062533276](images/image-20260715062533276.png)
+
+##### 🔍 核心规则分析
+
+###### 关键规则1：**fixture 的 `autouse=True` 只对定义它的作用域及其子作用域生效**
+
+在代码中，**所有 fixture 都定义在 `Test03Scope` 类内部**，这意味着：
+
+- 这些 fixture 的"定义作用域"是 **`Test03Scope` 类**
+- `autouse=True` 只会对**该类内部**的测试方法自动生效
+- **类外部的独立函数（`test_03_a`、`test_03_b`）不受影响**
+
+###### 关键规则2：**作用域决定了 fixture 的创建和销毁时机**
+
+即使 fixture 定义在类内部，其 `scope` 参数依然决定了它的生命周期：
+
+| fixture     | scope    | 创建时机                     | 销毁时机                       |
+| :---------- | :------- | :--------------------------- | :----------------------------- |
+| `fun_03_01` | function | 每个测试方法执行前           | 每个测试方法执行后             |
+| `fun_03_02` | class    | 类中第一个测试方法执行前     | 类中最后一个测试方法执行后     |
+| `fun_03_03` | module   | 模块中第一个测试执行前       | 模块中最后一个测试执行后       |
+| `fun_03_04` | package  | 包中第一个测试执行前         | 包中最后一个测试执行后         |
+| `fun_03_05` | session  | 整个测试会话第一个测试执行前 | 整个测试会话最后一个测试执行后 |
+
+------
+
+
+
+##### 结果分析
+
+##### 🧪 测试1：`test_03_a`（独立函数，类外部）
+
+**为什么没有任何 fixture 输出？**
+
+- 所有 fixture 都定义在 `Test03Scope` 类内部
+- `autouse=True` 只对类内部的测试方法生效
+- `test_03_a` 在类外部，无法"看见"这些 fixture
+- 即使 `scope="session"` 的 `fun_03_05` 也没执行，因为它定义在类内部，不会对类外部的测试生效
+
+**结论**：**定义在类内部的 autouse fixture，只对该类的方法生效，对外部函数无效。**
+
+
 
 
 
