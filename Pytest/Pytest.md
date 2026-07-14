@@ -3494,89 +3494,113 @@ function → class → module → package → session
 
 ```python
 import pytest
- 
-def test_a():
-    print("--------------test_a")
- 
-def test_b():
-    print("--------------test_b")
- 
- 
+
+def test_04_a ():
+    print("--------------test_04_a")
+
+def test_04_b():
+    print("--------------test_04_b")
+
 @pytest.fixture(autouse=True, scope="function")
-def fun():
+def fun_04_01():
     print("---fixture : function-前")
     yield
     print("---fixture : function-后")
- 
- 
+
 @pytest.fixture(autouse=True, scope="class")
-def fun2():
+def fun_04_02():
     print("---fixture : class-前")
     yield
     print("---fixture : class-后")
- 
- 
+
 @pytest.fixture(autouse=True, scope="module")
-def fun3():
+def fun_04_03():
     print("---fixture : module-前")
     yield
     print("---fixture : module-后")
- 
- 
+
 @pytest.fixture(autouse=True, scope="package")
-def fun4():
+def fun_04_04():
     print("---fixture : package-前")
     yield
     print("---fixture : package-后")
- 
- 
+
 @pytest.fixture(autouse=True, scope="session")
-def fun5():
+def fun_04_05():
     print("---fixture : session-前")
     yield
     print("---fixture : session-后")
- 
-class Test01Scope:
-    def test_c(self):
-        print("--------------test_c")
- 
-    def test_d(self):
-        print("--------------test_d")
- 
+
+class Test04Scope:
+    def test_04_c (self):
+        print("--------------test_04_c")
+
+    def test_04_d (self):
+        print("--------------test_04_d")
+
     @pytest.fixture(autouse=True, scope="function")
-    def fun(self):
+    def fun_04_01 (self):
         print("---fixture : function-前(类中)")
         yield
         print("---fixture : function-后(类中)")
- 
+
     @pytest.fixture(autouse=True, scope="class")
-    def fun2(self):
+    def fun_04_02 (self):
         print("---fixture : class-前(类中)")
         yield
         print("---fixture : class-后(类中)")
- 
+
     @pytest.fixture(autouse=True, scope="module")
-    def fun3(self):
+    def fun_04_03 (self):
         print("---fixture : module-前(类中)")
         yield
         print("---fixture : module-后(类中)")
- 
+
     @pytest.fixture(autouse=True, scope="package")
-    def fun4(self):
+    def fun_04_04 (self):
         print("---fixture : package-前(类中)")
         yield
         print("---fixture : package-后(类中)")
- 
+
     @pytest.fixture(autouse=True, scope="session")
-    def fun5(self):
+    def fun_04_05 (self):
         print("---fixture : session-前(类中)")
         yield
         print("---fixture : session-后(类中)")
 ```
 
+![image-20260715070235892](images/image-20260715070235892.png)
 
+##### 🔍 核心原因分析
 
+###### 关键规则1：**同名 fixture 会被覆盖（就近原则）**
 
+在代码中：
+
+- **全局定义**了 `fun_04_01`、`fun_04_02`、`fun_04_03`、`fun_04_04`、`fun_04_05`
+- **类内部**也定义了同名的 `fun_04_01` ~ `fun_04_05`
+
+**pytest 的规则**：当 fixture 同名时，**内部（子作用域）的 fixture 会覆盖外部（父作用域）的 fixture**。
+
+因此：
+
+- 对于 `Test04Scope` 类内部的测试方法（`test_04_c`、`test_04_d`），使用的是**类内部定义的 fixture**（带 `(类中)` 标记的）
+- 对于类外部的独立函数（`test_04_a`、`test_04_b`），使用的是**全局定义的 fixture**（不带 `(类中)` 标记的）
+
+###### 关键规则2：**autouse 的生效范围由定义位置决定**
+
+| fixture 定义位置     | autouse 生效范围                       |
+| :------------------- | :------------------------------------- |
+| **全局（模块顶层）** | 整个模块的所有测试（包括独立函数和类） |
+| **类内部**           | **仅该类内部的测试方法**               |
+
+###### 关键规则3：**作用域决定了生命周期**
+
+即使在类内部定义，`scope` 依然决定了 fixture 的创建和销毁时机。
+
+------
+
+## 
 
 ## 07: fixture跨模块共享conftest.py
 
