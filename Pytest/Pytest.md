@@ -3357,6 +3357,8 @@ class Test03Scope:
 >
 > **autouse 的生效范围由 fixture 的定义位置决定，而不是由 scope 决定。**
 
+
+
 ##### 🧪 测试3：`Test03Scope::test_03_c`（类内部第一个方法）
 
 ```
@@ -3391,7 +3393,64 @@ PASSED
 - 因为 `scope="class"` 的生命周期是整个类，`test_03_d` 还没有执行，所以 `class` 作用域尚未结束
 - 同理，`module`、`package`、`session` 也还没结束
 
+##### 🧪 测试4：`Test03Scope::test_03_d`（类内部第二个方法）
 
+```
+---fixture : function-前         ← 1. function 级别重新创建
+--------------test_03_d          ← 2. 测试方法执行
+PASSED
+---fixture : function-后         ← 3. function 清理
+---fixture : class-后            ← 4. class 清理（类中所有方法执行完毕）
+---fixture : module-后           ← 5. module 清理（模块所有测试执行完毕）
+---fixture : package-后          ← 6. package 清理
+---fixture : session-后          ← 7. session 清理（整个测试会话结束）
+```
+
+**为什么 `class-前`、`module-前`、`package-前`、`session-前` 没有再次打印？**
+
+- 因为高作用域的 fixture 在 `test_03_c` 时已经创建，在整个生命周期内**复用同一个实例**
+- 只有 `scope="function"` 的 `fun_03_01` 会在每个测试方法前重新创建
+
+**为什么最后所有 `-后` 集中出现了？**
+
+- `test_03_d` 是 `Test03Scope` 类的**最后一个**测试方法 → `class` 作用域结束 → `class-后`
+- `test_03_d` 也是当前模块的**最后一个**测试 → `module` 作用域结束 → `module-后`
+- 整个测试会话结束 → `package` 和 `session` 作用域结束 → 依次清理
+
+**清理顺序**：从低作用域到高作用域（堆栈式，后进先出）
+
+function → class → module → package → session
+
+##### 📊 可视化执行流程
+
+```
+测试执行时间线
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+test_03_a (类外部)
+  └─ 无 fixture 执行
+
+test_03_b (类外部)
+  └─ 无 fixture 执行
+
+Test03Scope.test_03_c (类内部 - 第一个方法)
+  ├─ fun_03_05.session-前   ← 整个会话第一次使用
+  ├─ fun_03_04.package-前   ← 整个包第一次使用
+  ├─ fun_03_03.module-前    ← 当前模块第一次使用
+  ├─ fun_03_02.class-前     ← 当前类第一次使用
+  ├─ fun_03_01.function-前  ← 当前方法前
+  ├─ test_03_c 执行
+  └─ fun_03_01.function-后  ← function 清理（但 class/module/package/session 未结束）
+
+Test03Scope.test_03_d (类内部 - 第二个方法)
+  ├─ fun_03_01.function-前  ← function 重新创建
+  ├─ test_03_d 执行
+  └─ fun_03_01.function-后  ← function 清理
+  └─ fun_03_02.class-后     ← class 结束（类中所有方法执行完毕）
+  └─ fun_03_03.module-后    ← module 结束（模块所有测试执行完毕）
+  └─ fun_03_04.package-后   ← package 结束
+  └─ fun_03_05.session-后   ← session 结束（整个测试会话结束）
+```
 
 
 
