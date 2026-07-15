@@ -4231,9 +4231,99 @@ def fun_01(request):
 | `marker.args`   | tuple | 位置参数   | `(1, 2, 3)`        |
 | `marker.kwargs` | dict  | 关键字参数 | `{"key": "value"}` |
 
+###### 3️⃣ 多种标记使用方式对比
+
+```python
+import pytest
+
+@pytest.fixture
+def process_marker(request):
+    marker = request.node.get_closest_marker("mydata")
+    return marker
+
+# 方式1：单个参数
+@pytest.mark.mydata(10)
+def test_single(process_marker):
+    print(process_marker.args[0])  # 输出: 10
+
+# 方式2：多个参数
+@pytest.mark.mydata(10, 20, 30)
+def test_multiple(process_marker):
+    print(process_marker.args)  # 输出: (10, 20, 30)
+    print(process_marker.args[1])  # 输出: 20
+
+# 方式3：关键字参数
+@pytest.mark.mydata(a=1, b=2, c=3)
+def test_kwargs(process_marker):
+    print(process_marker.kwargs)  # 输出: {'a': 1, 'b': 2, 'c': 3}
+    print(process_marker.kwargs["b"])  # 输出: 2
+
+# 方式4：混合使用
+@pytest.mark.mydata(100, x=200, y=300)
+def test_mixed(process_marker):
+    print(process_marker.args)     # 输出: (100,)
+    print(process_marker.kwargs)   # 输出: {'x': 200, 'y': 300}
+    print(process_marker.args[0] + process_marker.kwargs["x"])  # 输出: 300
+```
+
+![image-20260716064708020](images/image-20260716064708020.png)
+
+###### 4️⃣ 标记的继承与覆盖
+
+```python
+@pytest.fixture
+def get_marker(request):
+    return request.node.get_closest_marker("mydata")
+
+# 类级别的标记
+@pytest.mark.mydata(100)
+class TestClass:
+    
+    # 方法级别的标记会覆盖类级别的
+    @pytest.mark.mydata(200)
+    def test_method_1(self, get_marker):
+        print(get_marker.args[0])  # 输出: 200（方法标记覆盖类标记）
+    
+    # 没有方法级别标记时，使用类级别的
+    def test_method_2(self, get_marker):
+        print(get_marker.args[0])  # 输出: 100（继承类标记）
+    
+    # 多个标记可以叠加
+    @pytest.mark.mydata(300)
+    @pytest.mark.mydata(500)
+    def test_method_3(self, get_marker):
+        print(get_marker.args[0])  # 输出: 300
+```
+
+**覆盖规则：**
+
+```
+方法级别标记 > 类级别标记 > 模块级别标记 > 全局标记
+```
+
+![image-20260716065840348](images/image-20260716065840348.png)
 
 
 
+###### 5️⃣ 标记不存在时的处理
+
+```python
+@pytest.fixture
+def safe_marker(request):
+    marker = request.node.get_closest_marker("mydata")
+    if marker is None:
+        return 0  # 默认值
+    return marker.args[0]
+
+# 没有标记
+def test_no_marker(safe_marker):
+    print(safe_marker)  # 输出: 0（使用默认值）
+
+# 有标记
+@pytest.mark.mydata(10)
+def test_with_marker(safe_marker):
+    print(safe_marker)  # 输出: 10
+```
 
 
 
