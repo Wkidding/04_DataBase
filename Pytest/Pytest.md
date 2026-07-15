@@ -4126,10 +4126,13 @@ import pytest
  
 @pytest.fixture
 def fun_01(request):
+    # request.node: 当前测试节点（包含所有元数据）
     marker = request.node.get_closest_marker("mydata")
     if marker is None:
         data = None
     else:
+        # marker.args: 位置参数元组，如 (1,)
+        # marker.kwargs: 关键字参数字典，如 {"key": "value"}
         data = marker.args[0] + 1
     return data
 
@@ -4158,7 +4161,7 @@ markers =
 
 ##### 📊 执行流程拆解
 
-```
+```python
 1. pytest 收集测试用例
    └── 发现 test_data_01 使用了 @pytest.mark.mydata(1)
 
@@ -4178,6 +4181,55 @@ markers =
 
 5. 测试通过 ✅
 ```
+
+##### 🔍 核心机制详解
+
+###### 1️⃣ 标记（Marker）如何传递数据
+
+```python
+@pytest.mark.mydata(1)          # ← 标记携带参数 1
+def test_data_01(fun_01):       # ← fixture 注入
+    print("fun_01={}".format(fun_01))  # ← 输出 2
+```
+
+**数据流向：**
+
+```python
+标记参数 (1) 
+    ↓
+fixture 通过 request.node.get_closest_marker() 获取
+    ↓
+fixture 处理数据 (1 + 1 = 2)
+    ↓
+fixture 返回处理后的数据给测试函数
+    ↓
+测试函数使用该数据
+```
+
+###### 2️⃣ `request.node.get_closest_marker()` 的工作原理
+
+```python
+@pytest.fixture
+def fun_01(request):
+    # request.node: 当前测试节点（包含所有元数据）
+    marker = request.node.get_closest_marker("mydata")
+    
+    if marker is None:
+        data = None
+    else:
+        # marker.args: 位置参数元组，如 (1,)
+        # marker.kwargs: 关键字参数字典，如 {"key": "value"}
+        data = marker.args[0] + 1
+    return data
+```
+
+**关键属性：**
+
+| 属性            | 类型  | 说明       | 示例               |
+| :-------------- | :---- | :--------- | :----------------- |
+| `marker.name`   | str   | 标记名称   | `"mydata"`         |
+| `marker.args`   | tuple | 位置参数   | `(1, 2, 3)`        |
+| `marker.kwargs` | dict  | 关键字参数 | `{"key": "value"}` |
 
 
 
