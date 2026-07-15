@@ -4380,7 +4380,7 @@ def test_data_02(fun_02):
 
 ![image-20260716071603863](images/image-20260716071603863.png)
 
-##### 📊 数据流向图
+##### 📊 执行流程拆解
 
 ```
 测试函数上的标记
@@ -4405,6 +4405,103 @@ print("fun={}".format(fun_02))    ← 输出: fun=[1, 2, 666]
 ```
 
 #### 3、可以传多个
+
+```python
+@pytest.fixture
+def fun_03(request):
+    marker = request.node.get_closest_marker("mydata")
+    marker2 = request.node.get_closest_marker("mydata2")
+    if marker is None:
+        data = None
+    else:
+        data = marker.args[0]
+        data[-1]=666
+    if marker2 is None:
+        data2 = None
+    else:
+        data2 = marker2.args[0] + 1
+    return data,data2
+ 
+@pytest.mark.mydata([1,2,3])
+@pytest.mark.mydata2(1)
+def test_data_03(fun_03):
+    print("fun_03={}".format(fun_03))
+```
+
+![image-20260716072343259](images/image-20260716072343259.png)
+
+##### 📊 执行流程拆解
+
+```
+1. pytest 收集测试用例
+   └── 发现 test_data_03 使用了两个标记：
+       ├── @pytest.mark.mydata([1, 2, 3])
+       └── @pytest.mark.mydata2(1)
+
+2. pytest 解析测试函数依赖
+   └── test_data_03 依赖 fixture fun_03
+
+3. 执行 fixture fun_03
+   ├── 获取标记 mydata
+   │   └── marker.args[0] = [1, 2, 3]
+   │   └── data = [1, 2, 3]
+   │   └── data[-1] = 666  → 修改为 [1, 2, 666]
+   │
+   ├── 获取标记 mydata2
+   │   └── marker2.args[0] = 1
+   │   └── data2 = 1 + 1 = 2
+   │
+   └── return data, data2  → 返回元组 ([1, 2, 666], 2)
+
+4. 执行测试函数 test_data_03
+   └── 接收 fun_03 返回的元组
+   └── print("fun_03=([1, 2, 666], 2)")
+   └── 测试通过 ✅
+```
+
+##### 💡 核心机制解析
+
+###### 1️⃣ 多个标记可以共存
+
+```python
+@pytest.mark.mydata([1, 2, 3])    # 标记1：传递列表
+@pytest.mark.mydata2(1)           # 标记2：传递数字
+def test_data_03(fun_03):
+    ...
+```
+
+**关键点：**
+
+- 一个测试函数可以**同时使用多个标记**
+- 每个标记**独立存在**，互不干扰
+- fixture 可以通过 `request.node.get_closest_marker()` 分别获取每个标记
+
+------
+
+###### 2️⃣ fixture 可以返回多个值（元组）
+
+```python
+@pytest.fixture
+def fun_03(request):
+    # ... 处理标记1 ...
+    # ... 处理标记2 ...
+    return data, data2   # 返回元组
+```
+
+**返回形式：**
+
+- `return data, data2` 等价于 `return (data, data2)`
+- 测试函数接收时得到的是一个**元组**
+
+
+
+
+
+
+
+
+
+
 
 
 
