@@ -4362,9 +4362,47 @@ def test_with_marker(safe_marker):
 
 #### 2、复杂类型
 
+```python
+@pytest.fixture
+def fun_02(request):
+    marker = request.node.get_closest_marker("mydata")
+    if marker is None:
+        data = None
+    else:
+        data = marker.args[0]
+        data[-1]=666
+    return data
+ 
+@pytest.mark.mydata([1,2,3])  # ← 传递一个列表对象（可变）.标记传递的是一个列表对象，而不是副本。fixture 接收到的是同一个对象的引用。
+def test_data_02(fun_02):
+    print("fun_02={}".format(fun_02))
+```
 
+![image-20260716071603863](images/image-20260716071603863.png)
 
+##### 📊 数据流向图
 
+```
+测试函数上的标记
+    ↓
+@pytest.mark.mydata([1, 2, 3])     ← 标记传递一个列表 [1, 2, 3]
+    ↓
+fixture fun_02 接收标记数据
+    ↓
+marker.args[0] = [1, 2, 3]        ← 获取列表
+    ↓
+data[-1] = 666                     ← 修改列表最后一个元素
+    ↓
+data = [1, 2, 666]                ← 列表被修改
+    ↓
+return data                        ← 返回修改后的列表
+    ↓
+测试函数 test_data_02 接收
+    ↓
+print("fun={}".format(fun_02))    ← 输出: fun=[1, 2, 666]
+    ↓
+测试通过 ✅
+```
 
 #### 3、可以传多个
 
