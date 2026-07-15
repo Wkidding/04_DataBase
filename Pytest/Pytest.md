@@ -4107,11 +4107,95 @@ def test_16_c(fun_login):
 
 
 
+## 16: fixture标志传参
+
+### 特点
+
+1. 采用`pytest.mark.xxx(参数)`标志所需要的参数，然后在fixture中可以做一些逻辑处理
+2. fixture采用`request`获取参数
+3. 传参的个数可以是多个，类型可以为简单类型或者复杂对象
+
+### 示例
+
+#### 1、简单类型
+
+`Testcase/test_17.py`
+
+```python
+import pytest
+ 
+@pytest.fixture
+def fun_01(request):
+    marker = request.node.get_closest_marker("mydata")
+    if marker is None:
+        data = None
+    else:
+        data = marker.args[0] + 1
+    return data
+
+## 需要在pytest.ini 中进行marker注册
+@pytest.mark.mydata(1)
+def test_data_01(fun_01):
+    print("fun_01={}".format(fun_01))
+ 
+if __name__ == '__main__':
+    pytest.main(['-vs'])
+```
+
+`pytest.ini`
+
+```python
+[pytest]
+……
+markers =
+    ……
+    mydata: 自定义标记，用于传递数据到 fixture
+```
+
+结果
+
+![image-20260716063156158](images/image-20260716063156158.png)
+
+##### 📊 执行流程拆解
+
+```
+1. pytest 收集测试用例
+   └── 发现 test_data_01 使用了 @pytest.mark.mydata(1)
+
+2. pytest 解析测试函数依赖
+   └── test_data_01 依赖 fixture fun_01
+
+3. 执行 fixture fun_01 的前置逻辑
+   ├── request.node 指向当前测试节点 (test_data_01)
+   ├── 调用 get_closest_marker("mydata")
+   ├── 找到标记 mydata，其 args = (1,)
+   ├── data = marker.args[0] + 1 = 1 + 1 = 2
+   └── 返回 data = 2
+
+4. 执行测试函数 test_data_01
+   └── 接收 fun_01 的返回值 2
+   └── print("fun_01=2")
+
+5. 测试通过 ✅
+```
 
 
 
 
-## 08: fixture标志传参
+
+
+
+#### 2、复杂类型
+
+
+
+
+
+#### 3、可以传多个
+
+
+
+
 
 ## 09: fixture返回值实现参数化
 
