@@ -3859,41 +3859,59 @@ conftest的特点：
 
 ![image-20260715073315745](images/image-20260715073315745.png)
 
-测试用例文件夹下`Testcase/conftest.py`
+##### 测试用例文件夹下，局部`Testcase/conftest.py`
 
 ```python
 import pytest
 
 @pytest.fixture()
 def fun_login():
-    print("--fun_login 登录")
+    print("--fun_login 登录(局部conftest.py)")
+    yield
+    print("--fun_login 登出(局部conftest.py)")
 
 @pytest.fixture()
 def fun_16_01(fun_login):
     print("---fun_16_01 ")
 ```
 
-`Testcase/test_16.py`
+##### 测试用例`Testcase/test_16.py`
 
 ```python
 import pytest
 
 ## 1、使用局部的conftest.py
-import pytest
-
 def test_16_a(fun_login):
-    print("--------------test_a")
+    print("--------------test_16_a")
 ```
 
-测试结果
+##### 测试结果
 
-![image-20260715073515650](images/image-20260715073515650.png)
+![image-20260715075543429](images/image-20260715075543429.png)
 
 
 
 #### (2) 全局`conftest.py`
 
 ![image-20260715074152612](images/image-20260715074152612.png)
+
+##### 局部`Testcase/conftest.py`
+
+```python
+import pytest
+
+@pytest.fixture()
+def fun_login():
+    print("--fun_login 登录(局部conftest.py)")
+    yield
+    print("--fun_login 登出(局部conftest.py)")
+
+@pytest.fixture()
+def fun_16_01(fun_login):
+    print("---fun_16_01 ")
+```
+
+##### 全局`conftest.py`
 
 ```python
 """
@@ -3932,31 +3950,154 @@ def f5():
     print("---fixture : session-后")
 ```
 
-继续测试`test_16.py`
+##### 测试用例`Testcase/test_16.py`
 
-![image-20260715074453430](images/image-20260715074453430.png)
+```python
+## 2、使用全局的conftest.py
+def test_16_b(fun_login):
+    print("--------------test_16_b")
+```
+
+##### 测试结果
+
+![image-20260715080148967](images/image-20260715080148967.png)
 
 #### (3) 全局和局部的`conftest.py`有同名fixture
 
 ![image-20260715074636774](images/image-20260715074636774.png)
 
-全局`conftest.py`
+##### 情况1：局部和全局`conftest.py`有同名fixture，局部`conftest.py`的`autouse=False`，全局`conftest.py`的`autouse=True`
+
+###### 全局`conftest.py`
 
 ```python
+import pytest
 
+@pytest.fixture(autouse=True, scope="function")
+def f0():
+    print("---fixture : function-前（全局f0）")
+    yield
+    print("---fixture : function-后（全局f0）")
 ```
 
-局部`Testcase/conftest.py`
+###### 局部`Testcase/conftest.py`
 
 ```python
+import pytest
 
+@pytest.fixture()
+def fun_login():
+    print("--fun_login 登录(局部conftest.py)")
+    yield
+    print("--fun_login 登出(局部conftest.py)")
+
+@pytest.fixture()
+def fun_16_01(fun_login):
+    print("---fun_16_01 ")
+
+
+@pytest.fixture(autouse=False, scope="function")
+def f0():
+    print("---fixture : function-前(局部f0)")
+    yield
+    print("---fixture : function-后(局部f0)")
 ```
 
-测试用例`Testcase/test_16.py`
+###### 测试用例`Testcase/test_16.py`
 
 ```python
+## 3、当全局和局部conftest.py都有同名fixture时
+def test_16_c(fun_login):
+    print("--------------test_16_c")
+```
+
+###### 测试结果
+
+![image-20260715082310437](images/image-20260715082310437.png)
+
+###### 🔍 核心原因：conftest.py 的层级覆盖规则
+
+pytest 的 `conftest.py` 遵循**就近覆盖（近者优先）**原则
+
+**规则**：当存在同名 fixture 时，**目录层级更低的 `conftest.py` 中的 fixture 会覆盖层级更高的**。
 
 ```
+项目根目录/
+├── conftest.py              ← 全局（最远，优先级最低）
+└── Testcase/                ← 测试目录
+    ├── conftest.py          ← 局部（更近，优先级最高）✅ 
+    └── test_16.py           ← 测试用例
+```
+
+###### 💡 结论
+
+**当局部 `conftest.py` 中的 fixture 与全局 `conftest.py` 中的 fixture 同名时，会发生以下情况：**
+
+1. **完全覆盖**：全局 fixture 对局部目录下的测试不可见
+2. **autouse 属性继承**：局部 fixture 的 `autouse` 属性**实际上继承了全局 fixture 的 `autouse` 值**
+3. 也就是说，你的 `autouse=False` 在覆盖时被**忽略**了，实际使用的是全局 `autouse=True`
+
+------
+
+##### 情况2：局部和全局`conftest.py`有同名fixture，局部`conftest.py`的`autouse=True`，全局`conftest.py`的`autouse=False`
+
+###### 全局`conftest.py`
+
+```python
+import pytest
+
+@pytest.fixture(autouse=False, scope="function")
+def f0():
+    print("---fixture : function-前（全局f0）")
+    yield
+    print("---fixture : function-后（全局f0）")
+```
+
+###### 局部`Testcase/conftest.py`
+
+```python
+import pytest
+
+@pytest.fixture()
+def fun_login():
+    print("--fun_login 登录(局部conftest.py)")
+    yield
+    print("--fun_login 登出(局部conftest.py)")
+
+@pytest.fixture()
+def fun_16_01(fun_login):
+    print("---fun_16_01 ")
+
+
+@pytest.fixture(autouse=True, scope="function")
+def f0():
+    print("---fixture : function-前(局部f0)")
+    yield
+    print("---fixture : function-后(局部f0)")
+```
+
+###### 测试用例`Testcase/test_16.py`
+
+```python
+## 3、当全局和局部conftest.py都有同名fixture时
+def test_16_c(fun_login):
+    print("--------------test_16_c")
+```
+
+###### 测试结果
+
+![image-20260715082620904](images/image-20260715082620904.png)
+
+###### 🎯 结论
+
+| 关键点           | 说明                                                         |
+| :--------------- | :----------------------------------------------------------- |
+| **覆盖规则**     | 局部 `conftest.py` 中的 fixture 会覆盖全局的**同名** fixture |
+| **autouse 行为** | 覆盖时，局部 fixture 的 `autouse` 属性**会继承**全局 fixture 的 `autouse` 值 |
+| **你的代码中**   | 全局 `f0` 是 `autouse=True`，局部 `f0` 虽然写了 `autouse=False`，但实际运行时是 `autouse=True` |
+| **建议**         | 避免在多个 `conftest.py` 中使用同名 fixture，或者明确设置 `autouse` 值 |
+
+
 
 
 
