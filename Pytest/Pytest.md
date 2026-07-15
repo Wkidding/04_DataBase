@@ -4493,7 +4493,348 @@ def fun_03(request):
 - `return data, data2` 等价于 `return (data, data2)`
 - 测试函数接收时得到的是一个**元组**
 
+### 🧪 多种接收方式对比
 
+#### 1️⃣ 基本接收方式
+
+| 方式               | 代码示例                                              | 使用场景       |
+| :----------------- | :---------------------------------------------------- | :------------- |
+| **直接接收单个值** | `def test(fixture_name):`                             | 只需要一个数据 |
+| **接收元组**       | `def test(fixture_name): data1, data2 = fixture_name` | 返回多个值     |
+| **接收字典**       | `def test(fixture_name): data = fixture_name["key"]`  | 返回结构化数据 |
+| **接收自定义对象** | `def test(fixture_name): fixture_name.method()`       | 返回类实例     |
+
+#### 2️⃣ 单标记接收
+
+```python
+@pytest.fixture
+def single_marker(request):
+    marker = request.node.get_closest_marker("mydata")
+    return marker.args[0] if marker else None
+
+@pytest.mark.mydata(100)
+def test_single(single_marker):
+    print(single_marker)  # 输出: 100
+```
+
+#### 3️⃣ 多标记分别接收（返回元组）
+
+```python
+@pytest.fixture
+def multiple_markers(request):
+    marker1 = request.node.get_closest_marker("data1")
+    marker2 = request.node.get_closest_marker("data2")
+    
+    data1 = marker1.args[0] if marker1 else None
+    data2 = marker2.args[0] if marker2 else None
+    
+    return data1, data2  # 返回元组
+
+@pytest.mark.data1(10)
+@pytest.mark.data2(20)
+def test_multiple(multiple_markers):
+    data1, data2 = multiple_markers  # 解包
+    print(f"data1={data1}, data2={data2}")  # 输出: data1=10, data2=20
+```
+
+#### 4️⃣ 多标记接收（返回字典 - 更清晰）
+
+```python
+@pytest.fixture
+def dict_markers(request):
+    marker1 = request.node.get_closest_marker("user")
+    marker2 = request.node.get_closest_marker("role")
+    
+    return {
+        "user": marker1.args[0] if marker1 else None,
+        "role": marker2.args[0] if marker2 else None,
+        "processed": True
+    }
+
+@pytest.mark.user({"name": "Alice"})
+@pytest.mark.role("admin")
+def test_dict(dict_markers):
+    assert dict_markers["user"]["name"] == "Alice"
+    assert dict_markers["role"] == "admin"
+    assert dict_markers["processed"] is True
+```
+
+#### 5️⃣ 可变对象修改
+
+```python
+@pytest.fixture
+def modify_list(request):
+    marker = request.node.get_closest_marker("data")
+    if marker is None:
+        return None
+    
+    data = marker.args[0]  # 获取列表引用
+    data.append(999)       # 修改原始列表
+    return data
+
+@pytest.mark.data([1, 2, 3])
+def test_modify(modify_list):
+    print(modify_list)  # 输出: [1, 2, 3, 999]
+```
+
+#### 6️⃣ 不可变对象处理
+
+```python
+@pytest.fixture
+def process_int(request):
+    marker = request.node.get_closest_marker("number")
+    if marker is None:
+        return 0
+    
+    data = marker.args[0]  # 数字是不可变对象
+    return data + 10       # 返回新值
+
+@pytest.mark.number(5)
+def test_int(process_int):
+    print(process_int)  # 输出: 15
+```
+
+### 📋 多个标记的协同工作
+
+#### 1️⃣ 数据组合模式
+
+```python
+@pytest.fixture
+def combined(request):
+    config = request.node.get_closest_marker("config")
+    data = request.node.get_closest_marker("data")
+    
+    config_data = config.args[0] if config else {}
+    test_data = data.args[0] if data else None
+    
+    # 组合数据
+    return {
+        "config": config_data,
+        "data": test_data,
+        "full": {**config_data, "data": test_data} if isinstance(config_data, dict) else None
+    }
+
+@pytest.mark.config({"env": "test", "debug": True})
+@pytest.mark.data({"id": 1, "name": "test"})
+def test_combined(combined):
+    assert combined["config"]["env"] == "test"
+    assert combined["data"]["id"] == 1
+```
+
+#### 2️⃣ 数据转换链
+
+```python
+@pytest.fixture
+def transform_chain(request):
+    raw = request.node.get_closest_marker("raw")
+    transform = request.node.get_closest_marker("transform")
+    
+    raw_data = raw.args[0] if raw else None
+    transform_func = transform.args[0] if transform else lambda x: x
+    
+    # 应用转换
+    return transform_func(raw_data)
+
+@pytest.mark.raw([1, 2, 3])
+@pytest.mark.transform(lambda x: [i * 2 for i in x])
+def test_transform(transform_chain):
+    print(transform_chain)  # 输出: [2, 4, 6]
+```
+
+#### 3️⃣ 条件标记处理
+
+```python
+@pytest.fixture
+def conditional(request):
+    env = request.node.get_closest_marker("env")
+    data = request.node.get_closest_marker("data")
+    
+    env_name = env.args[0] if env else "default"
+    test_data = data.args[0] if data else None
+    
+    # 根据环境处理数据
+    if env_name == "prod":
+        return {"data": test_data, "safe": True}
+    else:
+        return {"data": test_data, "debug": True}
+
+@pytest.mark.env("test")
+@pytest.mark.data({"user": "admin"})
+def test_conditional(conditional):
+    assert conditional["debug"] is True
+    assert conditional["safe"] is False
+```
+
+#### 4️⃣ 标记继承
+
+```python
+# 类级别标记
+@pytest.mark.mydata(100)
+class TestClass:
+    
+    @pytest.mark.mydata(200)  # 覆盖类标记
+    def test_override(self, single_marker):
+        print(single_marker)  # 输出: 200
+    
+    def test_inherit(self, single_marker):
+        print(single_marker)  # 输出: 100（继承类标记）
+    
+    @pytest.mark.mydata(300)
+    @pytest.mark.mydata2(50)  # 多标记叠加
+    def test_multiple(self, multiple_markers):
+        data1, data2 = multiple_markers
+        print(f"{data1}, {data2}")  # 输出: 300, 50
+```
+
+
+
+#### 场景1：配置 + 数据分离
+
+```python
+@pytest.fixture
+def test_config(request):
+    config_marker = request.node.get_closest_marker("config")
+    data_marker = request.node.get_closest_marker("data")
+    
+    config = config_marker.args[0] if config_marker else {}
+    data = data_marker.args[0] if data_marker else None
+    
+    # 根据配置处理数据
+    if config.get("transform", False):
+        data = data * 2
+    return config, data
+
+@pytest.mark.config({"transform": True})
+@pytest.mark.data(10)
+def test_transform(test_config):
+    config, data = test_config
+    assert config["transform"] is True
+    assert data == 20  # 10 * 2
+```
+
+#### 场景2: 多数据源合并
+
+```python
+@pytest.fixture
+def combined_data(request):
+    marker1 = request.node.get_closest_marker("user")
+    marker2 = request.node.get_closest_marker("role")
+    
+    user_data = marker1.args[0] if marker1 else {}
+    role_data = marker2.args[0] if marker2 else {}
+    
+    # 合并数据
+    return {**user_data, **role_data}
+
+@pytest.mark.user({"name": "Alice", "age": 30})
+@pytest.mark.role({"role": "admin", "permissions": ["read", "write"]})
+def test_user_role(combined_data):
+    assert combined_data["name"] == "Alice"
+    assert combined_data["role"] == "admin"
+    assert combined_data["permissions"] == ["read", "write"]
+```
+
+### ⚠️ 注意事项
+
+#### ⚠️ 注意点1：标记必须在 pytest.ini 中注册
+
+#### ⚠️ 注意点2：标记不存在时的安全处理
+
+```python
+@pytest.fixture
+def safe_markers(request):
+    marker1 = request.node.get_closest_marker("mydata")
+    marker2 = request.node.get_closest_marker("mydata2")
+    
+    # 安全处理：如果标记不存在，使用默认值
+    data1 = marker1.args[0] if marker1 else None
+    data2 = marker2.args[0] if marker2 else 0
+    
+    return data1, data2
+```
+
+#### ⚠️ 注意点3：标记的顺序不影响结果
+
+```python
+# 以下两种写法效果相同：
+@pytest.mark.mydata2(1)
+@pytest.mark.mydata([1, 2, 3])
+def test_order_1(fun_03):
+    pass
+
+@pytest.mark.mydata([1, 2, 3])
+@pytest.mark.mydata2(1)
+def test_order_2(fun_03):
+    pass
+```
+
+#### ⚠️ 注意点4：可变对象的副作用
+
+```python
+shared_list = [1, 2, 3]
+
+@pytest.mark.mydata(shared_list)
+def test_1(fixture_modify):
+    # 这里修改了 shared_list
+    pass
+
+@pytest.mark.mydata(shared_list)
+def test_2(fixture_modify):
+    # 这里看到的是被 test_1 修改后的 shared_list
+    # ⚠️ 测试之间相互影响！
+    pass
+
+# ✅ 安全做法：在 fixture 中复制
+@pytest.fixture
+def safe_modify(request):
+    marker = request.node.get_closest_marker("mydata")
+    if marker is None:
+        return None
+    data = marker.args[0].copy()  # 复制一份
+    data[-1] = 666
+    return data
+```
+
+
+
+
+
+#### 3️⃣ fixture 返回复杂结构
+
+```python
+@pytest.fixture
+def complex_fixture(request):
+    marker1 = request.node.get_closest_marker("data")
+    marker2 = request.node.get_closest_marker("config")
+    
+    # 返回字典（比元组更清晰）
+    return {
+        "data": marker1.args[0] if marker1 else None,
+        "config": marker2.args[0] if marker2 else {},
+        "processed": True
+    }
+
+@pytest.mark.data([1, 2, 3])
+@pytest.mark.config({"debug": True})
+def test_complex(complex_fixture):
+    assert complex_fixture["processed"] is True
+    assert complex_fixture["data"] == [1, 2, 3]
+```
+
+### 🎯 核心结论
+
+| 维度           | 关键点                                                       |
+| :------------- | :----------------------------------------------------------- |
+| **标记的本质** | 测试函数的元数据携带者，通过 `request.node.get_closest_marker()` 获取 |
+| **标记注册**   | 必须在 `pytest.ini` 或 `pyproject.toml` 中注册，否则报错     |
+| **单标记**     | 一个测试函数可以有一个或多个标记                             |
+| **多标记**     | 多个标记独立存在，fixture 可以分别获取并组合<br>一个测试函数可以同时使用多个标记<br/>每个标记独立存在，互不干扰 |
+| **返回值**     | fixture 可以返回单个值、元组、字典或自定义对象               |
+| **可变对象**   | list、dict 等可以在 fixture 中被修改，但需要注意副作用       |
+| **不可变对象** | int、str、tuple 等不能被修改，只能返回新值                   |
+| **安全性**     | 始终检查标记是否存在，提供默认值                             |
+| **测试隔离**   | 避免在 fixture 中修改共享数据，必要时复制数据                |
+| **标记继承**   | 方法级标记 > 类级标记 > 模块级标记                           |
 
 
 
