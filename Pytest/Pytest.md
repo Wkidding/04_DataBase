@@ -4965,14 +4965,81 @@ class Test02:
 ```python
 @pytest.fixture(params=[1, 2, 3, 4])
 def number(request):
-    return request.param  # 依次返回 1, 2, 3, 4
+    return request.param  # # request.param 会自动遍历 params 列表的每个元素,依次返回 1, 2, 3, 4
 
+# 测试函数会被执行 4 次，每次传入不同的参数
 def test_numbers(number):
     print(f"number={number}")
     assert number > 0
 ```
 
-(2) 返回复杂数据结构
+![image-20260717070311301](images/image-20260717070311301.png)
+
+#### (2) 返回复杂数据结构
+
+##### a) 返回元组/列表
+
+```python
+@pytest.fixture(params=[
+    (1, 2, 3),
+    (4, 5, 6),
+    (7, 8, 9)
+])
+def tuple_data(request):
+    return request.param  # 返回元组
+
+def test_tuple(tuple_data):
+    a, b, c = tuple_data
+    assert a + b == c
+    print(f"{a} + {b} = {c}")
+```
+
+![image-20260717070619877](images/image-20260717070619877.png)
+
+##### b) 返回字典
+
+```python
+@pytest.fixture(params=[
+    {"name": "Alice", "age": 25},
+    {"name": "Bob", "age": 30},
+    {"name": "Charlie", "age": 35}
+])
+def dict_data(request):
+    return request.param  # 返回字典
+
+def test_dict(dict_data):
+    print(f"User: {dict_data['name']}, Age: {dict_data['age']}")
+    assert dict_data["age"] >= 18
+```
+
+![image-20260717070759077](images/image-20260717070759077.png)
+
+##### c) 返回自定义对象
+
+```python
+class User:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+@pytest.fixture(params=[
+    User("Alice", 25),
+    User("Bob", 30),
+    User("Charlie", 35)
+])
+def user_define_obj(request):
+    return request.param
+
+def test_user_define_obj(user_define_obj):
+    print(f"User: {user_define_obj.name}, Age: {user_define_obj.age}")
+    assert user_define_obj.age >= 18
+```
+
+![image-20260717070946521](images/image-20260717070946521.png)
+
+
+
+
 
 
 
