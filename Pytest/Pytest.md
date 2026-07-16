@@ -5113,29 +5113,118 @@ def test_login(login_field, credential):
 
 
 
-
-
 #### (5) 动态生成参数
 
+##### a) 从文件读取
 
+```python
+import pytest
+import json
+
+@pytest.fixture(params=json.load(open("test_data.json")))
+def test_data(request):
+    return request.param
+
+def test_from_file(test_data):
+    print(f"Test data: {test_data}")
+```
+
+##### b) 从函数生成
+
+```python
+import pytest
+
+def generate_params():
+    """动态生成参数列表"""
+    params = []
+    for i in range(10):
+        params.append({"id": i, "value": i * 2})
+    return params
+
+@pytest.fixture(params=generate_params())
+def dynamic_data(request):
+    return request.param
+
+def test_dynamic(dynamic_data):
+    print(f"ID: {dynamic_data['id']}, Value: {dynamic_data['value']}")
+    assert dynamic_data["value"] == dynamic_data["id"] * 2
+```
+
+![image-20260717072302912](images/image-20260717072302912.png)
 
 #### (6) 参数化 + 数据转换
 
+```python
+import pytest 
+@pytest.fixture(params=[1, 2, 3])
+def processed_data(request):
+    # 对参数进行预处理
+    raw = request.param
+    return {
+        "original": raw,
+        "squared": raw ** 2,
+        "cubed": raw ** 3
+    }
 
+def test_processed(processed_data):
+    print(f"Original: {processed_data['original']}")
+    print(f"Squared: {processed_data['squared']}")
+    print(f"Cubed: {processed_data['cubed']}")
+    assert processed_data["squared"] == processed_data["original"] ** 2
+    assert processed_data["cubed"] == processed_data["original"] ** 3
+```
+
+![image-20260717072606938](images/image-20260717072606938.png)
 
 #### (7) 结合标记（Marker）参数化
+
+```python
+@pytest.fixture(params=[1, 2, 3])
+def number_with_marker(request):
+    # 获取测试函数上的标记
+    marker = request.node.get_closest_marker("multiplier")
+    multiplier = marker.args[0] if marker else 1
+    
+    # 参数化数据 × 标记数据
+    return request.param * multiplier
+
+@pytest.mark.multiplier(10)
+def test_with_marker(number_with_marker):
+    print(f"Result: {number_with_marker}")
+    # 输出: 10, 20, 30
+```
+
+![image-20260717072843204](images/image-20260717072843204.png)
+
+#### 📊 完整对比表
+
+| 方式                             | 语法                                                 | 适用场景         | 优点             | 缺点                       |
+| :------------------------------- | :--------------------------------------------------- | :--------------- | :--------------- | :------------------------- |
+| **`params`**                     | `@pytest.fixture(params=[])`                         | 多个测试共享参数 | 代码简洁         | 所有测试固定使用同一参数集 |
+| **`parametrize(indirect=True)`** | `@pytest.mark.parametrize("fix", [], indirect=True)` | 每个测试独立参数 | 灵活控制         | 代码稍复杂                 |
+| **动态生成**                     | `params=generate_params()`                           | 参数需动态计算   | 灵活             | 运行时计算有开销           |
+| **多 fixture**                   | 多个 fixture 各带 `params`                           | 组合测试         | 自动生成笛卡尔积 | 测试数量会膨胀             |
+| **标记结合**                     | `params` + `request.node.get_closest_marker()`       | 参数需结合标记   | 灵活组合         | 理解成本稍高               |
 
 
 
 ### 3、yield返回params中的值
 
+```python
+import pytest
 
+@pytest.fixture(params=['111', '222', '333', '444', '555'])
+def fun_03(request):  # 必须是request这个参数名
+    print("---前置")
+    yield request.param  # 依次取列表中的每个值返回
+    print("---后置")
+ 
+class Test03:
+    def test_case(self, fun_03):
+        print(f"---test_case，data={fun_03}")
+```
 
-
-
-
-
-### 4、笛卡尔积
+![image-20260717073333683](images/image-20260717073333683.png)
 
 
 
