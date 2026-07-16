@@ -4850,7 +4850,7 @@ def test_complex(complex_fixture):
 
 ### 1、fixture返回值
 
-#### (1) 使用参数列表引用
+#### (1) 通过参数注入获取`fixture`返回值
 
 `Testcase/test_18.py`
 
@@ -4860,11 +4860,12 @@ import pytest
 @pytest.fixture
 def fun_01():
     return 666
- 
+
+## 通过参数注入（推荐，可以获取返回值）
 class Test01:
-    def test_case_01(self, fun_01):
+    def test_case_01(self, fun_01):  ##  fixture作为参数注入
         print("---test_case_01")
-        print(f"data={fun_01}")
+        print(f"data={fun_01}") # 输出: data=666
 ```
 
 ##### 返回结果
@@ -4913,7 +4914,45 @@ class Test02:
 
 在 `test_case_02` 中，使用了 `print(f"data={fun_02}")`，这相当于直接调用了夹具函数，而夹具应该通过参数注入的方式使用。
 
+```python
+## 错误写法：
+def test_case_02(self):
+    print(f"data={fun_02}")  # ❌ 直接调用夹具
 
+## 正确写法：
+def test_case_02(self, fun_02):  # ✅ 通过参数注入
+    print(f"data={fun_02}")
+```
+
+##### 问题3：代码中两个问题的组合
+
+即使把问题1改成 `@pytest.mark.usefixtures("fun_02")`，问题2仍然存在：
+
+```python
+@pytest.mark.usefixtures("fun_02")  # 问题1：应传字符串 "fun_02"
+class Test02:
+    def test_case_02(self):
+        print(f"data={fun_02}")   # 问题2：直接调用夹具
+```
+
+- 使用 `usefixtures` 时，fixture被执行但**返回值不会被传递给测试函数**
+- 所以 `fun_02` 在测试函数的作用域中**不存在**，无法直接调用
+
+![image-20260717065048094](images/image-20260717065048094.png)
+
+##### 为什么现在能运行了？
+
+你修改后的代码能够运行，但输出的结果 `data=<function fun_02 at 0x...>` 说明问题依然存在，只是从**报错**变成了**逻辑错误**。
+
+##### 执行流程：
+
+1. `@pytest.mark.usefixtures("fun_02")`
+   - 在测试执行**之前**运行 `fun_02` 夹具
+   - 夹具执行 `return 999`，但返回值被**丢弃**了
+2. `print(f"data={fun_02}")`
+   - 此时 `fun_02` 在测试函数的作用域中**并未被注入**
+   - 但 Python 在**函数定义时**（不是运行时）会在全局作用域中查找 `fun_02`
+   - 发现它是一个**函数对象**，所以输出了它的内存地址
 
 
 
