@@ -5037,29 +5037,93 @@ def test_user_define_obj(user_define_obj):
 
 ![image-20260717070946521](images/image-20260717070946521.png)
 
+#### (3) 使用 `@pytest.mark.parametrize` 间接参数化
+
+```python
+# fixture 定义一个参数名
+@pytest.fixture
+def test_data(request):
+    return request.param  # 接收 parametrize 传递的值
+
+# 使用 indirect=True，让 parametrize 的值传给 fixture
+# 注意：使用parametrize标记传fixture要加双引号
+@pytest.mark.parametrize("test_data", [
+    {"name": "Alice", "age": 25},
+    {"name": "Bob", "age": 30},
+    {"name": "Charlie", "age": 35}
+], indirect=True)
+def test_user(test_data):
+    print(f"User: {test_data['name']}, Age: {test_data['age']}")
+    assert test_data["age"] >= 18
+```
+
+![image-20260717071419250](images/image-20260717071419250.png)
+
+#### 📊 对比：`params` vs `parametrize(indirect=True)`
+
+| 方式                             | 代码示例                                                    | 适用场景                           |
+| :------------------------------- | :---------------------------------------------------------- | :--------------------------------- |
+| **`params`**                     | `@pytest.fixture(params=[...])`                             | fixture 被**多个测试函数**共享参数 |
+| **`parametrize(indirect=True)`** | `@pytest.mark.parametrize("fixture", [...], indirect=True)` | 每个测试函数**独立指定**参数       |
+
+
+
+#### (4) 结合多个 fixture 参数化
+
+##### a) 多 fixture 组合
+
+```python
+@pytest.fixture(params=[1, 2])
+def a(request):
+    return request.param
+
+@pytest.fixture(params=[3, 4])
+def b(request):
+    return request.param
+
+def test_multiply(a, b):
+    result = a * b
+    print(f"{a} × {b} = {result}")
+    # 执行 2×2=4 次
+    # 1×3, 1×4, 2×3, 2×4
+```
+
+![image-20260717071724733](images/image-20260717071724733.png)
+
+##### b) 复杂的多参数组合
+
+```python
+@pytest.fixture(params=["username", "email"])
+def login_field(request):
+    return request.param
+
+@pytest.fixture(params=[
+    {"valid": True, "value": "correct"},
+    {"valid": False, "value": "wrong"}
+])
+def credential(request):
+    return request.param
+
+def test_login(login_field, credential):
+    print(f"Field: {login_field}, Credential: {credential}")
+    # 2×2=4 种组合
+```
+
+![image-20260717071836178](images/image-20260717071836178.png)
 
 
 
 
 
-
-(3) 使用 `@pytest.mark.parametrize` 间接参数化
-
-
-
-(4) 结合多个 fixture 参数化
+#### (5) 动态生成参数
 
 
 
-(5) 动态生成参数
+#### (6) 参数化 + 数据转换
 
 
 
-(6) 参数化 + 数据转换
-
-
-
-(7) 结合标记（Marker）参数化
+#### (7) 结合标记（Marker）参数化
 
 
 
