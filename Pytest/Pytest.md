@@ -4848,9 +4848,9 @@ def test_complex(complex_fixture):
 2. params数据可以为[列表]，(元组)，{集合}，{字典}
 3. params数据在fixture中通过request变量来接收
 
-### fixture返回值
+### 1、fixture返回值
 
-#### 1、使用参数列表引用
+#### (1) 使用参数列表引用
 
 `Testcase/test_18.py`
 
@@ -4873,7 +4873,7 @@ class Test01:
 
 
 
-#### 2、使用标记
+#### (2) 使用`usefixtures`，无法获取返回值
 
 如果fixture有返回值，用@pytest.mark.usefixtures()报错，无法获取到返回值
 
@@ -4895,29 +4895,91 @@ class Test02:
 
 ![image-20260717062711840](images/image-20260717062711840.png)
 
+##### 错误分析
 
+##### 问题1：`@pytest.mark.usefixtures` 使用错误
 
-### fixture返回params中的值
+`@pytest.mark.usefixtures` 接收的是**夹具名称的字符串**，而不是夹具函数本身。
 
+```python
+## 错误写法：
+@pytest.mark.usefixtures(fun_02)  # ❌ 传入了函数对象
 
+## 正确写法：
+@pytest.mark.usefixtures("fun_02")  # ✅ 传入字符串
+```
 
+##### 问题2：在测试方法中直接调用夹具
 
-
-
-
-### yield返回params中的值
-
-
-
-
-
-
-
-### 笛卡尔积
-
+在 `test_case_02` 中，使用了 `print(f"data={fun_02}")`，这相当于直接调用了夹具函数，而夹具应该通过参数注入的方式使用。
 
 
 
+
+
+
+
+### 2、fixture返回params中的值
+
+#### (1) 使用 `params` 参数
+
+```python
+@pytest.fixture(params=[1, 2, 3, 4])
+def number(request):
+    return request.param  # 依次返回 1, 2, 3, 4
+
+def test_numbers(number):
+    print(f"number={number}")
+    assert number > 0
+```
+
+(2) 返回复杂数据结构
+
+
+
+(3) 使用 `@pytest.mark.parametrize` 间接参数化
+
+
+
+(4) 结合多个 fixture 参数化
+
+
+
+(5) 动态生成参数
+
+
+
+(6) 参数化 + 数据转换
+
+
+
+(7) 结合标记（Marker）参数化
+
+
+
+### 3、yield返回params中的值
+
+
+
+
+
+
+
+### 4、笛卡尔积
+
+
+
+### 🎯 核心结论总结
+
+| 关键点              | 说明                                        |
+| :------------------ | :------------------------------------------ |
+| **`params` 参数**   | 最常用方式，支持列表、元组、生成器等        |
+| **`request.param`** | 在 fixture 中访问当前参数值                 |
+| **`indirect=True`** | 将 `parametrize` 的数据传递给 fixture       |
+| **动态生成**        | 可以从函数、文件、数据库动态生成参数        |
+| **多 fixture 组合** | 多个 fixture 各带 params 自动生成笛卡尔积   |
+| **数据预处理**      | 在 fixture 中处理原始参数，返回处理后的数据 |
+| **结合标记**        | 参数化数据 + 标记数据组合使用               |
 
 
 
