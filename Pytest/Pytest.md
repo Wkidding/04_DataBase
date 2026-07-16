@@ -4493,6 +4493,8 @@ def fun_03(request):
 - `return data, data2` 等价于 `return (data, data2)`
 - 测试函数接收时得到的是一个**元组**
 
+
+
 ### 🧪 多种接收方式对比
 
 #### 1️⃣ 基本接收方式
@@ -4838,6 +4840,90 @@ def test_complex(complex_fixture):
 
 
 
+## 17: fixture返回值实现参数化
+
+### 特点
+
+1. fixture可以通过设计params，让依赖该fixture的用例迭代执行
+2. params数据可以为[列表]，(元组)，{集合}，{字典}
+3. params数据在fixture中通过request变量来接收
+
+### fixture返回值
+
+#### 1、使用参数列表引用
+
+`Testcase/test_18.py`
+
+```python
+import pytest
+ 
+@pytest.fixture
+def fun_01():
+    return 666
+ 
+class Test01:
+    def test_case_01(self, fun_01):
+        print("---test_case_01")
+        print(f"data={fun_01}")
+```
+
+##### 返回结果
+
+![image-20260717062240189](images/image-20260717062240189.png)
+
+
+
+#### 2、使用标记
+
+如果fixture有返回值，用@pytest.mark.usefixtures()报错，无法获取到返回值
+
+```python
+import pytest
+ 
+@pytest.fixture
+def fun_02():
+    return 999
+
+@pytest.mark.usefixtures(fun_02)
+class Test02:
+    def test_case_02 (self):
+        print("---test_case_02")
+        print(f"data={fun_02}")
+```
+
+##### 返回结果
+
+![image-20260717062711840](images/image-20260717062711840.png)
+
+
+
+### fixture返回params中的值
+
+
+
+
+
+
+
+### yield返回params中的值
+
+
+
+
+
+
+
+### 笛卡尔积
+
+
+
+
+
+
+
+
+
+## 18: fixture对用例重命名、给函数取别名
 
 
 
@@ -4848,9 +4934,10 @@ def test_complex(complex_fixture):
 
 
 
-## 09: fixture返回值实现参数化
 
-## 10: fixture对用例重命名、给函数取别名
+
+
+
 
 ## 13: parametrize参数化
 
