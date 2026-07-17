@@ -5242,8 +5242,6 @@ class Test03:
 
 
 
-
-
 ## 18: fixture对用例重命名、给函数取别名
 
 
@@ -5260,36 +5258,40 @@ class Test03:
 
 
 
-## 13: parametrize参数化
+## 19: parametrize参数化
 
-## 14: parametrize参数化数据来自yaml文件
+## 20: parametrize参数化数据来自yaml文件
 
-## 15: parametrize参数化数据来自json文件
+## 21: parametrize参数化数据来自json文件
 
-## 16: parametrize参数化数据来自excle文件
+## 22: parametrize参数化数据来自excle文件
 
-## 17: parametrize参数化数据来自csv文件
+## 23: parametrize参数化数据来自csv文件
 
-## 18: parametrize中indirect详解间接参数
+## 24: parametrize中indirect详解间接参数
 
-## 19: parametrize中给用例取别名
+## 25: parametrize中给用例取别名
 
-## 27: pytest常用插件 - 失败重试pytest-rerunfailures
 
-## 28: pytest常用插件 - 重复测试pytest-repeat
 
-## 29: pytest常用插件 - 控制函数执行顺序pytest-ordering
+# pytest常用插件
 
-## 30: pytest常用插件 - 随机执行pytest-random-order
+## 01: pytest常用插件 - 失败重试pytest-rerunfailures
 
-## 31: pytest常用插件 - 并发执行pytest-xdist
+## 02: pytest常用插件 - 重复测试pytest-repeat
 
-## 32: pytest常用插件 - 依赖执行pytest-dependency
+## 03: pytest常用插件 - 控制函数执行顺序pytest-ordering
 
-## 33: pytest常用插件 - 多重校验pytest-assume
+## 04: pytest常用插件 - 随机执行pytest-random-order
 
-## 34: pytest常用插件 - 测试报告pytest-html
+## 05: pytest常用插件 - 并发执行pytest-xdist
 
-## 35: pytest常用插件 - allure报告allure-pytest
+## 06: pytest常用插件 - 依赖执行pytest-dependency
 
-## 36: pytest + allure最佳实践
+## 07: pytest常用插件 - 多重校验pytest-assume
+
+## 08: pytest常用插件 - 测试报告pytest-html
+
+## 09: pytest常用插件 - allure报告allure-pytest
+
+## 10: pytest + allure最佳实践
