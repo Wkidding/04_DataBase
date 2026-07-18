@@ -5244,7 +5244,7 @@ class Test03:
 
 ## 18: fixture对用例重命名、给函数取别名
 
-### 默认用例名称
+### 1、默认用例名称
 
 #### 一个参数
 
@@ -5295,7 +5295,7 @@ class Test02:
 
 ![image-20260718160806976](images/image-20260718160806976.png)
 
-### 重命名用例
+### 2、重命名用例
 
 上面展示不直观，我们可以通过ids重命名，ids个数要和参数个数一样，否则会报错
 
@@ -5362,7 +5362,7 @@ class Test05:
 
 ![image-20260718161735790](images/image-20260718161735790.png)
 
-### 重命名fixture名称
+### 3、重命名fixture名称
 
 给被`@pytest.fixture`标记的函数取一个别名，如果使用了`name`，那只能将`name`传入，函数名(原始fixture名字)不再生效
 
@@ -5448,6 +5448,93 @@ class Test06:
 
 
 ## 19: parametrize参数化
+
+### 1、概述：什么是参数化？
+
+之前我分享了通过**fixture返回值实现参数化**，还可以通过parametrize参数化实现。`@pytest.mark.parametrize` 是 pytest 中最实用的功能之一，它允许你用**同一套测试逻辑**测试**多组不同的输入数据**，每个数据组合都作为独立的测试用例运行。
+
+parametrize是一个内置标记，在命令pytest --markers结果中可以看到@pytest.mark.parametrize(argnames, argvalues)
+
+![image-20260718164509516](images/image-20260718164509516.png)
+
+#### 源码
+
+```python
+class _ParametrizeMarkDecorator(MarkDecorator):
+    def __call__(  # type: ignore[override]
+        self,
+        argnames: Union[str, Sequence[str]],
+        argvalues: Iterable[Union[ParameterSet, Sequence[object], object]],
+        *,
+        indirect: Union[bool, Sequence[str]] = ...,
+        ids: Optional[
+            Union[
+                Iterable[Union[None, str, float, int, bool]],
+                Callable[[Any], Optional[object]],
+            ]
+        ] = ...,
+        scope: Optional[_ScopeName] = ...,
+    ) -> MarkDecorator:
+        ...
+```
+
+#### 方法：
+
+parametrize(argnames, argvalues, indirect=False, ids=None, scope=None)
+
+#### 常用参数：
+
+- **argnames**：参数名，格式为：`arg1,arg2,arg3,...`，通过逗号分隔多个参数
+
+```python
+## 多参数写法汇总：参数名可以是字符串、元组、列表、字符串放元组中
+
+@pytest.mark.parametrize("input,expected", [("1+1", 2), ("2-4", -2), ("2*3", 6)])
+
+@pytest.mark.parametrize(("input","expected"), [("1+1", 2), ("2-4", -2), ("2*3", 6)])
+
+@pytest.mark.parametrize(["input","expected"], [("1+1", 2), ("2-4", -2), ("2*3", 6)])
+
+@pytest.mark.parametrize(("input,expected"), [("1+1", 2), ("2-4", -2), ("2*3", 6)])
+```
+
+- **argvalues**：参数对应值，类型必须为list
+
+　　　　当参数为一个时格式：[v1]
+　　　　当参数个数大于一个时，格式为：[(v1_1, v2_1, ...), (v1_2, v2_2, ...)]，一组参数值放元组或者列表中，也就是说，最外层列表可以嵌套元组或者列表
+
+```python
+@pytest.mark.parametrize("name,technology",[['韧','测试开发'],['全栈测试笔记','性能测试']])  # 列表嵌列表
+
+@pytest.mark.parametrize("name,technology",[('韧','测试开发'),('全栈测试笔记','性能测试')])  # 列表嵌套元组
+```
+
+- **indirect**：默认是False，如果设置成True，表示把被parametrize修饰器修饰的方法形参当函数执行（parametrize中参数名和这个形参同名），同时，必须有这个函数，且被@pytest.fixture()修饰，否则报错：fixture 'xxx' not found，xxx表示形参名
+- **ids**：用例id，用于标识用例，增加可读性（测试结果中会展示id），是字符串列表，ids的长度要与测试数据列表长度一致
+
+#### 使用方法：
+
+> 1、@pytest.mark.parametrize(argnames, argvalues)可以修饰函数、方法、测试类
+>
+> 2、修饰测试类时，会将测试数据传给此类下所有测试方法
+>
+> 3、函数、方法、测试类上可以加多个参数化修饰器
+>
+> 4、如果只有一个修饰器，参数值为N个（也就是列表长度），测试方法就会运行N次
+>
+> 5、如果多个修饰器，参数个数分别是X、Y、Z，会运行X*Y*Z次 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
