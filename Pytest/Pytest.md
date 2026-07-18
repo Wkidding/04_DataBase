@@ -5244,15 +5244,56 @@ class Test03:
 
 ## 18: fixture对用例重命名、给函数取别名
 
+### 用例名默认展示
 
+#### 一个参数
 
+`Testcase/test_18.py`
 
+```python
+import pytest
 
+@pytest.fixture(params=['a', 'b', 'c'])
+def fun_01(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
 
+class Test01:
+    def test_case_01(self, fun_01):
+        print(f"---test_case_01，data={fun_01}")
+```
 
+结果：可以看到，只有一个参数，执行结果是根据传递进来的参数进行命名的
 
+![img](images/1024732-20240219112700458-1154413364.png)
 
+![image-20260718160552012](images/image-20260718160552012.png)
 
+#### 多个参数
+
+```python
+import pytest
+
+data = ['a', 'b', 'c']
+data2 = [1, 2, 3]
+
+@pytest.fixture(params=data)
+def fun_02_01(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+
+@pytest.fixture(params=data2)
+def fun_02_02(request):
+    return request.param
+
+class Test02:
+    def test_case_02(self, fun_02_01, fun_02_02):
+        print(f"---test_case_02，data={fun_02_01},{fun_02_02}")
+```
+
+结果：可以看到，执行结果是根据传递进来的参数通过-拼接进行命名的
+
+![img](images/1024732-20240219112911439-1188028179.png)
+
+![image-20260718160806976](images/image-20260718160806976.png)
 
 
 
