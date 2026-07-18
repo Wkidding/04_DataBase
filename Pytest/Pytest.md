@@ -5248,7 +5248,7 @@ class Test03:
 
 #### 一个参数
 
-`Testcase/test_18.py`
+`Testcase/test_19.py`
 
 ```python
 import pytest
@@ -5295,9 +5295,72 @@ class Test02:
 
 ![image-20260718160806976](images/image-20260718160806976.png)
 
+### 修改用例名
 
+上面展示不直观，我们可以通过ids重命名，ids个数要和参数个数一样，否则会报错
 
+#### 一个参数
 
+```python
+import pytest
+ 
+data = ['product1', 'product2', 'product3']
+ 
+@pytest.fixture(params=data, ids=['add product success','add product fail','update product success'])
+def fun_04(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+ 
+class Test04:
+    def test_case(self, fun_04):
+        print(f"---test_case，data={fun_04}")
+```
+
+![img](images/1024732-20240219114101010-785944186.png)
+
+![image-20260718161522888](images/image-20260718161522888.png)
+
+#### 多个参数
+
+```python
+import pytest
+ 
+data = ['a', 'b', 'c']
+data2 = [1, 2, 3]
+
+@pytest.fixture(params=data, ids=['role1','role2','role2'])
+def fun_03_01(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+
+@pytest.fixture(params=data2, ids=['user','product','stock'])
+def fun_03_02(request):
+    return request.param
+
+class Test03:
+    def test_case_03(self, fun_03_01, fun_03_02):
+        print(f"---test_case，data={fun_03_01},{fun_03_02}")
+```
+
+![img](images/1024732-20240219113812693-2143895998.png)
+
+![image-20260718161336292](images/image-20260718161336292.png)
+
+#### 如果ids和参数个数不一样就会报错
+
+```python
+import pytest
+
+data05 = ['product1', 'product2', 'product3']
+
+@pytest.fixture(params=data05, ids=['add product success','add product fail'])
+def fun_05(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+ 
+class Test05:
+    def test_case_05(self, fun_05):
+        print(f"---test_case_05，data={fun_05}")
+```
+
+![image-20260718161735790](images/image-20260718161735790.png)
 
 ## 19: parametrize参数化
 
