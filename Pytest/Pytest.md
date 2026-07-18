@@ -5244,7 +5244,7 @@ class Test03:
 
 ## 18: fixture对用例重命名、给函数取别名
 
-### 用例名默认展示
+### 默认用例名称
 
 #### 一个参数
 
@@ -5295,7 +5295,7 @@ class Test02:
 
 ![image-20260718160806976](images/image-20260718160806976.png)
 
-### 修改用例名
+### 重命名用例
 
 上面展示不直观，我们可以通过ids重命名，ids个数要和参数个数一样，否则会报错
 
@@ -5361,6 +5361,84 @@ class Test05:
 ```
 
 ![image-20260718161735790](images/image-20260718161735790.png)
+
+### 重命名fixture名称
+
+给被`@pytest.fixture`标记的函数取一个别名，如果使用了`name`，那只能将`name`传入，函数名(原始fixture名字)不再生效
+
+#### 1、传入函数名
+
+```python
+import pytest
+
+data06 = ['product1', 'product2', 'product3']
+
+@pytest.fixture(params=data06, ids=['add product success','add product fail','update product success'], name="product")
+def fun_06(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+
+class Test06:
+    def test_case_06(self, fun_06):
+        print(f"---test_case_06，data={fun_06}")
+```
+
+##### 结果：报错
+
+![image-20260718162138297](images/image-20260718162138297.png)
+
+#### 2、传入`name`(函数别名)
+
+##### (1) 只给测试用例传`name`(函数别名),用例中使用时传入原始fixture名`fun_06`
+
+```python
+import pytest
+
+data06 = ['product1', 'product2', 'product3']
+
+@pytest.fixture(params=data06, ids=['add product success','add product fail','update product success'], name="product")
+def fun_06(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+
+class Test06:
+    def test_case_06(self, product):
+        print(f"---test_case_06，data={fun_06}")
+```
+
+###### 结果：此时没报错，但是打印的参数值是函数地址
+
+![img](images/1024732-20240219114548465-1983207355.png)
+
+![image-20260718162350463](images/image-20260718162350463.png)
+
+
+
+##### (2) 给测试用例和用例中使用fixture的地方都传`name`(函数别名)
+
+```python
+data06 = ['product1', 'product2', 'product3']
+
+@pytest.fixture(params=data06, ids=['add product success','add product fail','update product success'], name="product")
+def fun_06(request):  # 必须是request这个参数名
+    return request.param  # 依次取列表中的每个值返回
+
+class Test06:
+    def test_case_06(self, product):
+        print(f"---test_case_06，data={product}")
+```
+
+###### 结果：正常
+
+![img](images/1024732-20240219114629572-280075460.png)
+
+![image-20260718162514769](images/image-20260718162514769.png)
+
+
+
+
+
+
+
+
 
 ## 19: parametrize参数化
 
