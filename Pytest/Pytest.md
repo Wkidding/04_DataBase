@@ -6044,9 +6044,68 @@ def test_multiply(number, factor):
 
 #### 示例1：测试字符串处理函数
 
+```python
+def capitalize_words(text):
+    return ' '.join(word.capitalize() for word in text.split())
+
+@pytest.mark.parametrize("input_text,expected", [
+    ("hello world", "Hello World"),
+    ("python testing", "Python Testing"),
+    ("", ""),
+    ("single", "Single"),
+    ("multiple   spaces", "Multiple   Spaces")  # 保留多个空格
+])
+def test_capitalize_words(input_text, expected):
+    assert capitalize_words(input_text) == expected
+```
+
+
+
 #### 示例2：测试异常处理
 
+```python
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
+
+@pytest.mark.parametrize("a,b,expected", [
+    (10, 2, 5),
+    (9, 3, 3),
+    (7, 2, 3.5)
+])
+def test_divide_normal(a, b, expected):
+    assert divide(a, b) == expected
+
+@pytest.mark.parametrize("a,b", [
+    (10, 0),
+    (5, 0),
+    (0, 0)
+])
+def test_divide_by_zero(a, b):
+    with pytest.raises(ValueError, match="Cannot divide by zero"):
+        divide(a, b)
+```
+
+
+
 #### 示例3：API 测试（实际项目场景）
+
+```python
+import requests
+
+@pytest.mark.parametrize("endpoint,expected_status", [
+    ("/users", 200),
+    ("/users/1", 200),
+    ("/invalid", 404),
+    ("/users/999", 404)
+])
+def test_api_endpoints(base_url, endpoint, expected_status):
+    response = requests.get(f"{base_url}{endpoint}")
+    assert response.status_code == expected_status
+```
+
+
 
 ### 7、重要注意事项
 
