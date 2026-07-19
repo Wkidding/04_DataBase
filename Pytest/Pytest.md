@@ -6265,23 +6265,118 @@ empty_parameter_set_mark = xfail  # 或 skip, fail_at_collect
 
 
 
+## 20: parametrize中indirect详解间接参数
+
+### 简介
+
+`indirect` 参数是 `@pytest.mark.parametrize` 装饰器中的一个重要参数，它控制着参数值是以**普通数据**的形式直接传递给测试函数，还是**先传递给同名的 fixture**，由 fixture 处理后再交给测试函数。
+
+简单来说，它是一个用于**参数化 fixture** 的开关。
+
+
+
+### 1、`indirect=False`（默认行为）：直接传递数据
+
+当 `indirect=False` 时，`parametrize` 的参数值会**直接**作为参数传递给测试函数。这是最常用的方式。
+
+2、如果设置成True，表示把被parametrize修饰器修饰的方法形参当函数执行（parametrize中参数名和这个形参同名），此时必须有被`@pytest.fixture()`修饰的和形参名同名的函数（可以对参数做一些加工处理），否则报错：fixture 'xxx' not found，xxx表示形参名；简单说，为True时，形参被当成是一个fixture函数
+
+3、fixture修饰器中没有params参数
+
+4、可以通过indirect指定间接参数
+
+
+
+#### 验证：indirect默认值是False
+
+`Testcase/test_23.py`
+
+```python
+import pytest
+
+"""
+indirect 默认为 False
+"""
+data = ["aaa", "ren", "jack"]
+@pytest.mark.parametrize("register", data)
+def test_case_01 (register):
+    print(f"register={register}")
+
+"""
+indirect设置为False，和不指定时结果一致
+"""
+@pytest.mark.parametrize("register", data, indirect=False)
+def test_case_02 (register):
+    print(f"register={register}")
+```
+
+![image-20260720074017435](images/image-20260720074017435.png)
+
+### 2、`indirect=True`：数据先交给 Fixture 处理
+
+当 `indirect=True` 时，`parametrize` 中的参数名（`argnames`）**必须**是一个已定义的 fixture 名称。参数值会作为 `request.param` 传入这个 fixture，由 fixture 加工处理后再返回给测试函数。
+
+#### 工作流程：
+
+1. 你传递的参数值（如 `"user1"`）会作为 `request.param` 进入 fixture `db_query`。
+2. Fixture 根据 `request.param` 执行逻辑（如查询数据库或处理数据）。
+3. Fixture 将**处理后的结果**返回给测试函数。
+
+#### 验证：indirect默认值是True
+
+`Testcase/test_23.py`
+
+```python
+import pytest
+
+# 1. 定义一个 fixture
+@pytest.fixture
+def db_query(request):
+    # request.param 接收从 parametrize 传来的值
+    query_param = request.param
+    if query_param == "user1":
+        return {"id": 1, "name": "Alice"}
+    elif query_param == "user2":
+        return {"id": 2, "name": "Bob"}
+
+# 2. 在 parametrize 中引用这个 fixture，并设置 indirect=True
+@pytest.mark.parametrize("db_query", ["user1", "user2"], indirect=True)
+def test_user_query(db_query):
+    # db_query 现在已经是 fixture 返回的字典了，而不是字符串 "user1" 或 "user2"
+    print(db_query)  # 输出: {'id': 1, 'name': 'Alice'} 等
+    assert "name" in db_query
+```
+
+![image-20260720075006091](images/image-20260720075006091.png)
+
+### 总结与对比
+
+| 特性               | `indirect=False` (默认)      | `indirect=True`                                              |
+| :----------------- | :--------------------------- | :----------------------------------------------------------- |
+| **数据流向**       | 参数值 **直接** 传给测试函数 | 参数值 **先传给** fixture，fixture 的返回值再传给测试函数    |
+| **参数名**         | 可以是测试函数中任意参数名   | 必须对应一个**已定义的 fixture 名称**                        |
+| **Fixture 中访问** | N/A                          | 通过 `request.param` 获取参数化传入的值                      |
+| **核心价值**       | 数据驱动测试，简单直接       | 复用同一测试逻辑，为不同的 fixture（如不同配置、不同资源）提供数据，增加灵活性 |
+
+
+
+## 21: parametrize中给用例取别名
 
 
 
 
 
 
-## 20: parametrize参数化数据来自yaml文件
 
-## 21: parametrize参数化数据来自json文件
+## 22: parametrize参数化数据来自yaml文件
 
-## 22: parametrize参数化数据来自excle文件
+## 23: parametrize参数化数据来自json文件
 
-## 23: parametrize参数化数据来自csv文件
+## 24: parametrize参数化数据来自excle文件
 
-## 24: parametrize中indirect详解间接参数
+## 25: parametrize参数化数据来自csv文件
 
-## 25: parametrize中给用例取别名
+## 
 
 
 
