@@ -5880,20 +5880,75 @@ class TestMath:
 
 #### 5️⃣ 模块级别参数化
 
+`Testcase/test_21.py`
+
 ```python
+import pytest 
 pytestmark = pytest.mark.parametrize("env", ["dev", "test", "prod"])
 def test_config(env):
     print(f"Testing environment: {env}")
     assert env in ["dev", "test", "prod"]
 ```
 
+##### 结果
 
+![image-20260720063415369](images/image-20260720063415369.png)
 
 
 
 ### 5、与 Fixture 结合使用
 
 #### 1️⃣ 间接参数化（`indirect=True`）
+
+将参数值传递给 fixture，由 fixture 进行预处理：
+
+`Testcase/test_22.py`
+
+```python
+import pytest
+
+@pytest.fixture
+def processed_data(request):
+    # request.param 接收 parametrize 传递的值
+    raw = request.param
+    return raw * 2  # 预处理：乘以2
+
+@pytest.mark.parametrize("processed_data", [1, 2, 3, 4], indirect=True)
+def test_processed(processed_data):
+    print(f"Processed: {processed_data}")
+    # 输出: 2, 4, 6, 8
+```
+
+##### 结果
+
+![image-20260720063647226](images/image-20260720063647226.png)
+
+##### 结果分析
+
+###### 1. `indirect=True` 的作用
+
+```python
+@pytest.mark.parametrize("processed_data", [1, 2, 3, 4], indirect=True)
+```
+
+- **`indirect=True`** 告诉 pytest：参数 `processed_data` 的值应该通过 fixture 来获取
+- 每个参数值（1, 2, 3, 4）会作为 `request.param` 传递给 fixture
+
+###### 2. 详细步骤
+
+| 步骤 | 操作                         | 说明                     |
+| :--- | :--------------------------- | :----------------------- |
+| 1    | `@parametrize` 提供值        | `[1, 2, 3, 4]`           |
+| 2    | `indirect=True` 触发         | 告诉 pytest 使用 fixture |
+| 3    | Fixture 接收 `request.param` | 依次接收 1, 2, 3, 4      |
+| 4    | Fixture 处理数据             | `raw * 2` → 2, 4, 6, 8   |
+| 5    | 测试函数接收处理后的值       | 执行断言和打印           |
+
+
+
+
+
+
 
 #### 2️⃣ 多个 fixture 间接参数化
 
