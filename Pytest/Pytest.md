@@ -5861,12 +5861,31 @@ def test_combination(x, y):
 #### 4️⃣ 类级别参数化
 
 ```python
-
+@pytest.mark.parametrize("n,expected", [
+    (1, 2),
+    (2, 4),
+    (3, 6)
+])
+class TestMath:
+    def test_double(self, n, expected):
+        assert n * 2 == expected
+    
+    def test_add_one(self, n, expected):
+        assert n + n == expected  # 也使用同样的参数
 ```
 
+##### 结果
 
+![image-20260720062614384](images/image-20260720062614384.png)
 
 #### 5️⃣ 模块级别参数化
+
+```python
+pytestmark = pytest.mark.parametrize("env", ["dev", "test", "prod"])
+def test_config(env):
+    print(f"Testing environment: {env}")
+    assert env in ["dev", "test", "prod"]
+```
 
 
 
