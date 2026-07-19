@@ -5605,9 +5605,18 @@ def test_login(username, password):
     assert len(password) >= 6
 ```
 
-结果：
+###### 结果：
 
 ![image-20260719220416457](images/image-20260719220416457.png)
+
+###### 参数化测试机制
+
+`@pytest.mark.parametrize` 装饰器实现了**数据驱动测试**，每个参数组合生成一个独立的测试用例：
+
+| 测试函数     | 参数组合数 | 生成的测试用例                                               |
+| :----------- | :--------- | :----------------------------------------------------------- |
+| `test_add`   | 3组        | `test_add[1-2-3]`、`test_add[4-5-9]`、`test_add[10-20-30]`   |
+| `test_login` | 3组        | `test_login[admin-123456]`、`test_login[user1-abc123]`、`test_login[guest-guest123]` |
 
 
 
@@ -5664,6 +5673,14 @@ def test_order_processing(order):
     assert calculated_total == order["total"]
 ```
 
+###### 结果：
+
+![image-20260719220851730](images/image-20260719220851730.png)
+
+![image-20260719220919407](images/image-20260719220919407.png)
+
+
+
 ##### (3) 修饰器放测试类上
 
 ```python
@@ -5689,13 +5706,17 @@ class TestMathOperations:
         result = a * b
         print(f"乘法测试: {a} * {b} = {result}")
         assert result > 0
-    
+
     def test_comparison(self, a, b):
         """测试比较运算 - 自动接收类级别的参数"""
         # 注意：参数会依次传入每个测试方法
         assert a != b  # 使用 (10,20) 时，10 != 20 为 True
         # 但如果参数是 (10,10)，这个测试就会失败
 ```
+
+###### 结果
+
+![image-20260719221232662](images/image-20260719221232662.png)
 
 ##### (4) 测试类下多个方法，会将测试数据传给此类下所有测试方法
 
