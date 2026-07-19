@@ -5766,6 +5766,33 @@ class TestUserAuthentication:
 
 ![image-20260719221449262](images/image-20260719221449262.png)
 
+##### (5) 参数放变量中
+
+```python
+import pytest
+ 
+data = [('韧','测试开发'),('全栈测试笔记','性能测试')]
+@pytest.mark.parametrize("name,technology",data)
+class TestQzcsbj:
+    def test_case(self, name, technology):
+        print(f"name={name}, technology={technology}")
+```
+
+###### 结果
+
+![image-20260720072056411](images/image-20260720072056411.png)
+
+##### pytest参数化时出现unicode编码问题
+
+如上结果显示，执行时会出现unicode编码问题
+
+配置文件pytest.ini中添加：
+
+```python
+[pytest]
+    disable_test_id_escaping_and_forfeit_all_rights_to_community_support = True
+```
+
 
 
 #### 3️⃣ 参数名的三种写法
