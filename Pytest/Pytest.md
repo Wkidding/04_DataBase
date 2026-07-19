@@ -5825,15 +5825,44 @@ def test_eval(test_input, expected):
     assert eval(test_input) == expected
 ```
 
-###### 结果
+##### 结果
 
 ![image-20260719224746156](images/image-20260719224746156.png)
 
+##### 测试用例状态对比
+
+| 用例               | 输入    | 期望值 | 实际结果 | 状态      | 说明                      |
+| :----------------- | :------ | :----- | :------- | :-------- | :------------------------ |
+| `test_eval[3+5-8]` | `"3+5"` | 8      | 8        | ✅ PASSED  | 正常通过                  |
+| `test_eval[2+4-6]` | `"2+4"` | 6      | 6        | ✅ PASSED  | 正常通过                  |
+| `test_eval[6*9-4]` | `"6*9"` | 42     | 54       | ❌ FAILED  | **预期失败**（xfail标记） |
+| `test_eval[1/0-0]` | `"1/0"` | 0      | 未执行   | ⏭️ SKIPPED | 主动跳过（除零错误）      |
+
 #### 3️⃣ 堆叠参数化（笛卡尔积）
 
+多个 `parametrize` 叠加会生成**笛卡尔积**组合：
 
+```python
+@pytest.mark.parametrize("x", [1, 2])
+@pytest.mark.parametrize("y", [3, 4])
+def test_combination(x, y):
+    print(f"x={x}, y={y}")
+    # 生成 4 个测试用例：
+    # x=1, y=3
+    # x=1, y=4
+    # x=2, y=3
+    # x=2, y=4
+```
+
+##### 结果
+
+![image-20260720062324191](images/image-20260720062324191.png)
 
 #### 4️⃣ 类级别参数化
+
+```python
+
+```
 
 
 
