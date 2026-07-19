@@ -5946,11 +5946,99 @@ def test_processed(processed_data):
 
 
 
-
-
-
-
 #### 2️⃣ 多个 fixture 间接参数化
+
+`Testcase/test_22.py`
+
+```python
+@pytest.fixture
+def factor(request):
+    return request.param
+
+@pytest.fixture
+def number(request):
+    return request.param
+
+@pytest.mark.parametrize("factor", [2, 3], indirect=True) # 外层装饰器（后执行）
+@pytest.mark.parametrize("number", [10, 20], indirect=True)# 内层装饰器（先执行）
+def test_multiply(number, factor):
+    result = number * factor
+    print(f"{number} × {factor} = {result}")
+    # 生成 4 个测试：
+    # 10×2, 20×2, 10×3, 20×3
+```
+
+##### 结果
+
+![image-20260720064715225](images/image-20260720064715225.png)
+
+##### 结果分析
+
+##### (1) 参数含义详解
+
+###### 1. 装饰器参数
+
+```
+@pytest.mark.parametrize("factor", [2, 3], indirect=True)
+```
+
+- **`"factor"`**：参数名称，对应测试函数的参数名
+- **`[2, 3]`**：参数值列表，每个值会生成一个测试用例
+- **`indirect=True`**：告诉 pytest 通过 fixture 获取参数值
+
+###### 2. Fixture 参数
+
+```
+@pytest.fixture
+def factor(request):
+    return request.param  # 接收参数化传入的值（2 或 3）
+```
+
+- **`request.param`**：pytest 内置对象，用于接收 `@parametrize` 传递的值
+- **返回值**：fixture 的返回值会传递给测试函数
+
+###### 3. 测试函数参数
+
+```
+def test_multiply(number, factor):
+    result = number * factor
+```
+
+- **`number`**：由 `number` fixture 提供（值为 10 或 20）
+- **`factor`**：由 `factor` fixture 提供（值为 2 或 3）
+
+##### (2) 组合生成过程
+
+```
+第1步：处理内层 @parametrize("number", [10, 20])
+       → 生成 2 个参数组合：number=10, number=20
+
+第2步：处理外层 @parametrize("factor", [2, 3])
+       → 对每个 number 值，都应用 factor 的所有值
+       → 笛卡尔积：2 × 2 = 4 个组合
+
+组合顺序：
+┌─────────────┬─────────────┬──────────────┐
+│ 组合编号    │ number 值   │ factor 值    │
+├─────────────┼─────────────┼──────────────┤
+│ 1           │ 10          │ 2            │
+│ 2           │ 10          │ 3            │
+│ 3           │ 20          │ 2            │
+│ 4           │ 20          │ 3            │
+└─────────────┴─────────────┴──────────────┘
+```
+
+
+
+#### 关键要点总结
+
+1. **`indirect=True`** 让参数化数据通过 fixture 传递
+2. **Fixture 中使用 `request.param`** 接收参数化值
+3. **预处理逻辑放在 fixture 中**，实现代码复用
+4. **测试函数接收处理后的数据**，保持简洁
+5. **适用场景**：数据清洗、格式转换、复杂计算、依赖注入
+
+
 
 ### 6、实战示例
 
@@ -5972,6 +6060,8 @@ def test_processed(processed_data):
 
 ### 8、总结
 
+#### (1) 参数化作用
+
 `@pytest.mark.parametrize` 是 pytest 中最实用的功能之一，它让你能够：
 
 - ✅ **用一行代码覆盖多个测试场景**，避免重复
@@ -5989,6 +6079,16 @@ def test_processed(processed_data):
 | **最佳实践** | 保持用例独立、使用有意义的 ID、避免可变对象副作用 |
 
 
+
+#### (2) 参数化三种方式对比
+
+| 特性           | 直接参数化         | indirect=True    | fixture params        |
+| :------------- | :----------------- | :--------------- | :-------------------- |
+| **预处理位置** | 测试函数内         | fixture 中       | fixture 中            |
+| **代码复用**   | ❌ 每个测试都要重复 | ✅ 多个测试可复用 | ✅ 多个测试可复用      |
+| **参数化方式** | `@parametrize`     | `@parametrize`   | `fixture(params=...)` |
+| **适用场景**   | 简单测试           | 需要复杂预处理   | 固定数据集            |
+| **灵活性**     | 中等               | 高               | 中等                  |
 
 
 
