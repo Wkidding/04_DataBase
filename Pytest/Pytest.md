@@ -5803,7 +5803,7 @@ def test_user_age(user, expected_age):
     assert user["age"] == expected_age
 ```
 
-##### 结果：
+##### 结果
 
 ![image-20260719222103426](images/image-20260719222103426.png)
 
@@ -5811,7 +5811,23 @@ def test_user_age(user, expected_age):
 
 #### 2️⃣ 使用 `pytest.param` 标记单个用例
 
+```python
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        ("3+5", 8),
+        ("2+4", 6),
+        pytest.param("6*9", 42, marks=pytest.mark.xfail),  # 预期失败
+        pytest.param("1/0", 0, marks=pytest.mark.skip(reason="避免除零错误"))
+    ]
+)
+def test_eval(test_input, expected):
+    assert eval(test_input) == expected
+```
 
+###### 结果
+
+![image-20260719224746156](images/image-20260719224746156.png)
 
 #### 3️⃣ 堆叠参数化（笛卡尔积）
 
