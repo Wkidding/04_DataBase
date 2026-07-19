@@ -5605,6 +5605,12 @@ def test_login(username, password):
     assert len(password) >= 6
 ```
 
+结果：
+
+![image-20260719220416457](images/image-20260719220416457.png)
+
+
+
 ##### (2) 修饰器放函数上，参数值是字典
 
 ```python
