@@ -5787,13 +5787,45 @@ class TestUserAuthentication:
 
 #### 1️⃣ 自定义测试 ID（`ids` 参数）
 
+默认情况下，pytest 使用参数值作为测试 ID。对于复杂对象，可以通过 `ids` 自定义：
+
+```python
+@pytest.mark.parametrize(
+    "user,expected_age",
+    [
+        ({"name": "Alice", "age": 25}, 25),
+        ({"name": "Bob", "age": 30}, 30),
+        ({"name": "Charlie", "age": 35}, 35)
+    ],
+    ids=["Alice_25", "Bob_30", "Charlie_35"]
+)
+def test_user_age(user, expected_age):
+    assert user["age"] == expected_age
+```
+
+##### 结果：
+
+![image-20260719222103426](images/image-20260719222103426.png)
+
+
+
 #### 2️⃣ 使用 `pytest.param` 标记单个用例
+
+
 
 #### 3️⃣ 堆叠参数化（笛卡尔积）
 
+
+
 #### 4️⃣ 类级别参数化
 
+
+
 #### 5️⃣ 模块级别参数化
+
+
+
+
 
 ### 5、与 Fixture 结合使用
 
