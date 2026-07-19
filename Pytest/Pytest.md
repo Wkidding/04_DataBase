@@ -6044,6 +6044,8 @@ def test_multiply(number, factor):
 
 #### 示例1：测试字符串处理函数
 
+`Testcase/test_22.py`
+
 ```python
 def capitalize_words(text):
     return ' '.join(word.capitalize() for word in text.split())
@@ -6059,9 +6061,13 @@ def test_capitalize_words(input_text, expected):
     assert capitalize_words(input_text) == expected
 ```
 
+##### 结果
 
+![image-20260720070425853](images/image-20260720070425853.png)
 
 #### 示例2：测试异常处理
+
+`Testcase/test_22.py`
 
 ```python
 def divide(a, b):
@@ -6087,13 +6093,25 @@ def test_divide_by_zero(a, b):
         divide(a, b)
 ```
 
+##### 结果
 
+![image-20260720070621998](images/image-20260720070621998.png)
 
 #### 示例3：API 测试（实际项目场景）
 
+`Testcase/test_22.py`
+
 ```python
+import pytest
 import requests
 
+# 1. 定义 base_url fixture
+@pytest.fixture
+def base_url():
+    """提供基础 URL"""
+    return "https://jsonplaceholder.typicode.com"  # 示例 API
+
+# 2. 参数化测试
 @pytest.mark.parametrize("endpoint,expected_status", [
     ("/users", 200),
     ("/users/1", 200),
