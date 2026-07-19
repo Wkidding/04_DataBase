@@ -5731,7 +5731,6 @@ import pytest
 ])
 class TestUserAuthentication:
     """用户认证测试 - 多个方法共享参数"""
-    
     def test_validate_username(self, username, password, expected):
         """验证用户名格式"""
         # 用户名必须包含字母或数字
@@ -5762,6 +5761,10 @@ class TestUserAuthentication:
         }
         return valid_users.get(username) == password
 ```
+
+###### 结果：
+
+![image-20260719221449262](images/image-20260719221449262.png)
 
 
 
