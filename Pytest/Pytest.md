@@ -6129,11 +6129,80 @@ def test_api_endpoints(base_url, endpoint, expected_status):
 
 #### ⚠️ 注意点1：可变对象的副作用
 
+参数值是**直接传递**的，不会创建副本：
+
+```python
+# ❌ 危险：修改可变对象会影响后续测试
+@pytest.mark.parametrize("data", [
+    [1, 2, 3],
+    [4, 5, 6]
+])
+def test_modify_list(data):
+    data.append(999)  # 修改了原始列表
+    # 下一个测试用例会看到被修改后的列表！
+
+# ✅ 安全：使用 copy()
+@pytest.mark.parametrize("data", [
+    [1, 2, 3],
+    [4, 5, 6]
+])
+def test_safe_modify(data):
+    data_copy = data.copy()
+    data_copy.append(999)
+    # 原始数据保持不变
+```
+
+
+
 #### ⚠️ 注意点2：参数数量必须匹配
+
+```python
+# ❌ 参数名数量与数据长度不匹配
+@pytest.mark.parametrize("a,b,c", [(1, 2)])  # 错误！
+
+# ✅ 正确
+@pytest.mark.parametrize("a,b", [(1, 2)])    # 2个参数
+```
+
+
 
 #### ⚠️ 注意点3：空参数集的处理
 
+如果参数列表为空，pytest 不会执行测试：
+
+```python
+@pytest.mark.parametrize("data", [])  # 空列表
+def test_empty(data):
+    # 这个测试不会执行
+    pass
+```
+
+可通过配置控制行为：
+
+```python
+[pytest]
+empty_parameter_set_mark = xfail  # 或 skip, fail_at_collect
+```
+
+
+
 #### ⚠️ 注意点4：`ids` 必须唯一
+
+```python
+# ❌ 重复 ID 会导致警告
+@pytest.mark.parametrize("data", [
+    pytest.param(1, id="case"),
+    pytest.param(2, id="case")  # 重复 ID
+])
+
+# ✅ 使用唯一 ID
+@pytest.mark.parametrize("data", [
+    pytest.param(1, id="case_1"),
+    pytest.param(2, id="case_2")
+])
+```
+
+
 
 ### 8、总结
 
