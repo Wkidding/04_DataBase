@@ -6362,9 +6362,41 @@ def test_user_query(db_query):
 
 ## 21: parametrize中给用例取别名
 
-在fixture中可以使用ids给用例取别名
+在fixture中可以使用ids给用例取别名。类似的，parametrize中也可以使用ids给用例取别名，从而增加可读性。
 
-类似的，parametrize中也可以使用ids给用例取别名，从而增加可读性
+在 `pytest` 中给参数化测试用例取别名，标准做法是使用 `@pytest.mark.parametrize` 装饰器中的 `ids` 参数，或者在参数值中使用 `pytest.param` 并指定 `id`。这两种方法能让测试报告和失败信息更清晰易读
+
+`Testcase/test_23.py`
+
+### 方法一：使用 `ids` 参数
+
+`ids` 参数接收一个与参数值列表一一对应的字符串列表。
+
+```python
+import pytest
+
+# 参数值列表
+testdata = [
+    (datetime(2001, 12, 12), datetime(2001, 12, 11), timedelta(1)),
+    (datetime(2001, 12, 11), datetime(2001, 12, 12), timedelta(-1)),
+]
+
+# 方式一： 通过 ids 列表指定别名
+@pytest.mark.parametrize("a,b,expected", testdata, ids=["forward", "backward"])
+def test_timedistance_v1(a, b, expected):
+    diff = a - b
+    assert diff == expected
+```
+
+执行 `--collect-only` 后可以看到，测试用例的名称变成了 `test_timedistance_v1[forward]` 和 `test_timedistance_v1[backward]`。
+
+### 方法二：使用 `pytest.param` 指定 `id`
+
+这种方式是将每个参数组合用 `pytest.param()` 包裹起来，直接在内部指定 `id`。
+
+```python
+
+```
 
 
 
