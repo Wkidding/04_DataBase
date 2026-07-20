@@ -6390,6 +6390,18 @@ def test_timedistance_v1(a, b, expected):
 
 执行 `--collect-only` 后可以看到，测试用例的名称变成了 `test_timedistance_v1[forward]` 和 `test_timedistance_v1[backward]`。
 
+#### 结果
+
+仅执行 `--collect-only`
+
+![image-20260721070729664](images/image-20260721070729664.png)
+
+执行完整测试
+
+![image-20260721070626444](images/image-20260721070626444.png)
+
+
+
 ### 方法二：使用 `pytest.param` 指定 `id`
 
 这种方式是将每个参数组合用 `pytest.param()` 包裹起来，直接在内部指定 `id`。
