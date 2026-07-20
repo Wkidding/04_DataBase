@@ -6362,6 +6362,10 @@ def test_user_query(db_query):
 
 ## 21: parametrize中给用例取别名
 
+在fixture中可以使用ids给用例取别名
+
+类似的，parametrize中也可以使用ids给用例取别名，从而增加可读性
+
 
 
 
