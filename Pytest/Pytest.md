@@ -6395,10 +6395,51 @@ def test_timedistance_v1(a, b, expected):
 这种方式是将每个参数组合用 `pytest.param()` 包裹起来，直接在内部指定 `id`。
 
 ```python
+import pytest
+from datetime import datetime, timedelta
 
+# 方式二：使用 pytest.param 为每个用例单独指定 id
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        pytest.param(
+            datetime(2001, 12, 12), 
+            datetime(2001, 12, 11), 
+            timedelta(1),
+            id="forward"  # 正向测试用例
+        ),
+        pytest.param(
+            datetime(2001, 12, 11), 
+            datetime(2001, 12, 12), 
+            timedelta(-1),
+            id="backward"  # 反向测试用例
+        ),
+        pytest.param(
+            datetime(2001, 12, 12), 
+            datetime(2001, 12, 12), 
+            timedelta(0),
+            id="same_time"  # 相同时间测试用例
+        ),
+    ]
+)
+def test_timedistance_v2(a, b, expected):
+    diff = a - b
+    assert diff == expected
 ```
 
+### 两种方法的对比
 
+**方法一（`ids` 列表）**：
+
+- ✅ 简洁，适合参数值较少的场景
+- ❌ 必须保持 `ids` 列表与参数值列表一一对应，容易出错
+
+**方法二（`pytest.param` 指定 `id`）**：
+
+- ✅ 每个用例的 `id` 紧挨着参数值，更清晰直观
+- ✅ 可以单独为某些用例指定 `id`，其他用例可以不指定
+- ✅ 适合参数组合较多或复杂的情况
+- ❌ 代码稍显冗长
 
 
 
