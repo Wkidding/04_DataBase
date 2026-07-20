@@ -6469,13 +6469,61 @@ def test_timedistance_v2(a, b, expected):
 
 ## 22: parametrize参数化数据来自yaml文件
 
+### 前置基础
+
+python操作yaml
+
+### 关于数据驱动
+
+数据驱动就是通过数据的改变从而驱动自动化测试的执行，最终引起测试结果的改变。简单来说，就是参数化的应用。
+
+数据量小的测试用例可以使用代码的参数化来实现数据驱动，数据量大的情况下建议使用一一种结构化的文件(例如yaml、json等) 来对数据进行存储，然后在测试用例中读取这些数据。
+
+但是，建议不管数据多少，都要数据和代码的分离，方便维护。
+
+```
+测试步骤的数据驱动：ui自动化
+测试数据的数据驱动：接口自动化
+配置的数据驱动：比如切换环境
+```
+
+### 测试示例
+
+![image-20260721072139379](images/image-20260721072139379.png)
+
+`Testcase/test_25.py`
+
+```python
+import pytest
+import yaml
+import os
+ 
+# 获取项目路径
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ 
+def read_data_from_yaml(file_path):
+    f = open(file_path, "r", encoding="utf-8")
+    res = yaml.load(f, yaml.FullLoader)
+    f.close()
+    print(f"返回的参数：{res}")
+    return res
+ 
+@pytest.mark.parametrize("param", read_data_from_yaml(BASE_PATH+"/data/case.yaml"))
+def test_case(param):
+    print(f"uname={param['uname']}, pwd={param['pwd']}")
+```
+
+### 结果
+
+![image-20260721072554613](images/image-20260721072554613.png)
+
 ## 23: parametrize参数化数据来自json文件
 
 ## 24: parametrize参数化数据来自excle文件
 
 ## 25: parametrize参数化数据来自csv文件
 
-## 
+
 
 
 
