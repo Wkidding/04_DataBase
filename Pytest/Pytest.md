@@ -6392,11 +6392,11 @@ def test_timedistance_v1(a, b, expected):
 
 #### 结果
 
-仅执行 `--collect-only`
+##### 仅执行 `--collect-only`
 
 ![image-20260721070729664](images/image-20260721070729664.png)
 
-执行完整测试
+##### 执行完整测试
 
 ![image-20260721070626444](images/image-20260721070626444.png)
 
@@ -6438,6 +6438,16 @@ def test_timedistance_v2(a, b, expected):
     diff = a - b
     assert diff == expected
 ```
+
+#### 结果
+
+##### 仅执行`--collect-only`
+
+![image-20260721071015726](images/image-20260721071015726.png)
+
+##### 执行完整测试
+
+![image-20260721071047057](images/image-20260721071047057.png)
 
 ### 两种方法的对比
 
