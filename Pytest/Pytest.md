@@ -6584,6 +6584,8 @@ pip install xlrd==1.0.0
 
 ### parametrize从excel获取数据
 
+### 方式一：
+
 ```python
 """
 pytest 使用parameter参数化获取excel文件数据进行测试
@@ -6640,7 +6642,60 @@ def test_case (param):
     print(f"uname={param['uname']}, pwd={param['pwd']}")
 ```
 
-![image-20260722063344351](images/image-20260722063344351.png)
+#### 结果
+
+存在warning。具体原因是由于使用的是 `xlrd` 库来读取 `.xlsx` 文件。`xlrd` 从 **2.0.0 版本开始已停止支持 `.xlsx` 格式**（仅保留对旧 `.xls` 的支持）。虽然你当前能读取（可能因版本较低），但其内部的 `.xlsx` 解析模块长久未更新，依赖了过时的第三方库和 Python API，导致这些警告。
+
+![image-20260722064119309](images/image-20260722064119309.png)
+
+
+
+### 方式二：
+
+```python
+"""
+pytest 使用parameter参数化获取excel文件数据进行测试
+"""
+
+import xlrd
+import pytest
+import os
+import openpyxl
+
+# 获取项目路径
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def read_data_from_excel (file_path, sheet_name="Sheet1"):
+    wb = openpyxl.load_workbook(file_path, data_only=True)
+    sheet = wb[sheet_name]
+
+    # 获取第一行作为键（取实际值，跳过空单元格）
+    headers = [cell.value for cell in sheet[1] if cell.value is not None]
+
+    rows_dict = []
+    # 从第二行开始读取
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        # 只取有数据的列（与headers长度一致）
+        row_data = [cell for cell in row[:len(headers)] if cell is not None]
+        if not row_data:  # 跳过全空行
+            continue
+        # 补齐长度（若某列值为None，用空字符串代替）
+        while len(row_data) < len(headers):
+            row_data.append('')
+        rows_dict.append(dict(zip(headers, row_data)))
+    return rows_dict
+
+@pytest.mark.parametrize("param", read_data_from_excel(BASE_PATH + "/data/case.xlsx"))
+def test_case (param):
+    print(param)
+    print(f"uname={param['uname']}, pwd={param['pwd']}")
+```
+
+#### 结果
+
+没有warning，运行结果正确
+
+![image-20260722064244894](images/image-20260722064244894.png)
 
 ## 25: parametrize参数化数据来自csv文件
 
