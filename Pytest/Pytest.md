@@ -6562,7 +6562,9 @@ def test_case(param):
     print(f"uname={param['uname']}, pwd={param['pwd']}")
 ```
 
+#### 结果
 
+![image-20260722062023662](images/image-20260722062023662.png)
 
 ## 24: parametrize参数化数据来自excle文件
 
