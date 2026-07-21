@@ -6743,7 +6743,93 @@ def test_case (param):
 
 # pytest常用插件
 
+### 关于插件
+
+pytest有很多第三方插件：https://docs.pytest.org/en/latest/reference/plugin_list.html#plugin-list
+
+总共1300多个，一般最近1年内有更新的都是常用的。
+
+![img](images/1024732-20240221152312287-1632462232.png)
+
 ## 01: pytest常用插件 - 失败重试pytest-rerunfailures
+
+### 1. 概述
+
+`pytest-rerunfailures` 是一个基于 pytest 框架的插件，用于在测试用例失败时自动重新运行，直到达到预定的重试次数或测试用例通过为止。
+
+**适用场景**：在自动化测试中，部分用例失败并非代码问题，而是由于网络波动、服务重启、资源暂时不可用等偶发性因素导致。通过失败重试机制，可以有效减少因环境不稳定造成的“假阴性”结果，提升测试的稳定性和可靠性。
+
+### 2.插件安装
+
+```shell
+##1、直接pip安装
+pip install pytest-rerunfailures
+
+## 2、使用包管理器anconda进行安装
+```
+
+### 3. 核心特性详解
+
+参数：
+
+- `--reruns n`，表示运行不通过，最多重试次数；必填
+- `--reruns-delay m`，表示重试前等待秒数；可选参数
+
+命令：
+
+　　`pytest --reruns n`　或    ` pytest --reruns=n`
+
+#### 3.1 全局重试所有失败用例
+
+使用 `--reruns` 命令行选项，指定测试运行的最大次数（首次运行 + 重试次数）：
+
+```shell
+pytest --reruns 3
+```
+
+**重要特性**：运行失败的 fixture 或 `setup_class` 也将被重新执行。
+
+##### 用例
+
+`Testcase/test_plugins/test_rerun.py`
+
+```python
+"""
+测试pytest常用插件 - 失败重试pytest-rerunfailures
+"""
+
+def test_b ( ):
+    print("---test_b")
+    assert 1 == 1
+
+
+def test_a ( ):
+    print("---test_a")
+    assert 1 == 2
+```
+
+##### 结果
+
+`test_a` 断言失败（`assert 1 == 2`），触发了 `pytest-rerunfailures` 的重试机制，重试了 3 次（因为命令行指定了 `--reruns 3`），最终仍然失败，符合预期行为。
+
+![image-20260722070725106](images/image-20260722070725106.png)
+
+### 3.2 重试延迟控制
+
+#### 3.2.1 固定延迟
+
+使用 `--reruns-delay` 选项，在每次重试之前增加固定等待时间（单位：秒）：
+
+```shell
+## 命令表示：失败用例最多重试 3 次，每次重试前等待 1 秒。
+pytest --reruns 3 --reruns-delay 1
+```
+
+##### 结果
+
+![image-20260722071451932](images/image-20260722071451932.png)
+
+
 
 ## 02: pytest常用插件 - 重复测试pytest-repeat
 
