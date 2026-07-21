@@ -6491,7 +6491,7 @@ python操作yaml
 
 ![image-20260721072139379](images/image-20260721072139379.png)
 
-`Testcase/test_25.py`
+`Testcase/test_yamldata.py`
 
 ```python
 import pytest
@@ -6519,7 +6519,56 @@ def test_case(param):
 
 ## 23: parametrize参数化数据来自json文件
 
+![image-20260722061901205](images/image-20260722061901205.png)
+
+### 测试数据
+
+`Data/case.json`
+
+```json
+[
+    {
+        "uname": "ren",
+        "pwd": "123"
+    },
+    {
+        "uname": "qzcsbj",
+        "pwd": "456"
+    }
+]
+```
+
+### parametrize从json获取数据
+
+`Testcase/test_jsondata.py`
+
+```python
+import pytest
+import json
+import os
+ 
+# 获取项目路径
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def read_data_from_json(file_path):
+    data = {}
+    with open(file_path, 'r', encoding="utf-8") as fp:
+        data = json.load(fp)
+    print(f"返回的参数：{data}")
+    return data
+
+@pytest.mark.parametrize("param", read_data_from_json(BASE_PATH+"/data/case.json"))
+def test_case(param):
+    print(f"uname={param['uname']}, pwd={param['pwd']}")
+```
+
+
+
 ## 24: parametrize参数化数据来自excle文件
+
+
+
+
 
 ## 25: parametrize参数化数据来自csv文件
 
