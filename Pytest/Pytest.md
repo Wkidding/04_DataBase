@@ -6566,9 +6566,27 @@ def test_case(param):
 
 ![image-20260722062023662](images/image-20260722062023662.png)
 
+
+
 ## 24: parametrize参数化数据来自excle文件
 
+![image-20260722062849098](images/image-20260722062849098.png)
 
+### 测试数据
+
+![image-20260722062820624](images/image-20260722062820624.png)
+
+### 模块安装（读excel）
+
+```shell
+pip install xlrd==1.0.0
+```
+
+### parametrize从excel获取数据
+
+```python
+
+```
 
 
 
