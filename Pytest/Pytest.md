@@ -6879,7 +6879,8 @@ pytest --reruns 3 --reruns-delay 1 --reruns-delay-backoff-factor 2
 使用 `--only-rerun` 标志，只重试匹配指定正则表达式的错误：
 
 ```python
-pytest --reruns 5 --only-rerun AssertionError
+# 仅重试 AssertionError
+pytest  --reruns 3 --reruns-delay 1 --only-rerun AssertionError
 ```
 
 ###### 结果
@@ -6888,12 +6889,22 @@ pytest --reruns 5 --only-rerun AssertionError
 
 ##### 3.3.2 排除特定异常进行重试
 
+###### 用例
+
+`Testcase/test_plugins/test_rerun.py`
+
 使用 `--rerun-except` 标志，排除匹配指定正则表达式的错误，对其他错误进行重试：
 
 ```python
 # 除 AssertionError 外的其他错误均重试
 pytest --reruns 5 --rerun-except AssertionError
 ```
+
+###### 结果
+
+针对本用例的`AssertionError`没有启动重跑
+
+![image-20260723062844378](images/image-20260723062844378.png)
 
 
 
