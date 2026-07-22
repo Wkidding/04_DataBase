@@ -7047,7 +7047,9 @@ pytest --count count --repeat-scope function
 
 ### 2.2 装饰器方式 — 单用例重复执行
 
-如果只想让特定的测试用例重复执行，可以使用 `@pytest.mark.repeat(count)` 装饰器：
+#### (1) 让特定的测试用例重复执行
+
+如果只想让特定的测试用例重复执行，可以使用 `@pytest.mark.repeat(count)` 装饰器
 
 ```python
 import pytest
@@ -7065,15 +7067,65 @@ class TestCase:
 
 ##### 结果
 
+执行后，只有添加了装饰器的用例会重复运行指定次数。
+
 ![image-20260723071103023](images/image-20260723071103023.png)
 
 ![image-20260723071119746](images/image-20260723071119746.png)	
 
+#### (2) **多个用例不同次数**
+
+可以给不同用例添加不同的装饰器，实现差异化重复执行：
+
+```python
+class TestCase03:
+    @pytest.mark.repeat(2)
+    def test_01(self):
+        print('测试用例第一条')
+    
+    @pytest.mark.repeat(3)
+    def test_02(self):
+        print('测试用例第二条')
+    
+    @pytest.mark.repeat(4)
+    def test_03(self):
+        print('测试用例第三条')
+```
+
+##### 结果
+
+![image-20260723071811862](images/image-20260723071811862.png)
 
 
 
+### 2.3 重复测试直到失败（重点特性）
 
+在排查偶现问题或间歇性失败时，可以反复运行同一个测试直到它失败。结合 pytest 的 `-x` 选项（首次失败即停止），可以实现这一需求：
 
+```python
+## 命令
+pytest --count=1000 -x test_file.py
+```
+
+##### 用例
+
+```python
+import random
+import time
+import pytest
+
+def TestCase04():
+    computer = random.randint(0, 4)
+    time.sleep(1)
+    print(computer)
+    assert computer < 3
+```
+
+##### 结果
+
+当随机数 `computer` 大于等于 3 时，测试失败并立即停止，不再继续执行剩余次数。
+
+![image-20260723072233181](images/image-20260723072233181.png)
 
 
 
