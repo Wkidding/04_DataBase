@@ -7174,7 +7174,7 @@ pytest-repeat 提供了以下核心能力：
 
 ## 03: pytest常用插件 - 控制函数执行顺序pytest-ordering
 
-## 04: pytest常用插件 - 随机执行pytest-random-order
+## 
 
 ## 05: pytest常用插件 - 并发执行pytest-xdist
 
