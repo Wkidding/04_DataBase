@@ -7017,6 +7017,68 @@ reruns_delay = 1
 
 ## 02: pytest常用插件 - 重复测试pytest-repeat
 
+### 使用场景
+
+某功能不稳定，重复执行多次，以便复现问题。
+
+### 插件安装
+
+```shell
+conda install pytest-repeat
+# 或
+pip install pytest-repeat
+```
+
+### 2.1 命令行方式 — 全局重复执行
+
+参数：
+
+- `--count`：重复运行次数，必填
+- `--repeat-scope`：默认function，还可以是class、module、session，表示重复运行的维度，比如session，表示所有用例执行完一次，然后再执行第二次；选填
+
+```python
+## 使用 --count 命令行选项指定所有测试用例的执行次数：
+pytest --count=count --repeat-scope=function
+# 或
+pytest --count count --repeat-scope function
+```
+
+![image-20260723070550629](images/image-20260723070550629.png)
+
+### 2.2 装饰器方式 — 单用例重复执行
+
+如果只想让特定的测试用例重复执行，可以使用 `@pytest.mark.repeat(count)` 装饰器：
+
+```python
+import pytest
+
+@pytest.mark.repeat(3)
+def test_repeat_decorator():
+    print("测试用例执行")
+    
+    
+class TestCase:
+    @pytest.mark.repeat(3)
+    def test_02(self):
+        print("---用例2执行---")
+```
+
+##### 结果
+
+![image-20260723071103023](images/image-20260723071103023.png)
+
+![image-20260723071119746](images/image-20260723071119746.png)	
+
+
+
+
+
+
+
+
+
+
+
 ## 03: pytest常用插件 - 控制函数执行顺序pytest-ordering
 
 ## 04: pytest常用插件 - 随机执行pytest-random-order
