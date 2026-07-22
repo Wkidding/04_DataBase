@@ -7031,6 +7031,8 @@ pip install pytest-repeat
 
 ### 2.1 命令行方式 — 全局重复执行
 
+`Testcase/test_plugins/test_repeat.py`
+
 参数：
 
 - `--count`：重复运行次数，必填
@@ -7104,7 +7106,7 @@ class TestCase03:
 
 ```python
 ## 命令
-pytest --count=1000 -x test_file.py
+pytest --count=1000 -x `Testcase/test_plugins/test_repeat.py`
 ```
 
 ##### 用例
@@ -7126,6 +7128,45 @@ def TestCase04():
 当随机数 `computer` 大于等于 3 时，测试失败并立即停止，不再继续执行剩余次数。
 
 ![image-20260723072233181](images/image-20260723072233181.png)
+
+### 2.4 --repeat-scope — 控制重复执行顺序
+
+`--repeat-scope` 参数用于控制测试用例的重复执行顺序，类似于 pytest fixture 的 scope 作用域。可选值包括：
+
+| 值                 | 说明                                                         |
+| :----------------- | :----------------------------------------------------------- |
+| `function`（默认） | 每个测试用例重复执行完指定次数后，再执行下一个测试用例       |
+| `class`            | 以 class 为单位，将一个 class 内的所有用例重复执行完，再执行下一个 class |
+| `module`           | 以模块为单位，将一个模块内的所有用例重复执行完，再执行下一个模块 |
+| `session`          | 重复整个测试会话——所有收集到的测试用例先全部执行一遍，然后再全部执行第二遍，以此类推 |
+
+**使用示例**：
+
+```python
+# 以 class 为单位重复执行
+pytest Testcase/test_plugins/test_repeat.py --count=2 --repeat-scope=class 
+```
+
+**默认行为（function）** ：以两个测试用例 `test_a1` 和 `test_a2` 为例，执行顺序为：`test_a1` 执行 3 次 → `test_a2` 执行 3 次。
+
+**session 行为**：执行顺序为：所有用例执行第 1 遍 → 所有用例执行第 2 遍 → ……
+
+### 3、注意事项
+
+#### 3.1 命令行与装饰器同时使用
+
+当同时使用命令行 `--count` 和装饰器 `@pytest.mark.repeat` 时，**装饰器的优先级更高**，会覆盖命令行的全局设置。命令行 `--count` 仅对没有装饰器的用例生效。
+
+
+
+### 4、总结
+
+pytest-repeat 提供了以下核心能力：
+
+1. **全局重复**：通过 `--count` 命令行参数，让所有用例重复执行
+2. **精准控制**：通过 `@pytest.mark.repeat` 装饰器，仅对特定用例重复执行
+3. **失败即停**：结合 `-x` 选项，重复执行直到首次失败，高效定位偶现问题
+4. **灵活顺序**：通过 `--repeat-scope` 控制重复执行的作用域和顺序
 
 
 
