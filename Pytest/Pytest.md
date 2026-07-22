@@ -6906,6 +6906,84 @@ pytest --reruns 5 --rerun-except AssertionError
 
 ![image-20260723062844378](images/image-20260723062844378.png)
 
+#### 3.4 单个用例级别重试
+
+##### 3.4.1 基础装饰器用法
+
+使用 `@pytest.mark.flaky` 装饰器标记单个测试用例，并指定重试次数：
+
+```python
+import pytest
+
+@pytest.mark.flaky(reruns=5)
+def test_example(request):
+    print("--通过用例")
+    assert 1 == 1
+    print("--失败用例")
+    assert 1 == 2
+```
+
+###### 结果
+
+![image-20260723064441328](images/image-20260723064441328.png)
+
+##### 3.4.2 带延迟的装饰器
+
+```python
+@pytest.mark.flaky(reruns=5, reruns_delay=2)
+def test_example(request):
+    print("--通过用例")
+    assert 1 == 1
+    print("--失败用例")
+    assert 1 == 2
+```
+
+![image-20260723064558427](images/image-20260723064558427.png)
+
+##### 3.4.3 条件重试装饰器
+
+```python
+import sys
+import pytest
+
+# 仅在特定条件下启用重试
+@pytest.mark.flaky(reruns=5, condition=sys.platform.startswith("win32"))
+def test_windows_only():
+    pass
+```
+
+![image-20260723064646084](images/image-20260723064646084.png)
+
+##### 3.4.4 指定重试的异常类型
+
+```python
+# 只对 AssertionError 和 ValueError 进行重试
+@pytest.mark.flaky(reruns=5, only_rerun=["AssertionError", "ValueError"])
+def test_specific_errors():
+    pass
+
+# 排除 AssertionError，其他错误均重试
+@pytest.mark.flaky(reruns=5, rerun_except="AssertionError")
+def test_except_errors():
+    pass
+```
+
+![image-20260723064749149](images/image-20260723064749149.png)
+
+![image-20260723064812871](images/image-20260723064812871.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
