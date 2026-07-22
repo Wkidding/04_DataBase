@@ -6814,9 +6814,9 @@ def test_a ( ):
 
 ![image-20260722070725106](images/image-20260722070725106.png)
 
-### 3.2 重试延迟控制
+#### 3.2 重试延迟控制
 
-#### 3.2.1 固定延迟
+##### 3.2.1 固定延迟
 
 使用 `--reruns-delay` 选项，在每次重试之前增加固定等待时间（单位：秒）：
 
@@ -6825,9 +6825,79 @@ def test_a ( ):
 pytest --reruns 3 --reruns-delay 1
 ```
 
-##### 结果
+###### 用例
+
+`Testcase/test_plugins/test_rerun.py`
+
+```python
+"""
+测试pytest常用插件 - 失败重试pytest-rerunfailures
+"""
+
+def test_b ( ):
+    print("---test_b")
+    assert 1 == 1
+
+
+def test_a ( ):
+    print("---test_a")
+    assert 1 == 2
+```
+
+###### 结果
 
 ![image-20260722071451932](images/image-20260722071451932.png)
+
+##### 3.2.2 指数退避延迟
+
+###### 用例
+
+`Testcase/test_plugins/test_rerun.py`
+
+使用 `--reruns-delay-backoff-factor` 选项，实现延迟时间指数增长：
+
+```shell
+pytest --reruns 3 --reruns-delay 1 --reruns-delay-backoff-factor 2
+```
+
+延迟计算公式为：`delay_n = reruns_delay * backoff_factor ** (n - 1)`。
+
+以上示例中，三次重试前的等待时间分别为：1 秒、2 秒、4 秒。该特性对于需要等待服务恢复的场景尤为实用
+
+###### 结果
+
+![image-20260723062023242](images/image-20260723062023242.png)
+
+#### 3.3 条件重试
+
+##### 3.3.1 仅重试匹配特定异常的用例
+
+###### 用例
+
+`Testcase/test_plugins/test_rerun.py`
+
+使用 `--only-rerun` 标志，只重试匹配指定正则表达式的错误：
+
+```python
+pytest --reruns 5 --only-rerun AssertionError
+```
+
+###### 结果
+
+![image-20260723062448356](images/image-20260723062448356.png)
+
+##### 3.3.2 排除特定异常进行重试
+
+使用 `--rerun-except` 标志，排除匹配指定正则表达式的错误，对其他错误进行重试：
+
+```python
+# 除 AssertionError 外的其他错误均重试
+pytest --reruns 5 --rerun-except AssertionError
+```
+
+
+
+
 
 
 
