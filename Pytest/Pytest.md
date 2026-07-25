@@ -7644,7 +7644,79 @@ pytest --dist=each --tx ssh=host1 --tx ssh=host2 --rsyncdir package package/test
 
 > **注意**：远程执行模式不会自动同步依赖包，需要在远程主机上预先安装好测试所需的依赖。官方文档也指出，此模式主要出于向后兼容考虑而保留，现代多平台测试更多依赖 CI 系统
 
+#### 3.5 Worker 崩溃自动重启
 
+如果某个测试导致 worker 进程崩溃（如段错误或 Python 解释器崩溃），pytest-xdist 会**自动重启该 worker** 并继续执行剩余测试，同时报告崩溃测试的失败信息。
+
+```bash
+# 限制最多允许 3 次 worker 重启
+pytest -n 4 --max-worker-restart 3
+
+# 完全禁用 worker 自动重启
+pytest -n 4 --max-worker-restart 0
+```
+
+
+
+#### 3.6 限制最大 worker 数量（--maxprocesses）
+
+使用 `--maxprocesses` 限制 worker 的最大数量，在 `-n auto` 探测到很多核心但不想全部使用时非常有用：
+
+```bash
+# 最多使用 8 个 worker，即使 CPU 有更多核心
+pytest -n auto --maxprocesses 8
+```
+
+
+
+### 四、注意事项
+
+#### 4.1 测试用例必须相互独立
+
+并行执行时，**必须确保测试用例之间没有共享状态或依赖关系**，否则可能导致竞态条件。例如：
+
+- 避免测试用例之间共享全局变量或文件
+- 避免测试用例修改数据库中的同一条记录
+- 确保每个测试用例可以独立运行
+
+#### 4.2 `-s/--capture=no` 不生效
+
+由于 pytest-xdist 的实现机制，`-s` 或 `--capture=no` 选项在并行模式下**无法正常工作**。如需查看详细的打印输出，建议使用 `-v` 或 `--tb=short` 等选项替代。
+
+#### 4.3 插件兼容性
+
+某些 pytest 插件可能不兼容多进程并发执行，使用前需确认插件之间的兼容性。
+
+#### 4.4 并非所有场景都适合并行
+
+如果单个进程的测试执行时间已经很短（如几秒），并行执行带来的提升有限。对于 I/O 密集型或需要长时间运行且有状态依赖的测试用例，并行执行反而可能导致结果不一致。
+
+### 五、常用命令速查
+
+| 场景                      | 命令                                                  |
+| :------------------------ | :---------------------------------------------------- |
+| 使用所有 CPU 核心并行执行 | `pytest -n auto`                                      |
+| 使用 4 个 worker 并行执行 | `pytest -n 4`                                         |
+| 按文件分组分发            | `pytest -n 4 --dist loadfile`                         |
+| 按模块/类分组分发         | `pytest -n 4 --dist loadscope`                        |
+| 按自定义组标记分发        | `pytest -n 4 --dist loadgroup`                        |
+| 限制最大 worker 数量      | `pytest -n auto --maxprocesses 8`                     |
+| 限制 worker 重启次数      | `pytest -n 4 --max-worker-restart 3`                  |
+| 远程 SSH 执行             | `pytest --tx ssh=user@host --rsyncdir pkg pkg/tests/` |
+
+### 六、总结
+
+pytest-xdist 提供了以下核心能力：
+
+| 能力               | 说明                                                         |
+| :----------------- | :----------------------------------------------------------- |
+| **多 CPU 并行**    | 通过 `-n` 参数在多核 CPU 上并行执行测试，大幅缩短执行时间    |
+| **灵活分发策略**   | 四种 `--dist` 模式适配不同场景：load、loadscope、loadfile、loadgroup |
+| **精准分组控制**   | 通过 `@pytest.mark.xdist_group` 将相关用例绑定到同一 worker  |
+| **远程分布式执行** | 通过 SSH 将测试分发到远程主机，支持跨平台测试                |
+| **高可用性**       | Worker 崩溃自动重启，确保测试会话不被中断                    |
+
+在实际自动化测试中，pytest-xdist 是**加速测试执行**最直接有效的工具。无论是本地多核并行，还是跨主机分布式执行，它都能帮助团队显著缩短测试反馈周期，提升研发效率。
 
 
 
