@@ -7560,13 +7560,47 @@ class Test01:
 
 ![image-20260725150711091](images/image-20260725150711091.png)
 
-(3) 自动进程并发执行：gw0、gw1、gw2、gw3
+##### (3) 自动进程并发执行：gw0、gw1、gw2、gw3
 
 `pytest Testcase/test_plugins/test_xdist.py -n auto`
 
 ![image-20260725150807443](images/image-20260725150807443.png)
 
+#### 3.2 分发模式（--dist）— 精细控制调度策略
 
+pytest-xdist 提供了四种分发模式，通过 `--dist` 参数控制测试用例如何分配给各个 worker：
+
+##### （1）`--dist load`（默认）
+
+将待执行的测试用例发送给任意空闲的 worker，不保证任何顺序。这是最均衡的模式，适用于大多数场景。
+
+```bash
+pytest -n 4 --dist load
+```
+
+##### （2）`--dist loadscope`
+
+按 **module**（测试函数）和 **class**（测试方法）分组，每组作为一个整体分配给 worker。这可以避免昂贵的模块级或类级 fixture 被重复执行。
+
+```bash
+pytest -n 4 --dist loadscope
+```
+
+##### （3）`--dist loadfile`
+
+按**测试文件**分组，同一文件中的所有测试用例在同一个 worker 中执行。
+
+```bash
+pytest -n 4 --dist loadfile
+```
+
+##### （4）`--dist loadgroup`
+
+按 `@pytest.mark.xdist_group` 标记分组，**相同组名的测试用例在同一个 worker 中顺序执行**。适用于需要共享资源或有依赖关系的测试场景。
+
+```bash
+pytest -n 4 --dist loadgroup
+```
 
 
 
