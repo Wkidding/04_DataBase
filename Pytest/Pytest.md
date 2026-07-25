@@ -7602,7 +7602,47 @@ pytest -n 4 --dist loadfile
 pytest -n 4 --dist loadgroup
 ```
 
+#### 3.3 自定义分组（xdist_group）— 精准控制依赖用例
 
+使用 `@pytest.mark.xdist_group(name="组名")` 装饰器，将相关测试用例分配到同一个 worker
+
+```python
+import pytest
+
+@pytest.mark.xdist_group(name="database")
+def test_db_connection():
+    print("数据库连接测试")
+
+@pytest.mark.xdist_group(name="database")
+def test_db_query():
+    print("数据库查询测试")
+
+@pytest.mark.xdist_group(name="api")
+def test_api_login():
+    print("API 登录测试")
+```
+
+执行 `pytest Testcase/test_plugins/test_xdist.py::Test02 -n 4 --dist loadgroup` 后，`test_db_connection` 和 `test_db_query` 会在同一个 worker 中顺序执行，确保数据库资源不会被并发访问破坏。
+
+![image-20260725151504786](images/image-20260725151504786.png)
+
+**多组标记合并**：如果一个测试用例有多个 `xdist_group` 标记，它们会被合并成一个新组
+
+#### 3.4 远程 SSH 执行 — 跨主机分布式测试
+
+pytest-xdist 支持将测试分发到远程 SSH 主机执行。执行前，pytest 会通过 **rsync** 将源代码同步到远程位置：
+
+```bash
+pytest --dist=loadscope --tx ssh=user@remote_host --rsyncdir mypkg mypkg/tests/
+```
+
+**多平台并行测试**：可以同时连接多个远程主机，在不同的 Python 解释器或不同平台上并行执行测试：
+
+```bash
+pytest --dist=each --tx ssh=host1 --tx ssh=host2 --rsyncdir package package/tests/
+```
+
+> **注意**：远程执行模式不会自动同步依赖包，需要在远程主机上预先安装好测试所需的依赖。官方文档也指出，此模式主要出于向后兼容考虑而保留，现代多平台测试更多依赖 CI 系统
 
 
 
