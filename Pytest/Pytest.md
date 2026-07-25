@@ -7871,9 +7871,81 @@ def test_e():
     pass
 ```
 
+![image-20260725155854022](images/image-20260725155854022.png)
+
+### 五、在测试类中使用
+
+#### 5.1 类内方法依赖
+
+在测试类中，默认的依赖名称由**类名 + 方法名**组成。在 `depends` 中引用时需包含类名
+
+```python
+import pytest
+
+class TestOrder:
+    @pytest.mark.dependency()
+    def test_login(self):
+        assert True
+
+    # 依赖同类的 test_login，需使用 "TestOrder::test_login" 格式
+    @pytest.mark.dependency(depends=["TestOrder::test_login"])
+    def test_create_order(self):
+        assert True
+```
+
+![image-20260725160132779](images/image-20260725160132779.png)
 
 
 
+#### 5.2 显式命名简化引用
+
+通过 `name` 参数可以简化跨方法引用
+
+```python
+import pytest
+
+class TestOrder:
+    @pytest.mark.dependency(name="login")
+    def test_login(self):
+        assert True
+
+    @pytest.mark.dependency(name="create_order", depends=["login"])
+    def test_create_order(self):
+        assert True
+```
+
+![image-20260725160239467](images/image-20260725160239467.png)
+
+
+
+#### 5.3 类级别标记
+
+`@pytest.mark.dependency` 装饰器可以应用于整个测试类，效果等同于将该标记（含相同参数）应用到类的**每个方法**上
+
+```python
+import pytest
+
+@pytest.mark.dependency()  # 类级别标记，所有方法均可被依赖
+class TestAPI:
+    def test_login(self):
+        assert True
+
+    def test_logout(self):
+        assert True
+```
+
+![image-20260725160452983](images/image-20260725160452983.png)
+
+### 六、作用域（Scope）
+
+pytest-dependency 支持 `session`、`package`、`module`、`class` 四种作用域，默认为 `session`。
+
+作用域决定了依赖关系的**可见范围**。例如，若设置为 `module`，则只能在同一个模块内建立依赖关系；跨模块的依赖将无法识别。配置方式在 `pytest.ini` 中
+
+```ini
+[pytest]
+dependency_scope = module
+```
 
 
 
