@@ -7271,12 +7271,30 @@ def test_cleanup():
 pytest-order 支持使用 `"first"`、`"second"`、`"last"` 等序数词。
 
 ```python
+import pytest
 
+@pytest.mark.order("last")
+def test_create_order():
+    print("创建订单")
+
+@pytest.mark.order("second")
+def test_login():
+    print("登录")
+
+@pytest.mark.order("first")
+def test_register():
+    print("注册")
 ```
 
+![image-20260725142735380](images/image-20260725142735380.png)
 
+#### 3.4 相对排序：before 和 after
 
+这是 pytest-order **独有的高级特性**，可以指定某个测试在另一个测试之前或之后执行
 
+```python
+
+```
 
 
 
