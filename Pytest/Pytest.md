@@ -7722,6 +7722,79 @@ pytest-xdist 提供了以下核心能力：
 
 ## 06: pytest常用插件 - 依赖执行pytest-dependency
 
+### 一、应用场景
+
+pytest-dependency 是一个用于管理测试用例之间**依赖关系**的 pytest 插件。在理想情况下，测试用例应该是独立、自包含的，可以以任意顺序执行。但在实际项目中，某些功能之间天然存在依赖（如功能 B 依赖功能 A），或测试会改变系统状态从而影响后续用例。此时，若依赖的用例失败，后续用例的失败信息只会干扰问题定位，并无实际帮助。
+
+pytest-dependency 的解决思路是：**当依赖的用例失败或被跳过时，依赖它的用例将自动被跳过**，从而让测试报告聚焦于真正的问题根源
+
+#### 插件安装
+
+```bash
+pip install pytest-dependency
+## 或者
+conda install pytest-dependency
+```
+
+### 二、核心特性
+
+| 特性                 | 说明                                                      |
+| :------------------- | :-------------------------------------------------------- |
+| **声明式依赖标记**   | 通过 `@pytest.mark.dependency` 装饰器声明用例间的依赖关系 |
+| **自动跳过依赖用例** | 依赖失败或被跳过时，所有依赖它的用例自动跳过执行          |
+| **自定义依赖名称**   | 通过 `name` 参数为用例设置别名，方便其他用例引用          |
+| **支持类级别标记**   | 装饰器可应用于整个测试类，自动作用于所有方法              |
+| **多级依赖链**       | 支持一个用例依赖多个其他用例，形成依赖链                  |
+| **作用域支持**       | 支持 session、package、module、class 等作用域             |
+
+### 三、基本用法
+
+#### 3.1 最简单的依赖关系
+
+使用 `@pytest.mark.dependency()` 装饰被依赖的用例，在依赖它的用例上使用 `depends` 参数指定依赖项：
+
+```python
+import pytest
+
+@pytest.mark.dependency()                      # 声明为可被依赖
+def test_login():
+    assert True
+
+@pytest.mark.dependency(depends=["test_login"])  # 依赖 test_login
+def test_create_order():
+    assert True
+```
+
+执行时，`test_create_order` 仅在 `test_login` **成功执行后**才会运行。
+
+![image-20260725154940961](images/image-20260725154940961.png)
+
+若 `test_login` 失败，`test_create_order` 将被跳过。
+
+![image-20260725155017227](images/image-20260725155017227.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 07: pytest常用插件 - 多重校验pytest-assume
 
 ## 08: pytest常用插件 - 测试报告pytest-html
