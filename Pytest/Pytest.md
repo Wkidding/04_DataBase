@@ -8250,6 +8250,8 @@ pytest --html=report.html
 
 执行后，会在当前目录生成一个 `report.html` 文件和一个 `assets` 文件夹（存放 CSS 等静态资源）。
 
+![image-20260725221913155](images/image-20260725221913155.png)
+
 #### 3.2 打开报告查看
 
 直接用浏览器打开生成的 HTML 文件即可查看报告。报告默认包含以下信息：
@@ -8257,6 +8259,8 @@ pytest --html=report.html
 - **Summary（摘要）** ：测试总数、通过、失败、跳过等统计
 - **Environment（环境）** ：Python 版本、pytest 版本、插件列表等
 - **Results（结果表格）** ：每个测试用例的详细执行结果
+
+![image-20260725221830637](images/image-20260725221830637.png)
 
 #### 3.3 在 pytest.ini 中配置报告路径
 
@@ -8629,5 +8633,13 @@ pytest-html 提供了以下核心能力：
 
 
 ## 09: pytest常用插件 - allure报告allure-pytest
+
+
+
+
+
+
+
+
 
 ## 10: pytest + allure最佳实践
