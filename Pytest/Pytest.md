@@ -7947,9 +7947,281 @@ pytest-dependency 支持 `session`、`package`、`module`、`class` 四种作用
 dependency_scope = module
 ```
 
+### 七、高级用法
+
+#### 7.1 与 pytest-order 结合使用
+
+pytest-dependency 可以与 `pytest-order`（或已废弃的 `pytest-ordering`）结合使用。前者管理"**是否执行**"（依赖失败则跳过），后者管理"**何时执行**"（执行顺序），两者互不冲突，可以协同工作。
+
+#### 7.2 运行时动态标记依赖
+
+官方文档中提到了运行时标记依赖的能力，适用于依赖关系过于复杂、无法在编译时静态声明的情况。
+
+### 八、注意事项
+
+#### 8.1 被依赖的用例必须先执行
+
+依赖关系成立的前提是：**被依赖的用例必须在依赖它的用例之前执行**。如果执行顺序错误，pytest-dependency 将无法找到依赖项。建议配合 `pytest-order` 插件明确控制执行顺序。
+
+#### 8.2 所有参与依赖的用例都需要标记
+
+在依赖关系图中的**所有测试用例**都需要添加 `@pytest.mark.dependency` 装饰器——包括那些没有任何依赖项的用例。只有这样，测试结果才会被内部记录，其他用例才能依赖它们。
+
+#### 8.3 依赖关系不等于执行顺序
+
+pytest-dependency **只管理"是否执行"**，不管理"执行顺序"。它会在依赖用例执行完毕后检查其结果，再决定是否执行依赖用例。若要强制执行顺序，需配合 `pytest-order` 插件。
+
+#### 8.4 谨慎使用依赖
+
+**测试用例应尽量保持独立**。pytest-dependency 是处理**无法避免**的依赖关系的工具，而非鼓励编写耦合测试。在使用前，建议先审视测试设计，尽可能通过 fixture、参数化等方式减少依赖。
+
+### 九、总结
+
+pytest-dependency 提供了以下核心能力：
+
+| 能力           | 说明                                                         |
+| :------------- | :----------------------------------------------------------- |
+| **声明式依赖** | 通过 `@pytest.mark.dependency` 装饰器清晰声明用例间的依赖关系 |
+| **自动跳过**   | 依赖失败时，依赖它的用例自动跳过，避免无效失败信息干扰问题定位 |
+| **自定义名称** | 通过 `name` 参数为用例设置别名，简化依赖引用                 |
+| **类级别支持** | 装饰器可应用于整个测试类，自动作用于所有方法                 |
+| **多依赖支持** | 一个用例可依赖多个其他用例，支持复杂依赖链                   |
+| **作用域控制** | 支持 session、module、class 等作用域，控制依赖可见范围       |
+
+在实际自动化测试中，当遇到不可避免的用例依赖时，pytest-dependency 能帮助团队**聚焦于真正的问题根源**，让测试报告更加清晰、有效。**但请始终记住：能用 fixture 或参数化解决的，就不要用依赖**。
+
 
 
 ## 07: pytest常用插件 - 多重校验pytest-assume
+
+### 一、应用场景
+
+pytest-assume 是一个用于实现**多重校验（软断言）** 的 pytest 插件。在自动化测试中，我们常常需要在同一个测试用例中执行多个断言。使用原生的 `assert` 语句时，一旦某个断言失败，后续的断言和代码都不会执行。而 `pytest-assume` 可以**让断言失败后继续执行后续断言**，在一个用例中汇总展示所有失败的断言信息。
+
+#### 插件安装
+
+```bash
+pip install pytest-assume
+## 或者
+conda install pytest-assume
+```
+
+### 二、核心特性
+
+| 特性                       | 说明                                             |
+| :------------------------- | :----------------------------------------------- |
+| **失败后继续执行**         | 断言失败不会立即抛出异常，后续断言和代码继续执行 |
+| **汇总所有失败**           | 所有断言执行完毕后，统一报告所有失败的断言       |
+| **两种使用方式**           | 支持函数调用式和上下文管理器式两种写法           |
+| **与原生 assert 语法兼容** | 在上下文管理器中可直接使用 `assert` 语句         |
+| **详细的失败报告**         | 清晰列出每个失败断言的位置和原因                 |
+
+
+### 三、基本用法
+
+#### 3.1 函数调用式（推荐）
+
+直接使用 `pytest.assume(表达式)` 进行断言：
+
+```python
+import pytest
+
+def test_assume():
+    pytest.assume(1 == 1)      # 成功
+    pytest.assume(1 == 2)      # 失败，但继续执行
+    pytest.assume(2 == 2)      # 成功
+    pytest.assume(2 == 3)      # 失败，但继续执行
+    print("测试完成")           # 仍然会执行
+```
+
+执行后，所有断言都会执行，最后汇总报告失败信息。
+
+![image-20260725164849690](images/image-20260725164849690.png)
+
+![image-20260725164917375](images/image-20260725164917375.png)
+
+#### 3.2 上下文管理器式（with assume）
+
+如果习惯使用 `assert` 语法，可以使用上下文管理器方式：
+
+```python
+import pytest
+from pytest import assume
+
+def test_assume_with_context():
+    with assume:
+        assert 1 == 1
+    with assume:
+        assert 1 == 2
+    with assume:
+        assert 2 == 2
+```
+
+> **⚠️ 重要**：每一个断言必须单独放在一个 `with assume` 块中。如果在同一个 `with assume` 下写多个 `assert`，前面的断言失败后，后面的断言**不会执行**。
+
+**错误示例**（多个断言在同一个 with 块中）：
+
+```python
+def test_wrong():
+    with pytest.assume:
+        assert a > 0   # 失败后，下面的断言不会执行
+        assert b > 0
+        assert c < 0
+```
+
+
+### 四、与原生 assert 的对比
+
+#### 4.1 使用原生 assert（硬断言）
+
+```python
+def test_assert():
+    assert 1 == 1
+    assert 1 == 2      # 失败，此处抛出异常
+    assert 2 == 2      # 不会执行
+    print("测试完成")   # 不会执行
+```
+
+执行到第二个断言失败后，测试立即终止，后续断言和代码均不执行。
+
+#### 4.2 使用 pytest.assume（软断言）
+
+```python
+def test_assume():
+    pytest.assume(1 == 1)
+    pytest.assume(1 == 2)   # 失败，但继续执行
+    pytest.assume(2 == 2)
+    pytest.assume(2 == 3)   # 失败，但继续执行
+    print("测试完成")        # 仍然执行
+```
+
+所有断言都会执行完毕，最后汇总报告所有失败信息。
+
+#### 4.3 差异总结
+
+| 对比项           | 原生 assert            | pytest.assume      |
+| ---------------- | ---------------------- | ------------------ |
+| 断言失败后的行为 | 立即抛出异常，终止测试 | 记录失败，继续执行 |
+| 后续断言是否执行 | ❌ 不执行               | ✅ 继续执行         |
+| 后续代码是否执行 | ❌ 不执行               | ✅ 继续执行         |
+| 失败信息         | 只报告第一个失败       | 汇总报告所有失败   |
+
+
+### 五、工作原理
+
+`pytest.assume()` 的核心机制是：
+
+1. **捕获而非抛出**：当断言失败时，`pytest.assume` 不会立即抛出 `AssertionError`，而是将失败信息记录下来
+2. **继续执行**：测试用例中的后续代码（包括其他断言）正常执行
+3. **延迟报告**：所有断言执行完毕后，`pytest.assume` 检查是否有失败记录
+4. **汇总抛出**：如果有任何断言失败，统一抛出 `FailedAssumption` 异常，并在报告中列出所有失败的断言
+
+
+### 六、实际应用场景
+
+#### 6.1 接口测试中的多重校验
+
+在接口自动化测试中，经常需要对同一个响应进行多维度校验：
+
+```python
+import pytest
+import requests
+
+def test_api_response():
+    response = requests.get("https://api.example.com/user/1")
+    data = response.json()
+    
+    # 即使某个断言失败，其他断言仍会执行，帮助全面定位问题
+    pytest.assume(response.status_code == 200, "HTTP状态码校验失败")
+    pytest.assume(data.get("code") == 0, "业务状态码校验失败")
+    pytest.assume(data.get("data") is not None, "数据字段为空")
+    pytest.assume(data["data"].get("name") == "张三", "用户名不匹配")
+```
+
+这样即使状态码校验失败，后续的业务状态码、数据字段等校验仍会执行，帮助快速定位接口的多个问题。
+
+#### 6.2 数据验证场景
+
+```python
+def test_user_profile():
+    user = get_user_profile()
+    
+    pytest.assume(user.id > 0, "用户ID无效")
+    pytest.assume(user.name is not None, "用户名为空")
+    pytest.assume(len(user.name) >= 2, "用户名长度不足")
+    pytest.assume(user.email is not None, "邮箱为空")
+    pytest.assume("@" in user.email, "邮箱格式不正确")
+```
+
+
+### 七、注意事项
+
+#### 7.1 性能影响
+
+使用 `pytest.assume` 会增加测试的执行时间，因为它需要**记录每个断言的结果**。对于断言数量极多的测试用例，需注意性能开销。
+
+#### 7.2 不适用于有依赖关系的断言
+
+如果后续断言依赖于前面断言的结果（例如前面断言失败会导致后续断言无法正常执行），则**不适合使用** `pytest.assume`。
+
+**不适用场景示例**：
+
+```python
+def test_bad_example():
+    result = complex_operation()
+    pytest.assume(result is not None)   # 如果这里失败
+    pytest.assume(result.status == "ok")  # result 为 None，这里会报 AttributeError
+```
+
+#### 7.3 测试最终状态
+
+即使只有一个断言失败，整个测试函数也会被标记为 **FAILED**。
+
+#### 7.4 上下文管理器中的注意事项
+
+在 `with assume` 块中，**每个块只能包含一个断言**，否则无法实现失败后继续执行的效果。
+
+
+### 八、相关插件对比
+
+除了 `pytest-assume`，还有 `pytest-check` 等插件也能实现软断言功能。两者的主要区别：
+
+| 特性         | pytest-assume              | pytest-check                    |
+| ------------ | -------------------------- | ------------------------------- |
+| 使用方式     | 函数调用 `pytest.assume()` | 函数调用 `pytest_check.check()` |
+| 失败报告     | 汇总所有失败               | 汇总所有失败                    |
+| 上下文管理器 | 支持 `with assume`         | 支持 `with check`               |
+
+两者功能相似，可根据个人偏好选择。
+
+
+### 九、总结
+
+pytest-assume 提供了以下核心能力：
+
+| 能力                   | 说明                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| **软断言机制**         | 断言失败不中断测试，继续执行后续断言和代码                   |
+| **汇总失败报告**       | 所有断言执行完毕后，统一列出所有失败的断言                   |
+| **两种使用方式**       | 支持函数调用式（`pytest.assume`）和上下文管理器式（`with assume`） |
+| **与 assert 语法兼容** | 上下文管理器中可直接使用原生 `assert` 语法                   |
+| **详细的失败信息**     | 清晰显示每个失败断言的位置和原因                             |
+
+在实际自动化测试中，无论是接口测试的多维度校验，还是数据验证的全面检查，`pytest-assume` 都能帮助团队**一次性获取所有失败信息**，大幅提升问题定位效率。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 08: pytest常用插件 - 测试报告pytest-html
 
