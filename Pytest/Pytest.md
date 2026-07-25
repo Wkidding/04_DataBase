@@ -7241,6 +7241,39 @@ def test_create_order():
 
 ![image-20260725142201251](images/image-20260725142201251.png)
 
+#### 3.2 负索引：从末尾排序
+
+使用负数可以从末尾开始指定顺序。
+
+```python
+import pytest
+
+## 执行顺序：test_login → test_cleanup → test_logout
+@pytest.mark.order(-1)      # 最后一个执行
+def test_logout():
+    print("登出")
+
+@pytest.mark.order(1)       # 第一个执行
+def test_login():
+    print("登录")
+
+@pytest.mark.order(-2)      # 倒数第二个执行
+def test_cleanup():
+    print("清理数据")
+```
+
+执行顺序：`test_login` → `test_cleanup` → `test_logout`
+
+![image-20260725142442126](images/image-20260725142442126.png)
+
+#### 3.3 使用序数词
+
+pytest-order 支持使用 `"first"`、`"second"`、`"last"` 等序数词。
+
+```python
+
+```
+
 
 
 
