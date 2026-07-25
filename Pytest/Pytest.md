@@ -7204,7 +7204,7 @@ conda install pytest-ordering/pip install pytest-order
 
 x的值可以是正数、负数、0
 
-## 二、核心特性
+### 二、核心特性
 
 pytest-order 提供了以下核心功能：
 
@@ -7217,9 +7217,29 @@ pytest-order 提供了以下核心功能：
 | **稀疏排序**       | 仅对部分测试指定顺序，其余保持默认                |
 | **自定义标记前缀** | 支持使用自定义的标记名称                          |
 
+### 三、使用示例
 
+#### 3.1 基础用法：按序号排序
 
+使用 `@pytest.mark.order(n)` 装饰器，**数字越小越先执行**。
 
+```python
+import pytest
+
+@pytest.mark.order(2)
+def test_login():
+    print("执行登录")
+
+@pytest.mark.order(1)
+def test_register():
+    print("执行注册")
+
+@pytest.mark.order(3)
+def test_create_order():
+    print("创建订单")
+```
+
+![image-20260725142201251](images/image-20260725142201251.png)
 
 
 
