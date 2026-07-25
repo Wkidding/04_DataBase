@@ -7174,6 +7174,18 @@ pytest-repeat 提供了以下核心能力：
 
 ## 03: pytest常用插件 - 控制函数执行顺序pytest-ordering
 
+### ⚠️ 重要提示：pytest-ordering 已不再维护
+
+**pytest-ordering 原项目已停止维护**，官方推荐使用其分支项目 **pytest-order**。
+
+两个插件的主要区别：
+
+- 标记名称不同：`pytest-ordering` 使用 `@pytest.mark.run`，而 `pytest-order` 使用 `@pytest.mark.order`
+- 特殊标记（如 `@pytest.mark.first`、`@pytest.mark.last`）在 pytest-order 中已被移除，统一使用 `order` 标记
+- pytest-order 提供了更多高级特性，如**相对顺序**、**作用域控制**等
+
+**本文档将以 pytest-order 为主进行介绍**，同时兼容说明 pytest-ordering 的用法。
+
 ### 应用场景
 
 用例执行顺序，默认是按照从上到下的顺序进行执行的。如果想自定义执行顺序，也就是改变执行优先级，那么可以使用pytest-ordering
@@ -7181,9 +7193,9 @@ pytest-repeat 提供了以下核心能力：
 ### 插件安装
 
 ```shell
-pip install pytest-ordering
+pip install pytest-ordering/pip install pytest-order
 ## 或
-conda install pytest-ordering
+conda install pytest-ordering/pip install pytest-order
 ```
 
 ### 使用方式
@@ -7191,6 +7203,19 @@ conda install pytest-ordering
 标记于被测试函数、方法、类：可以使用装饰器`@pytest.mark.run(order=x)`，根据order值来决定运行顺序
 
 x的值可以是正数、负数、0
+
+## 二、核心特性
+
+pytest-order 提供了以下核心功能：
+
+| 特性               | 说明                                              |
+| :----------------- | :------------------------------------------------ |
+| **序号排序**       | 使用正整数或负整数指定执行顺序                    |
+| **相对排序**       | 使用 `before` 和 `after` 指定测试间的相对执行关系 |
+| **作用域控制**     | 支持 session、module、class 级别的作用域          |
+| **负索引排序**     | 支持从末尾开始计数（如 `-1` 表示最后一个执行）    |
+| **稀疏排序**       | 仅对部分测试指定顺序，其余保持默认                |
+| **自定义标记前缀** | 支持使用自定义的标记名称                          |
 
 
 
