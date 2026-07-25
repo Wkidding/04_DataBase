@@ -7174,7 +7174,35 @@ pytest-repeat 提供了以下核心能力：
 
 ## 03: pytest常用插件 - 控制函数执行顺序pytest-ordering
 
-## 
+### 应用场景
+
+用例执行顺序，默认是按照从上到下的顺序进行执行的。如果想自定义执行顺序，也就是改变执行优先级，那么可以使用pytest-ordering
+
+### 插件安装
+
+```shell
+pip install pytest-ordering
+## 或
+conda install pytest-ordering
+```
+
+### 使用方式
+
+标记于被测试函数、方法、类：可以使用装饰器`@pytest.mark.run(order=x)`，根据order值来决定运行顺序
+
+x的值可以是正数、负数、0
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 05: pytest常用插件 - 并发执行pytest-xdist
 
