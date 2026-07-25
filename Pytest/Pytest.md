@@ -7454,6 +7454,126 @@ pytest-order（及原版 pytest-ordering）提供了以下核心能力：
 
 ## 05: pytest常用插件 - 并发执行pytest-xdist
 
+### 一、应用条件
+
+无依赖：用例间没有关系
+
+无顺序：用例可以不按顺序随机执行
+
+此时，就可以并发执行，节约测试时间
+
+注意：并发执行会打乱执行顺序，与`pytest-ordering`/`pytest-order`插件是冲突的
+
+### 插件安装
+
+```bash
+pip install pytest-xdist 
+## 或者
+conda install pytest-xdist
+
+## 安装 psutil 扩展可以更精确地检测 CPU 核心数，从而优化并行进程数：
+conda install pytest-xdist[psutil]
+```
+
+### 二、核心特性总览
+
+| 特性                          | 说明                                                   |
+| :---------------------------- | :----------------------------------------------------- |
+| **多 CPU 并行执行**           | 在多核 CPU 上同时运行测试，大幅缩短执行时间            |
+| **多种分发模式（--dist）**    | 支持 load、loadscope、loadfile、loadgroup 四种调度策略 |
+| **自定义分组（xdist_group）** | 通过装饰器将相关用例分配到同一 worker 执行             |
+| **远程 SSH 执行**             | 将测试分发到远程主机执行，支持跨平台测试               |
+| **--looponfail（已弃用）**    | 文件变更后自动重跑失败用例（已弃用，不推荐使用）       |
+| **Worker 崩溃自动重启**       | 测试导致 worker 崩溃时自动重启并继续执行               |
+
+### 三、核心特性详解
+
+#### 3.1 多 CPU 并行执行 — 最常用功能
+
+使用 `-n`（或 `--numprocesses`）选项指定并行执行的 worker 进程数
+
+```python
+# 自动使用所有物理 CPU 核心
+pytest -n auto
+
+# 使用逻辑核心数（需安装 `psutil`，否则回退到 `auto` 行为）
+pytest -n logical
+
+# 手动指定 4 个 worker 进程
+pytest -n 4
+
+# 禁用 xdist，所有测试在主进程执行
+pytest -n 0
+```
+
+**自定义 worker 数量**：可以通过环境变量或 pytest hook 自定义 `-n auto` 和 `-n logical` 的行为：
+
+```bash
+# 环境变量方式
+export PYTEST_XDIST_AUTO_NUM_WORKERS=8
+pytest -n auto
+```
+
+或在 `conftest.py` 中实现 hook 函数定义`-n auto`的行为（如使用几个线程）：
+
+```python
+# conftest.py
+def pytest_xdist_auto_num_workers(config):
+    if config.option.numprocesses == "auto":
+        return 6  # 自定义 auto 的 worker 数量
+    return None  # 使用默认值
+```
+
+##### 示例
+
+```python
+import pytest
+
+class Test01:
+    def test_d (self):
+        print("--test_d")
+
+    @pytest.mark.run(order=-3)
+    def test_c (self):
+        print("--test_c")
+
+    @pytest.mark.run(order=0)
+    def test_b (self):
+        print("--test_b")
+
+    @pytest.mark.run(order=1)
+    def test_a (self):
+        print("--test_a")
+```
+
+
+
+##### (1) 不指定参数，直接运行
+
+`pytest Testcase/test_plugins/test_xdist.py`
+
+![image-20260725150442282](images/image-20260725150442282.png)
+
+##### (2) 3个进程并发执行：gw0、gw1、gw2
+
+`pytest Testcase/test_plugins/test_xdist.py -n 3`
+
+![image-20260725150711091](images/image-20260725150711091.png)
+
+(3) 自动进程并发执行：gw0、gw1、gw2、gw3
+
+`pytest Testcase/test_plugins/test_xdist.py -n auto`
+
+![image-20260725150807443](images/image-20260725150807443.png)
+
+
+
+
+
+
+
+
+
 ## 06: pytest常用插件 - 依赖执行pytest-dependency
 
 ## 07: pytest常用插件 - 多重校验pytest-assume
