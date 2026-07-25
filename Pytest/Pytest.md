@@ -7186,23 +7186,17 @@ pytest-repeat 提供了以下核心能力：
 
 **本文档将以 pytest-order 为主进行介绍**，同时兼容说明 pytest-ordering 的用法。
 
-### 应用场景
+### 一、应用场景
 
 用例执行顺序，默认是按照从上到下的顺序进行执行的。如果想自定义执行顺序，也就是改变执行优先级，那么可以使用pytest-ordering
 
-### 插件安装
+#### 插件安装
 
 ```shell
-pip install pytest-ordering/pip install pytest-order
+pip install pytest-ordering / pip install pytest-order
 ## 或
-conda install pytest-ordering/pip install pytest-order
+conda install pytest-ordering / pip install pytest-order
 ```
-
-### 使用方式
-
-标记于被测试函数、方法、类：可以使用装饰器`@pytest.mark.run(order=x)`，根据order值来决定运行顺序
-
-x的值可以是正数、负数、0
 
 ### 二、核心特性
 
@@ -7314,7 +7308,7 @@ def test_logout():
 
 ![image-20260725143117812](images/image-20260725143117812.png)
 
-### 3.5 混合使用：序号 + 相对排序
+#### 3.5 混合使用：序号 + 相对排序
 
 相对排序可以与其他排序方式混合使用，实现更灵活的控制
 
@@ -7340,7 +7334,121 @@ def test_d():
 
 ![image-20260725143218020](images/image-20260725143218020.png)
 
+### 四、pytest-ordering（原版）的用法
 
+如果仍在使用原版 pytest-ordering，用法如下：
+
+#### 方式一：使用 `order` 参数
+
+python
+
+```python
+import pytest
+
+@pytest.mark.run(order=2)
+def test_login():
+    print("登录")
+
+@pytest.mark.run(order=1)
+def test_register():
+    print("注册")
+```
+
+#### 方式二：使用 `after` / `before` 参数
+
+```python
+import pytest
+
+@pytest.mark.run(order=1)
+def test_register():
+    print("注册")
+
+@pytest.mark.run(after='test_register')
+def test_login():
+    print("登录")
+```
+
+#### 方式三：使用序数词
+
+```python
+import pytest
+
+@pytest.mark.run('first')
+def test_register():
+    print("注册")
+
+@pytest.mark.run('second')
+def test_login():
+    print("登录")
+
+@pytest.mark.run('last')
+def test_create_order():
+    print("创建订单")
+```
+
+### 五、高级配置
+
+#### 5.1 作用域控制（order-scope）
+
+通过配置可以控制排序的作用域级别：
+
+```bash
+# 以 module 为单位排序
+pytest --order-scope=module
+
+# 以 class 为单位排序
+pytest --order-scope=class
+```
+
+#### 5.2 稀疏排序（sparse-ordering）
+
+如果只对部分测试指定了顺序，其余测试可以通过配置决定如何处理：
+
+```bash
+# 未指定顺序的测试保持默认位置
+pytest --sparse-ordering
+```
+
+### 六、注意事项
+
+#### 6.1 依赖测试需谨慎
+
+**通常认为编写相互依赖的测试是一种不良实践**。在使用本插件之前，建议先评估是否可以通过重构测试来消除依赖关系。仅在因性能、遗留代码或其他限制无法避免时才使用顺序控制。
+
+#### 6.2 避免插件混用
+
+**不要同时安装 pytest-ordering 和 pytest-order**，两者可能产生冲突。建议卸载原版后安装新版：
+
+```bash
+pip uninstall pytest-ordering
+pip install pytest-order
+```
+
+#### 6.3 优先级规则
+
+pytest-order 的优先级规则：
+
+- `order=0` 最先执行
+- `order=正数` 其次执行
+- `未指定 order` 默认执行
+- `order=负数` 最后执行
+
+#### 6.4 版本兼容性
+
+- pytest-order 支持 Python 3.7+ 和 pytest 5.0+
+- 对于 Python 3.10+，需要 pytest >= 6.2.4
+
+### 七、总结
+
+pytest-order（及原版 pytest-ordering）提供了以下核心能力：
+
+| 能力           | 说明                                          |
+| :------------- | :-------------------------------------------- |
+| **序号排序**   | 通过 `@pytest.mark.order(n)` 精确控制执行顺序 |
+| **相对排序**   | 通过 `before`/`after` 指定测试间的执行关系    |
+| **负索引**     | 支持从末尾计数，灵活指定最后执行的测试        |
+| **作用域控制** | 支持 session、module、class 级别的排序范围    |
+| **稀疏排序**   | 仅对部分测试指定顺序，其余保持默认            |
 
 
 
