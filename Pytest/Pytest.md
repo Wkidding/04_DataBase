@@ -7293,8 +7293,52 @@ def test_register():
 这是 pytest-order **独有的高级特性**，可以指定某个测试在另一个测试之前或之后执行
 
 ```python
+import pytest
 
+@pytest.mark.order(1)
+def test_register():
+    print("注册")
+
+@pytest.mark.order(after="test_register")
+def test_login():
+    print("登录（在注册之后执行）")
+
+@pytest.mark.order(before="test_logout")
+def test_create_order():
+    print("创建订单（在登出之前执行）")
+
+@pytest.mark.order(2)
+def test_logout():
+    print("登出")
 ```
+
+![image-20260725143117812](images/image-20260725143117812.png)
+
+### 3.5 混合使用：序号 + 相对排序
+
+相对排序可以与其他排序方式混合使用，实现更灵活的控制
+
+```python
+import pytest
+
+@pytest.mark.order(1)
+def test_a():
+    print("测试A")
+
+@pytest.mark.order(2)
+def test_b():
+    print("测试B")
+
+@pytest.mark.order(after="test_b")
+def test_c():
+    print("测试C（在B之后执行）")
+
+# 未指定顺序的用例默认排在最后
+def test_d():
+    print("测试D（默认最后执行）")
+```
+
+![image-20260725143218020](images/image-20260725143218020.png)
 
 
 
