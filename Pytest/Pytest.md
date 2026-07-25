@@ -8211,19 +8211,422 @@ pytest-assume 提供了以下核心能力：
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ## 08: pytest常用插件 - 测试报告pytest-html
+
+pytest-html 是一个用于生成 **HTML 格式测试报告**的 pytest 插件。它可以将测试结果转化为结构清晰、视觉友好的网页报告，便于团队成员查看、归档和分享。与终端输出相比，HTML 报告支持更丰富的信息展示，如环境信息、额外附件、自定义样式等，是自动化测试体系中不可或缺的一环。
+
+### 一、插件安装
+
+```bash
+pip install pytest-html
+## 或者
+conda install pytest-html
+```
+
+### 二、核心特性
+
+| 特性               | 说明                                                     |
+| :----------------- | :------------------------------------------------------- |
+| **基础报告生成**   | 通过 `--html` 参数一键生成 HTML 测试报告                 |
+| **自包含报告**     | 通过 `--self-contained-html` 生成单个独立 HTML 文件      |
+| **ANSI 代码支持**  | 依赖 `ansi2html` 包，将终端彩色输出转换为 HTML           |
+| **报告流式生成**   | 边执行边生成报告，无需等待全部测试完成                   |
+| **自定义外观**     | 通过 `--css` 注入自定义样式表                            |
+| **自定义报告标题** | 通过 `pytest_html_report_title` 钩子修改标题             |
+| **环境信息展示**   | 集成 `pytest-metadata`，展示 Python 版本、插件等环境信息 |
+| **额外内容附加**   | 支持为每个用例添加 HTML、文本、图片、URL 等额外信息      |
+| **结果表格定制**   | 通过钩子增删列、修改单元格内容                           |
+| **显示选项控制**   | 支持结果折叠、可见性过滤、列排序等交互功能               |
+
+### 三、基础用法
+
+#### 3.1 生成 HTML 报告
+
+安装完成后，在运行 pytest 时添加 `--html` 参数指定报告输出路径即可：
+
+```bash
+pytest --html=report.html
+```
+
+执行后，会在当前目录生成一个 `report.html` 文件和一个 `assets` 文件夹（存放 CSS 等静态资源）。
+
+#### 3.2 打开报告查看
+
+直接用浏览器打开生成的 HTML 文件即可查看报告。报告默认包含以下信息：
+
+- **Summary（摘要）** ：测试总数、通过、失败、跳过等统计
+- **Environment（环境）** ：Python 版本、pytest 版本、插件列表等
+- **Results（结果表格）** ：每个测试用例的详细执行结果
+
+#### 3.3 在 pytest.ini 中配置报告路径
+
+也可以将 `--html` 参数写入配置文件，避免每次手动输入：
+
+```ini
+[pytest]
+addopts = --html=report.html
+```
+
+
+
+### 四、核心特性详解
+
+#### 4.1 自包含报告（--self-contained-html）
+
+默认生成的 HTML 报告会引用外部 CSS 文件，便于浏览器缓存和内容安全策略（CSP）的遵守。但如果需要**分享单个 HTML 文件**（如通过邮件发送），可以使用 `--self-contained-html` 将所有 CSS 和资源内嵌到 HTML 中：
+
+```bash
+pytest --html=report.html --self-contained-html
+```
+
+> **⚠️ 注意**：在自包含报告模式下，通过 `extras` 添加的图片（无论是本地文件还是外部链接）可能无法正常显示，插件会发出警告。
+
+#### 4.2 ANSI 代码支持（ansi2html）
+
+pytest 在终端输出中经常使用 ANSI 颜色代码（如红色表示失败、绿色表示通过）。pytest-html 支持将这些彩色输出**转换到 HTML 报告**中，但需要额外安装 `ansi2html` 包：
+
+```bash
+pip install ansi2html
+```
+
+由于 `ansi2html` 的许可证限制，该包**未被列为 pytest-html 的默认依赖**，需要手动安装。
+
+#### 4.3 报告流式生成（generate_report_on_test）
+
+默认情况下，pytest-html 会**等待所有测试执行完毕后**才生成完整的 HTML 报告。对于大型测试套件，这种等待可能会让人焦虑。
+
+通过配置 `generate_report_on_test = true`，可以实现**边执行边生成报告**——每完成一个测试用例，报告就会立即更新.
+
+**在 `pytest.ini` 中配置**：
+
+```ini
+[pytest]
+generate_report_on_test = True
+```
+
+#### 4.4 自定义外观（--css）
+
+默认的 pytest-html 报告采用简洁的蓝白配色。如果想更换为团队主题色或让某些信息更醒目，可以通过 `--css` 参数注入自定义样式表：
+
+```bash
+pytest --html=report.html --css=custom.css
+```
+
+支持同时指定多个 CSS 文件，按顺序应用：
+
+```bash
+pytest --html=report.html --css=theme.css --css=highlight.css
+```
+
+**自定义 CSS 示例**（`custom.css`）：
+
+```css
+/* 将报告标题改为红色并居中 */
+h1 {
+    color: #ff0000;
+    text-align: center;
+}
+
+/* 调整环境信息表格行高 */
+#environment_table td {
+    padding: 12px 8px;
+}
+
+/* 失败用例高亮显示 */
+.failed .col-result {
+    background-color: #ffebee;
+    font-weight: bold;
+}
+```
+
+> **提示**：想知道要修改哪些元素的样式？先用默认命令生成一份报告，用浏览器打开并按下 F12 打开开发者工具，用元素检查器查看对应 HTML 标签和 CSS 类名。
+
+#### 4.5 自定义报告标题
+
+默认情况下，报告标题为报告文件的文件名。通过实现 `pytest_html_report_title` 钩子可以修改标题：
+
+在 `conftest.py` 中添加：
+
+```python
+def pytest_html_report_title(report):
+    report.title = "我的自动化测试报告"
+```
+
+#### 4.6 环境信息（Environment）
+
+报告中的 **Environment 表格**由 `pytest-metadata` 插件提供，展示了 Python 版本、pytest 版本、系统信息、已安装插件等。
+
+**添加自定义环境信息**：
+
+在 `conftest.py` 中通过 `pytest_configure` 钩子添加：
+
+```python
+from pytest_metadata.plugin import metadata_key
+
+def pytest_configure(config):
+    config.stash[metadata_key]["测试环境"] = "预发布环境"
+    config.stash[metadata_key]["构建编号"] = "2026-07-23-001"
+```
+
+**在测试执行后修改环境信息**：
+
+如果需要在测试执行完成后（如动态获取某些信息）再修改环境表，需使用 `pytest_sessionfinish` 钩子并配合 `@pytest.hookimpl(tryfirst=True)`，确保在 pytest-html 生成报告**之前**执行：
+
+```python
+import pytest
+from pytest_metadata.plugin import metadata_key
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_sessionfinish(session, exitstatus):
+    session.config.stash[metadata_key]["测试耗时"] = "120s"
+    session.config.stash[metadata_key]["分支"] = "main"
+```
+
+> **关键点**：`tryfirst=True` 确保此钩子在 pytest-html 和 pytest-metadata 的钩子之前执行，否则环境信息的修改将不会被报告捕获。
+
+**脱敏敏感信息**：
+
+如果环境表中包含敏感信息（如 API Key、密码等），可以通过 `environment_table_redact_list` 配置脱敏：
+
+```ini
+[pytest]
+environment_table_redact_list =
+    ^api_key$
+    .*password.*
+    ^secret_
+```
+
+匹配这些正则表达式的环境变量，其值将显示为灰色遮罩。
+
+#### 4.7 额外内容（Extras）— 为单个用例添加附件
+
+这是 pytest-html **最强大的特性之一**。可以为每个测试用例附加额外的内容，如截图、日志、URL 链接等。
+
+#### 支持的内容类型：
+
+| 类型             | 示例                                        |
+| :--------------- | :------------------------------------------ |
+| **Raw HTML**     | `extras.html('<div>Additional HTML</div>')` |
+| **JSON**         | `extras.json({'name': 'pytest'})`           |
+| **Plain Text**   | `extras.text('Add some simple Text')`       |
+| **URL**          | `extras.url('http://www.example.com/')`     |
+| **Image (通用)** | `extras.image('/path/to/file.png')`         |
+| **PNG**          | `extras.png(image)`                         |
+| **JPEG**         | `extras.jpg(image)`                         |
+| **SVG**          | `extras.svg(image)`                         |
+
+##### 方式一：在 conftest.py 中通过钩子添加（推荐）
+
+通过 `pytest_runtest_makereport` 钩子，可以在测试执行完成后为报告添加额外内容：
+
+```python
+import pytest
+import pytest_html
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    extras = getattr(report, "extras", [])
+    
+    if report.when == "call":
+        # 始终添加一个 URL
+        extras.append(pytest_html.extras.url("http://www.example.com/"))
+        
+        # 测试失败时添加额外的 HTML
+        if report.failed:
+            extras.append(pytest_html.extras.html("<div style='color:red;'>测试失败，请检查日志</div>"))
+            
+            # 假设有一个截图函数
+            # screenshot_path = take_screenshot()
+            # extras.append(pytest_html.extras.image(screenshot_path))
+    
+    report.extras = extras
+```
+
+##### 方式二：在测试函数中直接使用 extras fixture
+
+如果不想写钩子，可以直接在测试函数中使用 `extras` fixture：
+
+```python
+from pytest_html import extras
+
+def test_example(extras):
+    extras.append(extras.text("这是一条文本备注"))
+    extras.append(extras.url("https://www.example.com", name="查看详情"))
+    assert True
+```
+
+`extras` fixture 添加的内容会显示在测试结果行的 **Extra** 列中。
+
+#### 4.8 修改结果表格（Modifying the Results Table）
+
+通过实现自定义钩子，可以**增删列、修改单元格内容**，让报告更贴合团队需求。
+
+#### 添加自定义列
+
+以下示例在结果表格中添加了一个 **Description（描述）列**（显示测试函数的 docstring）和一个 **Time（时间）列**：
+
+```python
+import pytest
+from datetime import datetime
+
+def pytest_html_results_table_header(cells):
+    # 在索引 1 位置插入"时间"列头
+    cells.insert(1, "<th class='sortable time' data-column-type='time'>Time</th>")
+    # 在索引 2 位置插入"描述"列头
+    cells.insert(2, "<th>Description</th>")
+
+def pytest_html_results_table_row(report, cells):
+    # 在对应位置插入单元格内容
+    cells.insert(1, f'<td class="col-time">{datetime.utcnow()}</td>')
+    cells.insert(2, f"<td>{report.description}</td>")
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    # 从测试函数的 docstring 中提取描述
+    report.description = str(item.function.__doc__)
+```
+
+#### 过滤特定结果
+
+如果只想在报告中保留失败的用例，可以删除通过用例的所有单元格：
+
+```python
+def pytest_html_results_table_row(report, cells):
+    if report.passed:
+        del cells[:]  # 删除该行的所有单元格，即不显示该用例
+```
+
+#### 修改日志输出
+
+通过 `pytest_html_results_table_html` 钩子可以修改每个用例的日志输出区域：
+
+```python
+def pytest_html_results_table_html(report, data):
+    if report.passed:
+        del data[:]
+        data.append("<div class='empty log'>通过用例不记录日志。</div>")
+```
+
+#### 4.9 显示选项（Display Options）
+
+pytest-html 报告支持通过 **URL 查询参数**控制页面加载时的显示行为。
+
+#### 自动折叠表格行
+
+默认情况下，**Passed（通过）** 的用例行是折叠的，其他状态展开。可以通过 `?collapsed=` 参数自定义：
+
+```bash
+# 折叠 Passed、XFailed、Skipped 的行
+report.html?collapsed=Passed,XFailed,Skipped
+
+# 折叠所有行
+report.html?collapsed=All
+
+# 不折叠任何行
+report.html?collapsed=
+```
+
+也可以在配置文件中设置默认行为：
+
+```ini
+[pytest]
+render_collapsed = failed,error
+```
+
+#### 控制测试结果可见性
+
+通过 `?visible=` 参数，可以控制页面加载时**只显示特定状态的用例**：
+
+```bash
+# 只显示通过和跳过的用例
+report.html?visible=passed,skipped
+
+# 只显示失败的用例
+report.html?visible=failed,error
+```
+
+支持的取值：`passed`、`skipped`、`failed`、`error`、`xfailed`、`xpassed`、`rerun`
+
+#### 结果表格排序
+
+通过 `?sort=` 参数可以控制表格的**默认排序列**：
+
+```bash
+# 按测试ID排序
+report.html?sort=testId
+
+# 按执行时长排序
+report.html?sort=duration
+
+# 按执行顺序排序
+report.html?sort=original
+```
+
+#### 4.10 自定义时长格式
+
+默认情况下，Duration（时长）列中，小于 1 秒的显示为 `nnn ms`，大于等于 1 秒的显示为 `hh:mm:ss`。可以通过 `pytest_html_duration_format` 钩子自定义格式：
+
+```python
+import datetime
+
+def pytest_html_duration_format(duration):
+    duration_timedelta = datetime.timedelta(seconds=duration)
+    time = datetime.datetime(1, 1, 1) + duration_timedelta
+    return time.strftime("%H:%M:%S")
+```
+
+
+
+### 五、常用命令速查
+
+| 场景                             | 命令                                                         |
+| :------------------------------- | :----------------------------------------------------------- |
+| 生成基础 HTML 报告               | `pytest --html=report.html`                                  |
+| 生成自包含报告（单个 HTML 文件） | `pytest --html=report.html --self-contained-html`            |
+| 注入自定义样式                   | `pytest --html=report.html --css=custom.css`                 |
+| 同时使用多个 CSS                 | `pytest --html=report.html --css=theme.css --css=highlight.css` |
+
+### 六、注意事项
+
+#### 6.1 自包含报告中的图片问题
+
+使用 `--self-contained-html` 时，通过 `extras` 添加的图片（无论是本地文件还是外部链接）可能无法正常显示。如需在自包含报告中展示图片，建议使用 Base64 编码内嵌。
+
+#### 6.2 ansi2html 需要手动安装
+
+ANSI 代码转 HTML 的功能依赖 `ansi2html` 包，需**单独安装**：
+
+```bash
+pip install ansi2html
+```
+
+#### 6.3 环境信息修改的时机
+
+修改 Environment 表格时，**务必注意钩子的执行顺序**。使用 `pytest_sessionfinish` 修改环境信息时，必须添加 `@pytest.hookimpl(tryfirst=True)`，确保在 pytest-html 生成报告之前执行。
+
+#### 6.4 配置文件中的中文编码
+
+如果自定义 CSS 文件中包含中文字符，请确保文件保存为 **UTF-8 格式**，避免加载失败。
+
+### 七、总结
+
+pytest-html 提供了以下核心能力：
+
+| 能力               | 说明                                                     |
+| :----------------- | :------------------------------------------------------- |
+| **一键生成报告**   | 通过 `--html` 参数快速生成 HTML 格式测试报告             |
+| **自包含报告**     | `--self-contained-html` 生成单个独立 HTML 文件，便于分享 |
+| **丰富的内容扩展** | 通过 `extras` 为每个用例附加 HTML、文本、图片、URL 等    |
+| **灵活的外观定制** | 通过 `--css` 注入自定义样式，打造团队专属报告风格        |
+| **完善的环境信息** | 集成 `pytest-metadata`，展示测试执行的完整上下文         |
+| **强大的钩子系统** | 通过多个钩子自定义标题、表格列、日志输出、时长格式等     |
+| **交互式显示控制** | 支持 URL 参数控制折叠、过滤、排序，提升查看体验          |
+
+
 
 ## 09: pytest常用插件 - allure报告allure-pytest
 
