@@ -7773,21 +7773,103 @@ def test_create_order():
 
 ![image-20260725155017227](images/image-20260725155017227.png)
 
+#### 3.2 依赖链与多依赖
 
+一个用例可以依赖多个其他用例，且支持链式依赖
 
+```python
+import pytest
 
+@pytest.mark.dependency()
+def test_a():
+    assert True
 
+@pytest.mark.dependency()
+def test_b():
+    assert True
 
+# 依赖 test_a 和 test_b，两者都成功才会执行
+@pytest.mark.dependency(depends=["test_a", "test_b"])
+def test_c():
+    assert True
 
+# 依赖 test_c，如果 test_c 被跳过，test_d 也会被跳过
+@pytest.mark.dependency(depends=["test_c"])
+def test_d():
+    assert True
+```
 
+![image-20260725155336431](images/image-20260725155336431.png)
 
+#### 3.3 完整示例与执行结果
 
+以下示例展示了依赖失败时的完整执行效果：
 
+```python
+import pytest
 
+@pytest.mark.dependency()
+@pytest.mark.xfail(reason="deliberate fail")
+def test_a():
+    assert False
 
+@pytest.mark.dependency()
+def test_b():
+    pass
 
+@pytest.mark.dependency(depends=["test_a"])
+def test_c():
+    pass
 
+@pytest.mark.dependency(depends=["test_b"])
+def test_d():
+    pass
 
+@pytest.mark.dependency(depends=["test_b", "test_c"])
+def test_e():
+    pass
+```
+
+![image-20260725155440737](images/image-20260725155440737.png)
+
+执行结果分析：
+
+- **test_a**：故意失败（xfail）
+- **test_b**：成功执行
+- **test_c**：因依赖 test_a 失败而被**跳过**
+- **test_d**：依赖 test_b（成功），正常执行
+- **test_e**：依赖 test_b（成功）和 test_c（被跳过），因 test_c 被跳过而同样被**跳过**
+
+### 四、命名测试（自定义依赖名称）
+
+默认情况下，pytest-dependency 使用 pytest 的 **node ID**（即测试函数名）作为依赖引用名。但某些场景下（如参数化测试），node ID 难以预测，此时可以使用 `name` 参数为用例设置别名
+
+**注意**：`name` 必须在整个测试会话中**唯一**。
+
+```python
+import pytest
+
+@pytest.mark.dependency(name="a")
+@pytest.mark.xfail(reason="deliberate fail")
+def test_a():
+    assert False
+
+@pytest.mark.dependency(name="b")
+def test_b():
+    pass
+
+@pytest.mark.dependency(name="c", depends=["a"])
+def test_c():
+    pass
+
+@pytest.mark.dependency(name="d", depends=["b"])
+def test_d():
+    pass
+
+@pytest.mark.dependency(name="e", depends=["b", "c"])
+def test_e():
+    pass
+```
 
 
 
