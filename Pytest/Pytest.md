@@ -8836,7 +8836,19 @@ def test_minor_function():
 
 可选级别：`trivial`、`minor`、`normal`、`critical`、`blocker`。
 
+##### （5）链接（Link）
 
+将测试用例与需求文档、Bug 追踪系统、TMS 等外部系统关联：
+
+```python
+import allure
+
+@allure.link("https://docs.example.com/api", name="API文档")
+@allure.issue("BUG-12345", name="关联缺陷")
+@allure.testcase("TC-67890", name="测试用例")
+def test_with_links():
+    pass
+```
 
 
 
