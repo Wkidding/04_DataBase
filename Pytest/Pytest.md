@@ -8707,25 +8707,39 @@ vim /etc/profile
 
 # allure
 export ALLURE_HOME=/usr/local/allure-2.19.0
-export PATH=$ALLURE_HOME/bin:$PATH　　
+export PATH=$ALLURE_HOME/bin:$PATH　
+
+source /etc/profile
 ```
 
-激活配置：source /etc/profile
 
-### 常用命令
+
+### 三、常用命令
 
 运行测试用例并收集结果：pytest -s -q --alluredir=${WORKSPACE}/result --clean-alluredir
 
-查看报告方式一：
+#### 3.1 运行测试并生成原始数据
 
-- 查看在线测试报告：allure server ./result
+```bash
+pytest --alluredir=allure-results --clean-alluredir ./tests
+```
 
-查看报告方式二：
+`--alluredir` 参数指定测试结果数据的输出目录，Allure 会将每个测试用例的元信息、步骤、附件等以 JSON 格式保存到该目录下。
 
-- 生成最终测试报告：allure generate ./result --clean
-- 打开生成的最终测试报告：allure open ./allure-report
+#### 3.2 生成并查看 HTML 报告
 
+##### **方式一：`allure serve`（推荐）** —— 生成报告并自动在浏览器中打开（查看在线测试报告）：
 
+```bashbash
+allure serve allure-results
+```
+
+##### **方式二：`allure generate`** —— 仅生成报告，不自动打开：
+
+```bash
+allure generate allure-results -o allure-report --clean
+allure open allure-report
+```
 
 
 
