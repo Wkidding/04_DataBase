@@ -8813,7 +8813,28 @@ def test_login():
     pass
 ```
 
+##### （4）严重级别（Severity）
 
+标记测试用例的重要程度，便于优先关注关键问题：
+
+```python
+import allure
+from allure_commons.types import Severity
+
+@allure.severity(Severity.CRITICAL)
+def test_critical_function():
+    pass
+
+@allure.severity(Severity.BLOCKER)
+def test_blocker_function():
+    pass
+
+@allure.severity(Severity.MINOR)
+def test_minor_function():
+    pass
+```
+
+可选级别：`trivial`、`minor`、`normal`、`critical`、`blocker`。
 
 
 
