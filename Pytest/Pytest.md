@@ -8801,6 +8801,26 @@ def test_dynamic_description():
     assert True
 ```
 
+##### （3）标签（Tag）
+
+为测试用例添加分类标签，便于筛选和分组：
+
+```python
+import allure
+
+@allure.tag("冒烟测试", "回归测试", "登录模块")
+def test_login():
+    pass
+```
+
+
+
+
+
+
+
+
+
 
 
 
