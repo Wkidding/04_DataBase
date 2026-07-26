@@ -8634,6 +8634,99 @@ pytest-html 提供了以下核心能力：
 
 ## 09: pytest常用插件 - allure报告allure-pytest
 
+### 一、简介
+
+Allure是一款java语言开发的轻量级开源自动化测试报告生成框架；它支持绝大部分测试框架，比如TestNG、Junit、pytest等；可以提供详尽的的测试报告内容；也可以为管理理层提供high level统计报告；可以集成到Jenkins。
+
+官网：https://allurereport.org/
+
+pytest：https://allurereport.org/docs/pytest/
+
+![img](images/1024732-20240224223806956-750724355.png)
+
+
+
+### 二、插件安装
+
+#### 安装 allure-pytest 插件
+
+```bash
+pip install allure-pytest
+```
+
+该命令会同时安装 `allure-pytest` 和 `allure-python-commons` 两个包。
+
+
+
+#### 安装 Allure 命令行工具
+
+Allure 报告生成依赖 Allure 命令行工具（需 Java 环境）：
+
+#### 1.allure-commandline下载
+
+下载地址：https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/
+
+选择：allure-commandline-2.19.0.zip
+
+#### 2.linux下安装配置
+
+先安装jdk：allure是一个Java程序，依赖jdk
+
+```shell
+jdk在linux下安装、配置环境变量
+安装
+## 1、卸载CentOS系统自带的OpenJDK
+
+rpm -qa | grep java
+
+## 如果查询到有结果，就卸载，rpm -e，卸载不掉，就强制卸载，rpm -e --nodeps
+## 或者输入java --version，看有没有安装jdk
+
+## 2、linux服务器上创建myfile目录，把jdk上传到myfile目录下
+## 解压jdk到/usr/local/
+tar -zxvf jdk-8u211-linux-x64.tar.gz -C /usr/local/
+cd /usr/local/
+
+## 3、配置环境变量
+## 采用全局设置方法，就是修改 /etc/profile，它是所有用户共用的环境变量
+vim /etc/profile
+# jdk1.8
+export JAVA_HOME=/usr/local/jdk1.8.0_211
+export PATH=$JAVA_HOME/bin:$PATH
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+
+source /etc/profile
+```
+
+在安装allure
+
+```shell
+unzip allure-commandline-2.19.0.zip
+mv allure-2.19.0/ /usr/local/
+vim /etc/profile
+
+# allure
+export ALLURE_HOME=/usr/local/allure-2.19.0
+export PATH=$ALLURE_HOME/bin:$PATH　　
+```
+
+激活配置：source /etc/profile
+
+### 常用命令
+
+运行测试用例并收集结果：pytest -s -q --alluredir=${WORKSPACE}/result --clean-alluredir
+
+查看报告方式一：
+
+- 查看在线测试报告：allure server ./result
+
+查看报告方式二：
+
+- 生成最终测试报告：allure generate ./result --clean
+- 打开生成的最终测试报告：allure open ./allure-report
+
+
+
 
 
 
