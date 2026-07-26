@@ -8753,9 +8753,7 @@ Allure Pytest 不仅收集 pytest 标准功能提供的数据，还提供了额�
 
 为测试用例设置自定义标题，支持参数化值的动态替换：
 
-python
-
-```
+```python
 import allure
 import pytest
 
@@ -8776,7 +8774,32 @@ def test_dynamic_title():
     assert True
 ```
 
+##### （2）描述（Description）
 
+为测试用例添加详细描述，支持 **Markdown 格式**：
+
+```python
+import allure
+
+@allure.description("""
+# 登录功能测试
+
+## 测试步骤
+1. 打开登录页面
+2. 输入用户名和密码
+3. 点击登录按钮
+
+## 预期结果
+登录成功，跳转到首页
+""")
+def test_login_description():
+    pass
+
+# 动态方式
+def test_dynamic_description():
+    allure.dynamic.description("测试失败时截图保存")
+    assert True
+```
 
 
 
