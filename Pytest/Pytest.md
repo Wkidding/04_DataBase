@@ -8743,6 +8743,39 @@ allure open allure-report
 
 
 
+### 四、核心特性详解
+
+Allure Pytest 不仅收集 pytest 标准功能提供的数据，还提供了额外特性来编写更优质的测试。其特性主要通过**装饰器**（静态声明）和**动态 API**（运行时设置）两种方式使用。
+
+#### 4.1 测试元数据（Metadata）
+
+##### （1）标题（Title）
+
+为测试用例设置自定义标题，支持参数化值的动态替换：
+
+python
+
+```
+import allure
+import pytest
+
+# 静态方式：使用装饰器
+@allure.title("测试用户登录功能")
+def test_login():
+    pass
+
+# 参数化测试中动态替换标题
+@pytest.mark.parametrize("username", ["admin", "guest"])
+@allure.title("登录测试 - 用户 {username}")
+def test_login_with_params(username):
+    pass
+
+# 动态方式：在函数体内设置
+def test_dynamic_title():
+    allure.dynamic.title("动态设置的测试标题")
+    assert True
+```
+
 
 
 
