@@ -8850,9 +8850,20 @@ def test_with_links():
     pass
 ```
 
+##### （6）自定义标签（Label）
 
+使用 `@allure.label` 添加任意自定义元数据：
 
+```python
+import allure
+from allure_commons.types import LabelType
 
+@allure.label(LabelType.LANGUAGE, "python")
+@allure.label(LabelType.FRAMEWORK, "pytest")
+@allure.label("owner", "测试团队")
+def test_with_custom_label():
+    pass
+```
 
 
 
