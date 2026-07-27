@@ -8936,7 +8936,34 @@ class TestShopping:
         self.verify_cart_count(1)
 ```
 
+#### （2）上下文步骤（Context Steps）
 
+使用 `with allure.step()` 创建步骤上下文：
+
+```python
+import allure
+
+def test_login_flow():
+    with allure.step("打开登录页面"):
+        print("打开 https://example.com/login")
+    
+    with allure.step("输入用户名和密码"):
+        print("输入 admin / 123456")
+    
+    with allure.step("点击登录按钮"):
+        print("点击登录")
+    
+    with allure.step("验证登录成功"):
+        assert True
+```
+
+步骤标题支持参数值动态替换：
+
+```python
+@allure.step("用户 {username} 尝试登录")
+def login_step(username, password):
+    pass
+```
 
 
 
