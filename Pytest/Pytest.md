@@ -8907,7 +8907,34 @@ def test_login_api():
 
 默认情况下，Allure Pytest 会根据测试所在的模块自动设置 parent_suite 和 suite
 
+#### 4.3 测试步骤（Test Steps）
 
+将测试用例拆分为多个步骤，让报告清晰展示每个步骤的执行情况。
+
+##### （1）装饰器步骤（Decorated Steps）
+
+```python
+import allure
+
+class TestShopping:
+    
+    @allure.step("步骤1：打开商品详情页")
+    def open_product_page(self, product_id):
+        print(f"打开商品 {product_id}")
+    
+    @allure.step("步骤2：点击加入购物车")
+    def add_to_cart(self):
+        print("加入购物车")
+    
+    @allure.step("步骤3：验证购物车数量")
+    def verify_cart_count(self, expected):
+        print(f"验证购物车数量为 {expected}")
+    
+    def test_shopping_flow(self):
+        self.open_product_page("P001")
+        self.add_to_cart()
+        self.verify_cart_count(1)
+```
 
 
 
