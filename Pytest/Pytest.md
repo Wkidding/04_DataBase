@@ -9122,6 +9122,31 @@ def test_ui_with_screenshot(page):
 
 可通过 `--allure-no-capture` 参数禁用此行为
 
+#### 4.7 环境信息（Environment Information）
+
+在报告首页展示测试执行的环境信息，便于问题复现。
+
+在 `allure-results` 目录下创建 `environment.properties` 文件：
+
+```properties
+# environment.properties
+Python_Version=3.11.4
+OS=Ubuntu 22.04
+Browser=Chrome 115.0
+测试环境=预发布环境
+构建编号=2026-07-23-001
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## 10: pytest + allure最佳实践
