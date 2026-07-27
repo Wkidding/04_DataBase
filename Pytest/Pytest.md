@@ -8865,7 +8865,31 @@ def test_with_custom_label():
     pass
 ```
 
+#### 4.2 测试组织（Organize Tests）
 
+Allure 提供两套层级体系来组织测试报告。
+
+##### （1）行为层级（Behavior-based Hierarchy）
+
+按照 **Epic → Feature → Story** 三层结构组织测试：
+
+```python
+import allure
+
+@allure.epic("电商平台")
+@allure.feature("订单管理")
+@allure.story("创建订单")
+def test_create_order():
+    pass
+
+@allure.epic("电商平台")
+@allure.feature("订单管理")
+@allure.story("取消订单")
+def test_cancel_order():
+    pass
+```
+
+报告中将按照此层级展示测试用例的分布情况。
 
 
 
