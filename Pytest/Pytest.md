@@ -8869,4 +8869,16 @@ def test_with_custom_label():
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 ## 10: pytest + allure最佳实践
