@@ -8891,7 +8891,21 @@ def test_cancel_order():
 
 报告中将按照此层级展示测试用例的分布情况。
 
+##### （2）套件层级（Suite-based Hierarchy）
 
+按照 **Parent Suite → Suite → Sub-Suite** 组织：
+
+```python
+import allure
+
+@allure.parent_suite("Web接口测试")
+@allure.suite("用户模块")
+@allure.sub_suite("登录相关")
+def test_login_api():
+    pass
+```
+
+默认情况下，Allure Pytest 会根据测试所在的模块自动设置 parent_suite 和 suite
 
 
 
