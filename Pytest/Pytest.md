@@ -9013,7 +9013,24 @@ def test_with_sensitive_param():
     assert True
 ```
 
+#### 4.5 Fixture 描述
 
+为 pytest fixture 添加标题，让报告更清晰地展示 fixture 的作用：
+
+```python
+import allure
+import pytest
+
+@pytest.fixture()
+@allure.title("准备测试数据 - 创建测试用户")
+def test_user():
+    user = {"name": "test_user", "email": "test@example.com"}
+    yield user
+    # 清理操作
+
+def test_with_fixture(test_user):
+    assert test_user["name"] == "test_user"
+```
 
 
 
