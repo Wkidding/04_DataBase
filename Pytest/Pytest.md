@@ -8936,7 +8936,7 @@ class TestShopping:
         self.verify_cart_count(1)
 ```
 
-#### （2）上下文步骤（Context Steps）
+##### （2）上下文步骤（Context Steps）
 
 使用 `with allure.step()` 创建步骤上下文：
 
@@ -8965,7 +8965,53 @@ def login_step(username, password):
     pass
 ```
 
+#### 4.4 参数化测试（Parametrized Tests）
 
+Allure 自动在报告中展示参数化测试的每个参数组合及其值。
+
+```python
+import allure
+import pytest
+
+@pytest.mark.parametrize("username,password", [
+    ("admin", "正确密码"),
+    ("admin", "错误密码"),
+])
+@allure.title("登录测试 - {username} / {password}")
+def test_login_parametrized(username, password):
+    pass
+```
+
+##### 动态添加参数
+
+即使不使用 pytest 的参数化功能，也可以通过 `allure.dynamic.parameter()` 手动添加参数：
+
+```python
+import allure
+from os.path import basename
+
+def test_with_dynamic_param():
+    allure.dynamic.parameter("环境", "预发布环境")
+    allure.dynamic.parameter("浏览器", "Chrome")
+    assert True
+```
+
+##### 敏感参数脱敏
+
+对于密码、Token 等敏感参数，可以设置为 **MASKED**（隐藏值）或 **HIDDEN**（完全隐藏）：
+
+```python
+import allure
+from allure_commons.types import ParameterMode
+
+def test_with_sensitive_param():
+    allure.dynamic.parameter(
+        "password", 
+        "********", 
+        mode=ParameterMode.MASKED
+    )
+    assert True
+```
 
 
 
