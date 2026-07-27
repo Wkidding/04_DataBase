@@ -9032,7 +9032,95 @@ def test_with_fixture(test_user):
     assert test_user["name"] == "test_user"
 ```
 
+#### 4.6 附件（Attachments）
 
+Allure 支持在测试报告中添加各种类型的附件，如截图、日志、JSON 数据等。
+
+##### （1）从变量附加内容
+
+使用 `allure.attach()` 从变量附加内容：
+
+```python
+import allure
+
+def test_with_attachments():
+    # 附加文本
+    allure.attach("这是一条日志信息", name="执行日志", attachment_type=allure.attachment_type.TEXT)
+    
+    # 附加 JSON
+    import json
+    data = {"status": "success", "code": 0}
+    allure.attach(
+        json.dumps(data, indent=2), 
+        name="响应数据", 
+        attachment_type=allure.attachment_type.JSON
+    )
+    
+    # 附加 HTML
+    allure.attach(
+        "<div style='color:green'>测试通过</div>",
+        name="HTML片段",
+        attachment_type=allure.attachment_type.HTML
+    )
+    
+    assert True
+```
+
+##### （2）从文件附加
+
+使用 `allure.attach.file()` 从文件读取内容：
+
+```python
+import allure
+
+def test_with_file_attachment():
+    # 附加截图文件
+    allure.attach.file(
+        "screenshot.png",
+        name="页面截图",
+        attachment_type=allure.attachment_type.PNG
+    )
+    
+    # 附加日志文件
+    allure.attach.file(
+        "test.log",
+        name="测试日志",
+        attachment_type=allure.attachment_type.TEXT
+    )
+```
+
+##### （3）UI 自动化中的截图
+
+在 Selenium 或 Playwright 等 UI 自动化测试中，可以在关键步骤或失败时截图：
+
+```python
+import allure
+
+def test_ui_with_screenshot(page):
+    page.goto("https://example.com")
+    
+    # 操作后截图
+    png_bytes = page.screenshot()
+    allure.attach(
+        png_bytes,
+        name="登录后页面",
+        attachment_type=allure.attachment_type.PNG
+    )
+    
+    assert "欢迎" in page.text_content()
+```
+
+##### （4）默认捕获的输出
+
+默认情况下，Allure Pytest 会自动捕获以下内容作为附件：
+
+| 附件名称 | 内容                                |
+| :------- | :---------------------------------- |
+| `stdout` | `sys.stdout` 的输出（如 `print()`） |
+| `stderr` | `sys.stderr` 的输出                 |
+| `log`    | Python 标准 `logging` 模块的日志    |
+
+可通过 `--allure-no-capture` 参数禁用此行为
 
 
 
