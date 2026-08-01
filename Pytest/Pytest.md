@@ -8670,11 +8670,11 @@ Allure 报告生成依赖 Allure 命令行工具（需 Java 环境）：
 
 #### 2.linux下安装配置
 
-先安装jdk：allure是一个Java程序，依赖jdk
+**先安装jdk**：allure是一个Java程序，依赖jdk
 
 JDK/MAVEN/Gradle/Jmeter 等环境的安装参考：[JAVA/MEAVN等环境配置](https://github.com/Wkidding/Obsidian_Notes/blob/master/CS_Note/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%AC%94%E8%AE%B0/02_%E4%BB%A3%E7%A0%81/07_%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/00_Env_Info.md)
 
-安装allure
+**安装allure**
 
 ```shell
 wget https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.19.0/allure-commandline-2.19.0.zip
@@ -8683,9 +8683,10 @@ sudo mv allure-2.19.0/ /usr/local/
 cd /usr/local/
 sudo chown -R duzl:duzl allure-2.19.0/
 sudo chmod -R 755 allure-2.19.0/
+
 sudo vim /etc/profile
 
-# allure
+# allure 环境变量
 export ALLURE_HOME=/usr/local/allure-2.19.0
 export PATH=${ALLURE_HOME}/bin:$PATH　
 
@@ -8697,6 +8698,30 @@ source /etc/profile
 ### 三、常用命令
 
 运行测试用例并收集结果：pytest -s -q --alluredir=${WORKSPACE}/result --clean-alluredir
+
+```python
+import pytest
+import allure
+
+def test_allure_a():
+    print("--test_allure_a")
+    assert 1 == 2
+ 
+def test_allure_b():
+    print("--test_allure_b")
+    assert 1==1
+
+class Test01:
+    def test_allure_d(self):
+        print("--test_allure_d")
+        assert False
+ 
+    def test_allure_c(self):
+        print("--test_allure_c")
+        assert "cs" in "adcsbill"
+```
+
+![image-20260801222022375](images/image-20260801222022375.png)
 
 #### 3.1 运行测试并生成原始数据
 
