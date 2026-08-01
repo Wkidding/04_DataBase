@@ -9137,7 +9137,27 @@ Browser=Chrome 115.0
 构建编号=2026-07-23-001
 ```
 
+### 五、高级用法
 
+#### 4.1 测试选择（Test Selection via Test Plan）
+
+通过 `ALLURE_TESTPLAN_PATH` 环境变量指定测试计划文件，pytest 将只运行文件中列出的测试：
+
+```bash
+export ALLURE_TESTPLAN_PATH=testplan.json
+pytest --alluredir=allure-results
+```
+
+`testplan.json` 示例：
+
+```json
+{
+  "tests": [
+    {"id": "test_login"},
+    {"id": "test_logout"}
+  ]
+}
+```
 
 
 
