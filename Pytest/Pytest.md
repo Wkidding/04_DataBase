@@ -8750,11 +8750,18 @@ allure serve allure-results
 ##### **方式二：`allure generate`** —— 仅生成报告，不自动打开：
 
 ```bash
+## 生成报告
 allure generate allure-results -o allure-report --clean
+
+## 打开（也可以选择手动打开）
 allure open allure-report
 ```
 
+![image-20260801224001711](images/image-20260801224001711.png)
 
+![image-20260801224443893](images/image-20260801224443893.png)
+
+![image-20260801224251432](images/image-20260801224251432.png)
 
 ### 四、核心特性详解
 
