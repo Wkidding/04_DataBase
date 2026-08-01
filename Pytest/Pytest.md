@@ -9209,7 +9209,21 @@ def test_with_allure_id():
 | 清理历史数据               | `allure generate --clean allure-results -o allure-report` |
 | 禁用 stdout/stderr 捕获    | `pytest --alluredir=allure-results --allure-no-capture`   |
 
+### 八、总结
 
+allure-pytest 提供了以下核心能力：
+
+| 能力             | 说明                                                       |
+| :--------------- | :--------------------------------------------------------- |
+| **丰富的元数据** | 通过装饰器为测试添加标题、描述、标签、严重级别、链接等     |
+| **多维度组织**   | 支持 Epic/Feature/Story 行为层级和 Suite 套件层级          |
+| **测试步骤分解** | 通过 `@allure.step` 和上下文步骤将测试拆分为清晰的执行步骤 |
+| **参数化展示**   | 自动展示参数组合，支持敏感参数脱敏                         |
+| **Fixture 描述** | 为 fixture 添加标题，让报告更清晰                          |
+| **附件支持**     | 支持截图、JSON、HTML、日志等多种附件类型                   |
+| **环境信息**     | 在报告首页展示测试执行环境                                 |
+| **测试选择**     | 通过测试计划文件选择性执行测试                             |
+| **CI/CD 集成**   | 支持与 Jenkins 等 CI 工具集成，自动生成和发布报告          |
 
 
 
