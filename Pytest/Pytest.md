@@ -8672,42 +8672,22 @@ Allure 报告生成依赖 Allure 命令行工具（需 Java 环境）：
 
 先安装jdk：allure是一个Java程序，依赖jdk
 
-```shell
-jdk在linux下安装、配置环境变量
-安装
-## 1、卸载CentOS系统自带的OpenJDK
+JDK/MAVEN/Gradle/Jmeter 等环境的安装参考：
 
-rpm -qa | grep java
-
-## 如果查询到有结果，就卸载，rpm -e，卸载不掉，就强制卸载，rpm -e --nodeps
-## 或者输入java --version，看有没有安装jdk
-
-## 2、linux服务器上创建myfile目录，把jdk上传到myfile目录下
-## 解压jdk到/usr/local/
-tar -zxvf jdk-8u211-linux-x64.tar.gz -C /usr/local/
-cd /usr/local/
-
-## 3、配置环境变量
-## 采用全局设置方法，就是修改 /etc/profile，它是所有用户共用的环境变量
-vim /etc/profile
-# jdk1.8
-export JAVA_HOME=/usr/local/jdk1.8.0_211
-export PATH=$JAVA_HOME/bin:$PATH
-export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
-
-source /etc/profile
-```
-
-在安装allure
+安装allure
 
 ```shell
+wget https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.19.0/allure-commandline-2.19.0.zip
 unzip allure-commandline-2.19.0.zip
-mv allure-2.19.0/ /usr/local/
-vim /etc/profile
+sudo mv allure-2.19.0/ /usr/local/
+cd /usr/local/
+sudo chown -R duzl:duzl allure-2.19.0/
+sudo chmod -R 755 allure-2.19.0/
+sudo vim /etc/profile
 
 # allure
 export ALLURE_HOME=/usr/local/allure-2.19.0
-export PATH=$ALLURE_HOME/bin:$PATH　
+export PATH=${ALLURE_HOME}/bin:$PATH　
 
 source /etc/profile
 ```
