@@ -9172,7 +9172,17 @@ def test_manual_case():
     pass
 ```
 
+#### 4.3 Allure ID（与 Allure TestOps 集成）
 
+为测试用例设置唯一 ID，便于与 Allure TestOps 中的测试用例关联：
+
+```python
+import allure
+
+@allure.id("123")
+def test_with_allure_id():
+    pass
+```
 
 
 
