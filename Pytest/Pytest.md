@@ -9159,6 +9159,27 @@ pytest --alluredir=allure-results
 }
 ```
 
+#### 4.2 标记手工测试（Manual）
+
+使用 `@allure.manual` 标记，告诉 Allure TestOps 将该测试结果作为手工测试用例处理：
+
+```python
+import allure
+
+@allure.manual
+def test_manual_case():
+    # 此测试在 Allure TestOps 中将被标记为手工测试
+    pass
+```
+
+
+
+
+
+
+
+
+
 
 
 
