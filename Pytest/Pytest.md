@@ -8699,6 +8699,8 @@ source /etc/profile
 
 运行测试用例并收集结果：pytest -s -q --alluredir=${WORKSPACE}/result --clean-alluredir
 
+用例：`Testcase/test_plugins/test_allure.py`
+
 ```python
 import pytest
 import allure
@@ -8726,10 +8728,16 @@ class Test01:
 #### 3.1 运行测试并生成原始数据
 
 ```bash
-pytest --alluredir=allure-results --clean-alluredir ./tests
+pytest Testcase/test_plugins/test_allure.py --alluredir=./allure-results --clean-alluredir
 ```
 
 `--alluredir` 参数指定测试结果数据的输出目录，Allure 会将每个测试用例的元信息、步骤、附件等以 JSON 格式保存到该目录下。
+
+![image-20260801222452160](images/image-20260801222452160.png)
+
+结果：生成测试元数据
+
+![image-20260801222412496](images/image-20260801222412496.png)
 
 #### 3.2 生成并查看 HTML 报告
 
