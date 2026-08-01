@@ -8672,7 +8672,7 @@ Allure 报告生成依赖 Allure 命令行工具（需 Java 环境）：
 
 先安装jdk：allure是一个Java程序，依赖jdk
 
-JDK/MAVEN/Gradle/Jmeter 等环境的安装参考：
+JDK/MAVEN/Gradle/Jmeter 等环境的安装参考：[JAVA/MEAVN等环境配置](https://github.com/Wkidding/Obsidian_Notes/blob/master/CS_Note/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%AC%94%E8%AE%B0/02_%E4%BB%A3%E7%A0%81/07_%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/00_Env_Info.md)
 
 安装allure
 
