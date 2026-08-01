@@ -9184,8 +9184,6 @@ def test_with_allure_id():
     pass
 ```
 
-
-
 ### 六、Allure 与 pytest-html 对比
 
 | 对比维度       | pytest-html              | Allure                                     |
@@ -9200,7 +9198,16 @@ def test_with_allure_id():
 | **学习成本**   | 低                       | 中等（需学习装饰器体系）                   |
 | **适用场景**   | 快速查看测试结果         | 深度测试分析、团队协作、CI/CD 集成         |
 
+### 七、常用命令速查
 
+| 场景                       | 命令                                                      |
+| :------------------------- | :-------------------------------------------------------- |
+| 运行测试并生成 Allure 数据 | `pytest --alluredir=allure-results`                       |
+| 生成并打开报告             | `allure serve allure-results`                             |
+| 仅生成报告（不打开）       | `allure generate allure-results -o allure-report`         |
+| 打开已生成的报告           | `allure open allure-report`                               |
+| 清理历史数据               | `allure generate --clean allure-results -o allure-report` |
+| 禁用 stdout/stderr 捕获    | `pytest --alluredir=allure-results --allure-no-capture`   |
 
 
 
