@@ -8932,20 +8932,25 @@ class Test05:
 import allure
 from allure_commons.types import Severity
 
-@allure.severity(Severity.CRITICAL)
-def test_critical_function():
-    pass
+class Test06:
+    @allure.severity(Severity.CRITICAL)
+    def test_critical_function(self):
+        pass
 
-@allure.severity(Severity.BLOCKER)
-def test_blocker_function():
-    pass
+    @allure.severity(Severity.BLOCKER)
+    def test_blocker_function(self):
+        pass
 
-@allure.severity(Severity.MINOR)
-def test_minor_function():
-    pass
+    @allure.severity(Severity.MINOR)
+    def test_minor_function(self):
+        pass
 ```
 
 可选级别：`trivial`、`minor`、`normal`、`critical`、`blocker`。
+
+![image-20260802113142219](images/image-20260802113142219.png)
+
+![image-20260802113231647](images/image-20260802113231647.png)
 
 ##### （5）链接（Link）
 
