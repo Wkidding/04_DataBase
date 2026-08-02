@@ -8763,6 +8763,54 @@ allure open allure-report
 
 ![image-20260801224251432](images/image-20260801224251432.png)
 
+#### 3.3 allure报告结构
+
+```python
+class Test02:
+    def test_allure_success(self):
+        assert 1==1
+ 
+    def test_allure_fail(self):
+        assert 1==2
+ 
+def test_allure_skip():
+    pytest.skip("---skip")
+ 
+@pytest.mark.xfail(1==1, reason="---xfail")
+def test_allure_xfail():
+    # pytest.xfail("---xfail")
+    1==2
+ 
+def test_allure_broken():
+    raise Exception("---exception")
+ 
+def test_allure_error():
+    assert a=="asfssfcs"
+```
+
+![image-20260802094213411](images/image-20260802094213411.png)
+
+Overview：总览，包含用例数、各种结果统计、SUITES等
+
+Categories：类别，默认情况下，有两类缺陷：
+
+- Product defects，测试结果：failed
+- Test defects，测试结果：error/broken
+
+Suites：测试套件，所有用例的层级关系，可以根据package、module、类、方法、函数来查找用例
+
+Graphs：测试结果图形化，包括用例执行结果的比例，不同优先级(severity)测试用例运行的统计数据，耗时等
+
+Timeline：测试用例的执行顺序及执行时间
+
+Behaviors：行为驱动，根据epic、feature、story来对测试用例分组
+
+Packages：按照package、module来分组测试用例
+
+
+
+
+
 ### 四、核心特性详解
 
 Allure Pytest 不仅收集 pytest 标准功能提供的数据，还提供了额外特性来编写更优质的测试。其特性主要通过**装饰器**（静态声明）和**动态 API**（运行时设置）两种方式使用。
