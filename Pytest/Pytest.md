@@ -8823,15 +8823,19 @@ def test_allure_error():
 
 测试用例的执行顺序及执行时间
 
+![image-20260802095114324](images/image-20260802095114324.png)
+
 ##### Behaviors
 
 行为驱动，根据epic、feature、story来对测试用例分组
+
+![image-20260802095138977](images/image-20260802095138977.png)
 
 ##### Packages
 
 按照package、module来分组测试用例
 
-
+![image-20260802095153446](images/image-20260802095153446.png)
 
 
 
