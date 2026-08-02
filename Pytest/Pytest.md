@@ -8847,6 +8847,12 @@ Allure Pytest 不仅收集 pytest 标准功能提供的数据，还提供了额�
 
 ![img](images/1024732-20240226090901388-412460903.png)
 
+说明：
+
+- feature和story类似于父子关系
+- 如果不加 @allure.feature、@allure.story，在Behaviors下测试用例就不会分类显示
+- 如果没有添加 @allure.title() ，测试用例的标题默认就是函数名
+
 #### 4.1 测试元数据（Metadata）
 
 ##### （1）标题（Title）
