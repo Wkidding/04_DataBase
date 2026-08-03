@@ -9008,20 +9008,23 @@ Allure 提供两套层级体系来组织测试报告。
 ```python
 import allure
 
-@allure.epic("电商平台")
-@allure.feature("订单管理")
-@allure.story("创建订单")
-def test_create_order():
-    pass
+class Test09:
+    @allure.epic("电商平台")
+    @allure.feature("订单管理")
+    @allure.story("创建订单")
+    def test_create_order (self):
+        pass
 
-@allure.epic("电商平台")
-@allure.feature("订单管理")
-@allure.story("取消订单")
-def test_cancel_order():
-    pass
+    @allure.epic("电商平台")
+    @allure.feature("订单管理")
+    @allure.story("取消订单")
+    def test_cancel_order (self):
+        pass
 ```
 
 报告中将按照此层级展示测试用例的分布情况。
+
+![image-20260804071236164](images/image-20260804071236164.png)
 
 
 
