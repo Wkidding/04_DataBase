@@ -9077,9 +9077,9 @@ class TestShopping:
         self.verify_cart_count(1)
 ```
 
+![image-20260804072435852](images/image-20260804072435852.png)
 
-
-
+![image-20260804072602357](images/image-20260804072602357.png)
 
 ##### （2）上下文步骤（Context Steps）
 
@@ -9101,6 +9101,10 @@ def test_login_flow():
     with allure.step("验证登录成功"):
         assert True
 ```
+
+![image-20260804072944195](images/image-20260804072944195.png)
+
+
 
 步骤标题支持参数值动态替换：
 
