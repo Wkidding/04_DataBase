@@ -9153,7 +9153,7 @@ class Test13:
 
 ![image-20260804073853473](images/image-20260804073853473.png)
 
-
+![image-20260804074058226](images/image-20260804074058226.png)
 
 ##### 敏感参数脱敏
 
@@ -9163,14 +9163,19 @@ class Test13:
 import allure
 from allure_commons.types import ParameterMode
 
-def test_with_sensitive_param():
-    allure.dynamic.parameter(
-        "password", 
-        "********", 
-        mode=ParameterMode.MASKED
-    )
-    assert True
+class Test14:
+    def test_with_sensitive_param (self):
+        allure.dynamic.parameter(
+            "password",
+            "********",
+            mode=ParameterMode.MASKED
+        )
+        assert True
 ```
+
+![image-20260804074212300](images/image-20260804074212300.png)
+
+
 
 #### 4.5 Fixture 描述
 
