@@ -9104,7 +9104,7 @@ def test_login_flow():
 
 ![image-20260804072944195](images/image-20260804072944195.png)
 
-
+![image-20260804073148360](images/image-20260804073148360.png)
 
 步骤标题支持参数值动态替换：
 
@@ -9122,14 +9122,19 @@ Allure 自动在报告中展示参数化测试的每个参数组合及其值。
 import allure
 import pytest
 
-@pytest.mark.parametrize("username,password", [
-    ("admin", "正确密码"),
-    ("admin", "错误密码"),
-])
-@allure.title("登录测试 - {username} / {password}")
-def test_login_parametrized(username, password):
-    pass
+class Test12:
+    @pytest.mark.parametrize("username,password", [
+        ("admin", "正确密码"),
+        ("admin", "错误密码"),
+    ])
+    @allure.title("登录测试 - {username} / {password}")
+    def test_login_parametrized (self, username, password):
+        pass
 ```
+
+![image-20260804073503996](images/image-20260804073503996.png)
+
+
 
 ##### 动态添加参数
 
