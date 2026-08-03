@@ -8985,12 +8985,17 @@ class Test07:
 import allure
 from allure_commons.types import LabelType
 
-@allure.label(LabelType.LANGUAGE, "python")
-@allure.label(LabelType.FRAMEWORK, "pytest")
-@allure.label("owner", "测试团队")
-def test_with_custom_label():
-    pass
+class Test08:
+    @allure.label(LabelType.LANGUAGE, "python")
+    @allure.label(LabelType.FRAMEWORK, "pytest")
+    @allure.label("owner", "测试团队")
+    def test_with_custom_label (self):
+        pass
 ```
+
+![image-20260803224147479](images/image-20260803224147479.png)
+
+
 
 #### 4.2 测试组织（Organize Tests）
 
