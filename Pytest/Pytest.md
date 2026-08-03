@@ -8995,7 +8995,7 @@ class Test08:
 
 ![image-20260803224147479](images/image-20260803224147479.png)
 
-
+![image-20260803224409493](images/image-20260803224409493.png)
 
 #### 4.2 测试组织（Organize Tests）
 
@@ -9022,6 +9022,8 @@ def test_cancel_order():
 ```
 
 报告中将按照此层级展示测试用例的分布情况。
+
+
 
 ##### （2）套件层级（Suite-based Hierarchy）
 
