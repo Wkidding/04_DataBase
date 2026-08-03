@@ -9134,7 +9134,7 @@ class Test12:
 
 ![image-20260804073503996](images/image-20260804073503996.png)
 
-
+![image-20260804073744497](images/image-20260804073744497.png)
 
 ##### 动态添加参数
 
@@ -9144,11 +9144,16 @@ class Test12:
 import allure
 from os.path import basename
 
-def test_with_dynamic_param():
-    allure.dynamic.parameter("环境", "预发布环境")
-    allure.dynamic.parameter("浏览器", "Chrome")
-    assert True
+class Test13:
+    def test_with_dynamic_param (self):
+        allure.dynamic.parameter("环境", "预发布环境")
+        allure.dynamic.parameter("浏览器", "Chrome")
+        assert True
 ```
+
+![image-20260804073853473](images/image-20260804073853473.png)
+
+
 
 ##### 敏感参数脱敏
 
