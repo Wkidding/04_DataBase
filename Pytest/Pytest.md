@@ -8965,12 +8965,17 @@ class Test06:
 ```python
 import allure
 
-@allure.link("https://docs.example.com/api", name="API文档")
-@allure.issue("BUG-12345", name="关联缺陷")
-@allure.testcase("TC-67890", name="测试用例")
-def test_with_links():
-    pass
+class Test07:
+    @allure.link("https://docs.example.com/api", name="API文档")
+    @allure.issue("BUG-12345", name="关联缺陷")
+    @allure.testcase("TC-67890", name="测试用例")
+    def test_with_links(self):
+        pass
 ```
+
+![image-20260803222806157](images/image-20260803222806157.png)
+
+
 
 ##### （6）自定义标签（Label）
 
