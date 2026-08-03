@@ -9175,7 +9175,7 @@ class Test14:
 
 ![image-20260804074212300](images/image-20260804074212300.png)
 
-
+![image-20260804074444803](images/image-20260804074444803.png)
 
 #### 4.5 Fixture 描述
 
