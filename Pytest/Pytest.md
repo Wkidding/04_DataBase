@@ -9047,7 +9047,7 @@ class Test10:
 
 默认情况下，Allure Pytest 会根据测试所在的模块自动设置 parent_suite 和 suite
 
-
+![image-20260804072142765](images/image-20260804072142765.png)
 
 #### 4.3 测试步骤（Test Steps）
 
@@ -9076,6 +9076,10 @@ class TestShopping:
         self.add_to_cart()
         self.verify_cart_count(1)
 ```
+
+
+
+
 
 ##### （2）上下文步骤（Context Steps）
 
