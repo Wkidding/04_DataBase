@@ -9185,16 +9185,21 @@ class Test14:
 import allure
 import pytest
 
-@pytest.fixture()
-@allure.title("准备测试数据 - 创建测试用户")
-def test_user():
-    user = {"name": "test_user", "email": "test@example.com"}
-    yield user
-    # 清理操作
+class Test15:
+    @pytest.fixture()
+    @allure.title("准备测试数据 - 创建测试用户")
+    def test_user (self):
+        user = { "name": "test_user", "email": "test@example.com" }
+        yield user
+        # 清理操作
 
-def test_with_fixture(test_user):
-    assert test_user["name"] == "test_user"
+    def test_with_fixture (self, test_user):
+        assert test_user["name"] == "test_user"
 ```
+
+![image-20260804080403889](images/image-20260804080403889.png)
+
+
 
 #### 4.6 附件（Attachments）
 
