@@ -9309,7 +9309,7 @@ Browser=Chrome 115.0
 
 ### 五、高级用法
 
-#### 4.1 测试选择（Test Selection via Test Plan）
+#### 5.1 测试选择（Test Selection via Test Plan）
 
 通过 `ALLURE_TESTPLAN_PATH` 环境变量指定测试计划文件，pytest 将只运行文件中列出的测试：
 
@@ -9329,7 +9329,7 @@ pytest --alluredir=allure-results
 }
 ```
 
-#### 4.2 标记手工测试（Manual）
+#### 5.2 标记手工测试（Manual）
 
 使用 `@allure.manual` 标记，告诉 Allure TestOps 将该测试结果作为手工测试用例处理：
 
@@ -9342,7 +9342,7 @@ def test_manual_case():
     pass
 ```
 
-#### 4.3 Allure ID（与 Allure TestOps 集成）
+#### 5.3 Allure ID（与 Allure TestOps 集成）
 
 为测试用例设置唯一 ID，便于与 Allure TestOps 中的测试用例关联：
 
