@@ -9236,6 +9236,10 @@ class Test16:
         assert True
 ```
 
+
+
+
+
 ##### （2）从文件附加
 
 使用 `allure.attach.file()` 从文件读取内容：
@@ -9259,6 +9263,10 @@ def test_with_file_attachment():
     )
 ```
 
+
+
+
+
 ##### （3）UI 自动化中的截图
 
 在 Selenium 或 Playwright 等 UI 自动化测试中，可以在关键步骤或失败时截图：
@@ -9280,6 +9288,10 @@ def test_ui_with_screenshot(page):
     assert "欢迎" in page.text_content()
 ```
 
+
+
+
+
 ##### （4）默认捕获的输出
 
 默认情况下，Allure Pytest 会自动捕获以下内容作为附件：
@@ -9292,6 +9304,8 @@ def test_ui_with_screenshot(page):
 
 可通过 `--allure-no-capture` 参数禁用此行为
 
+
+
 #### 4.7 环境信息（Environment Information）
 
 在报告首页展示测试执行的环境信息，便于问题复现。
@@ -9300,7 +9314,7 @@ def test_ui_with_screenshot(page):
 
 ```properties
 # environment.properties
-Python_Version=3.11.4
+Python_Version=3.12.4
 OS=Ubuntu 22.04
 Browser=Chrome 115.0
 测试环境=预发布环境
