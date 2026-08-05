@@ -9212,27 +9212,28 @@ Allure 支持在测试报告中添加各种类型的附件，如截图、日志�
 ```python
 import allure
 
-def test_with_attachments():
-    # 附加文本
-    allure.attach("这是一条日志信息", name="执行日志", attachment_type=allure.attachment_type.TEXT)
-    
-    # 附加 JSON
-    import json
-    data = {"status": "success", "code": 0}
-    allure.attach(
-        json.dumps(data, indent=2), 
-        name="响应数据", 
-        attachment_type=allure.attachment_type.JSON
-    )
-    
-    # 附加 HTML
-    allure.attach(
-        "<div style='color:green'>测试通过</div>",
-        name="HTML片段",
-        attachment_type=allure.attachment_type.HTML
-    )
-    
-    assert True
+class Test16:
+    def test_with_attachments(self):
+        # 附加文本
+        allure.attach("这是一条日志信息", name="执行日志", attachment_type=allure.attachment_type.TEXT)
+
+        # 附加 JSON
+        import json
+        data = { "status": "success", "code": 0 }
+        allure.attach(
+            json.dumps(data, indent=2),
+            name="响应数据",
+            attachment_type=allure.attachment_type.JSON
+        )
+
+        # 附加 HTML
+        allure.attach(
+            "<div style='color:green'>测试通过</div>",
+            name="HTML片段",
+            attachment_type=allure.attachment_type.HTML
+        )
+
+        assert True
 ```
 
 ##### （2）从文件附加
