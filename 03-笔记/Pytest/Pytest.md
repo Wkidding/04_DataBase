@@ -9247,23 +9247,24 @@ class Test16:
 ```python
 import allure
 
-def test_with_file_attachment():
-    # 附加截图文件
-    allure.attach.file(
-        "screenshot.png",
-        name="页面截图",
-        attachment_type=allure.attachment_type.PNG
-    )
-    
-    # 附加日志文件
-    allure.attach.file(
-        "test.log",
-        name="测试日志",
-        attachment_type=allure.attachment_type.TEXT
-    )
+class Test17:
+    def test_with_file_attachment(self):
+        # 附加截图文件
+        allure.attach.file(
+            "screenshot.png",
+            name="页面截图",
+            attachment_type=allure.attachment_type.PNG
+        )
+
+        # 附加日志文件
+        allure.attach.file(
+            "test.log",
+            name="测试日志",
+            attachment_type=allure.attachment_type.TEXT
+        )
 ```
 
-
+![image-20260806214616661](images/image-20260806214616661.png)
 
 
 
@@ -9287,8 +9288,6 @@ def test_ui_with_screenshot(page):
     
     assert "欢迎" in page.text_content()
 ```
-
-
 
 
 
